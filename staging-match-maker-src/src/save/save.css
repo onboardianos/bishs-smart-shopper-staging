@@ -11,14 +11,16 @@
 .sp-save-btn:hover { background: var(--surface-light-inset, #F4F1E8); }
 .sp-save-btn:focus-visible { outline: 3px solid var(--text-light-primary, #0A0A09); outline-offset: 2px; }
 
-.sp-modal-root { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.sp-modal-root { position: fixed; inset: 0; z-index: 500; display: flex; align-items: center; justify-content: center; padding: 16px; }
+body.sp-lock { overflow: hidden; }
+html.sp-lock { overflow: hidden; }
 .sp-modal-root[hidden] { display: none !important; }
 .ss.is-overlay { overflow: hidden; }
 .sp-scrim { position: absolute; inset: 0; border: 0; background: color-mix(in srgb, #020000 55%, transparent); cursor: pointer; }
 .sp-card {
   position: relative; background: #fff; color: #0A0A09; border-radius: 16px; width: min(560px, 100%);
-  max-height: calc(100vh - 32px); box-shadow: 0 24px 48px rgba(0, 0, 0, .18); padding: 24px 28px 16px;
-  overflow: auto;
+  max-height: min(92dvh, calc(100dvh - 32px)); box-shadow: 0 24px 48px rgba(0, 0, 0, .18); padding: 24px 28px 16px;
+  display: flex; flex-direction: column; overflow: hidden; overscroll-behavior: contain;
 }
 .sp-card :where(h1, h2, h3, p, label, span) { color: #0A0A09; }
 .sp-x { position: absolute; top: 12px; right: 12px; width: 44px; height: 44px; display: grid; place-items: center; border: 0; border-radius: 50%; background: transparent; color: var(--ink, #0A0A09); cursor: pointer; }
@@ -26,8 +28,8 @@
 .sp-kicker { font-family: var(--font-ui, 'Barlow Condensed', sans-serif); letter-spacing: 4px; text-transform: uppercase; color: var(--text-light-secondary, #3D3D38); font-size: 13px; font-weight: 600; margin: 0; }
 .sp-title { font-family: var(--font-body, 'Source Sans 3', sans-serif); font-weight: 700; font-size: 28px; line-height: 1.15; letter-spacing: -0.5px; color: var(--ink, #0A0A09); margin: 6px 0 0; }
 .sp-text { color: var(--ink-2, #3D3D38); margin: 8px 0 14px; font-size: 15px; }
-.sp-form { display: block; }
-.sp-scroll { overflow: visible; }
+.sp-form { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.sp-scroll { overflow: auto; min-height: 0; flex: 1 1 auto; overscroll-behavior: contain; }
 .sp-list { display: grid; gap: 6px; padding: 10px 12px; border: 1px solid var(--hair, #E3E2DE); border-radius: 12px; margin: 0 0 14px; background: var(--surface-light-raised, #F7F6F1); list-style: none; }
 .sp-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; }
 .sp-row-l { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
@@ -70,7 +72,12 @@
   font-size: 12px; font-weight: 600; letter-spacing: 0.4px; line-height: 1.4;
 }
 .sp-loading, .sp-code, .sp-success, .sp-merge, .sp-form { display: none; }
-.sp-phase-save .sp-form, .sp-phase-save-error .sp-form { display: block; }
+.sp-card.sp-phase-save, .sp-card.sp-phase-save-error { height: min(92dvh, calc(100dvh - 32px)); }
+.sp-phase-save .sp-form, .sp-phase-save-error .sp-form,
+.sp-phase-save #sp-save-form, .sp-phase-save-error #sp-save-form {
+  display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; height: 100%; overflow: hidden;
+}
+.sp-form-pin, .sp-actions { flex-shrink: 0; }
 .sp-phase-save-loading .sp-loading { display: flex; }
 .sp-phase-save-code .sp-code, .sp-phase-save-merge .sp-merge, .sp-phase-save-success .sp-success { display: block; }
 .sp-form-pin { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--hair, #E3E2DE); background: #fff; }
@@ -122,7 +129,7 @@
   .ss.is-overlay .sp-save-slot, .sp-portal-page .sp-save-slot { display: none; }
   .ss .pg { padding-bottom: 96px; }
   .sp-modal-root { align-items: flex-end; padding: 0; }
-  .sp-card { width: 100%; max-height: min(92vh, 100%); border-radius: 16px 16px 0 0; padding: 20px 20px 12px; }
+  .sp-card { width: 100%; max-height: 92dvh; border-radius: 16px 16px 0 0; padding: 20px 20px 12px; }
   .sp-codes input { width: 52px; height: 58px; }
 }
 .sp-logged :where(h1, h2, h3) { color: #0A0A09; }

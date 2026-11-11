@@ -1,5 +1,6 @@
 // Logged-in customer portal. Reads the local profile. No network.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { SiteHeader } from '../steps/SiteHeader';
 import { findLiveUnit } from '../liveRank';
 import { lengthFt, money, unitImg, unitTitle } from '../results/inventory';
@@ -34,6 +35,20 @@ export function Portal() {
   const sleeps = answers && (answers.picked?.includes('adults') || answers.picked?.includes('children')) ? String((answers.picked.includes('adults') ? answers.adults : 0) + (answers.picked.includes('children') ? answers.children : 0)) : '—';
   const stores = answers?.stores?.length ? answers.stores.map((c) => storeName(c)).join(', ') : 'All locations';
   const lead = top[0];
+  const booking = view === 'book-visit' || view === 'book-visit-confirm' || view === 'book-visit-success';
+  useEffect(() => {
+    if (!booking) return;
+    const prevBody = document.body.style.overflow;
+    const prevHtml = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.classList.add('sp-lock');
+    return () => {
+      document.body.style.overflow = prevBody;
+      document.documentElement.style.overflow = prevHtml;
+      document.body.classList.remove('sp-lock');
+    };
+  }, [booking]);
   const home = view === 'portal' || view === 'portal-alerts' || view === 'portal-nav' || view.startsWith('book-');
   const [slot, setSlot] = useState('');
   const [bookStore, setBookStore] = useState(profile?.store || '');
@@ -187,7 +202,7 @@ export function Portal() {
         )}
       </main>
 
-      {(view === 'book-visit' || view === 'book-visit-confirm' || view === 'book-visit-success') && (
+      {booking && createPortal(
         <div className="sp-modal-root" id="sp-book-back" data-spec-id="sec-overlay-book-visit" data-bos-type="overlay" data-layer="overlay">
           <button type="button" className="sp-scrim" id="sp-book-scrim" data-spec-id="btn-action-dismiss-book-visit" data-bos-class="action" aria-label="Close" onClick={() => go('portal')} />
           <div className="sp-card" id="sp-book" role="dialog" aria-modal="true" aria-labelledby="sp-book-title">
@@ -252,8 +267,7 @@ export function Portal() {
               </div>
             )}
           </div>
-        </div>
-      )}
+        </div>, document.body)}
     </div>
   );
 }

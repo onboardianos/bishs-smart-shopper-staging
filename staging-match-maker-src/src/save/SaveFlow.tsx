@@ -1,5 +1,6 @@
 // Save Progress overlay on the results page. Front end only: submitCustomerProfile() is the stub.
 import { useEffect, useState, type FormEvent } from 'react';
+import { createPortal } from 'react-dom';
 import type { Answers } from '../answers';
 import { loadAnswers } from '../answers';
 import { confirmSignInCode, submitCustomerProfile } from './submitProfile';
@@ -65,7 +66,17 @@ export function SaveFlow({ phase, pins, saved, onPhase }: { phase: SavePhase; pi
     if (!open) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
     addEventListener('keydown', onKey);
-    return () => removeEventListener('keydown', onKey);
+    const prevBody = document.body.style.overflow;
+    const prevHtml = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.classList.add('sp-lock');
+    return () => {
+      removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevBody;
+      document.documentElement.style.overflow = prevHtml;
+      document.body.classList.remove('sp-lock');
+    };
   }, [open]);
 
   function go(next: SavePhase) {
@@ -124,7 +135,7 @@ export function SaveFlow({ phase, pins, saved, onPhase }: { phase: SavePhase; pi
 
   if (!open) return null;
   const destPhone = form.phone.trim();
-  return (
+  return createPortal(
     <div className="sp-modal-root" id="sp-overlay-back" data-spec-id="sec-overlay-save-progress" data-bos-level="section" data-bos-type="overlay" data-layer="overlay">
       <button type="button" className="sp-scrim" id="sp-overlay-scrim" data-spec-id="btn-action-dismiss-save-progress" data-bos-class="action" aria-label="Close Save Progress" tabIndex={-1} onClick={close} />
       <div className={`sp-card sp-phase-${phase}`} id="sp-overlay" role="dialog" aria-modal="true" aria-labelledby={phase === 'save-loading' ? 'sp-loading-title' : phase === 'save-code' ? 'sp-code-title' : phase === 'save-success' ? 'sp-success-title' : 'sp-overlay-title'}>
@@ -243,8 +254,7 @@ export function SaveFlow({ phase, pins, saved, onPhase }: { phase: SavePhase; pi
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>, document.body);
 }
 
 function Check() {
