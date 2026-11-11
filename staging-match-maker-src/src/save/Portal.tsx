@@ -18,10 +18,6 @@ function viewFromUrl(): View {
 }
 const go = (state: string) => { location.href = `${location.pathname}?state=${state}`; };
 
-function StoreNote() {
-  return <span className="sp-nr" data-needs-rule="outfitter-store" data-spec-id="info-needs-rule#outfitter-store">Placeholder · outfitter's store (example is Meridian; Figma showed Twin Falls)</span>;
-}
-
 export function Portal() {
   const view = viewFromUrl();
   const profile = loadProfile();
@@ -81,7 +77,6 @@ export function Portal() {
             <p className="sp-next-k">Your outfitter</p>
             <p className="sp-who-name" id="sp-sidenav-outfitter-name">Jess Rivera</p>
             <p id="sp-sidenav-outfitter-store">Bish's RV Meridian</p>
-            <StoreNote />
           </div>
           <button type="button" className="sp-ghost" id="sp-sign-out" data-spec-id="btn-action-sign-out" data-bos-class="action" onClick={() => go('results')}>Sign out</button>
         </div>
@@ -117,7 +112,7 @@ export function Portal() {
             <div className="sp-snaps" id="sp-snap-grid" data-spec-id="sec-portal-snapshots" data-example="true">
               <article className="sp-next" id="sp-snap-trade" data-spec-id="card-portal-trade-snap"><p className="sp-next-k">Your trade</p><h2>$10,200 – $12,600</h2><p>Estimate, not a quote · 2019 Flagstaff Super Lite</p><button type="button" className="sp-save-btn" id="sp-snap-trade-open" data-spec-id="btn-action-open-trade" data-bos-class="action" onClick={() => go('portal-trade')}>View trade</button></article>
               <article className="sp-next" id="sp-snap-notes" data-spec-id="card-portal-notes-snap"><p className="sp-next-k">Notes</p><h2>3 notes</h2><p>Latest: “Loved the kitchen island. Bunk room is big enough for both kids.”</p><button type="button" className="sp-save-btn" id="sp-snap-notes-open" data-spec-id="btn-action-open-notes" data-bos-class="action" onClick={() => go('portal-notes')}>Open notes</button></article>
-              <article className="sp-next" id="sp-snap-outfitter" data-spec-id="card-portal-outfitter-snap"><p className="sp-next-k">Your outfitter</p><h2>Jess Rivera</h2><p>Bish's RV Meridian · Ready to walk you through your #1.</p><StoreNote /><button type="button" className="sp-save-btn" id="sp-snap-outfitter-open" data-spec-id="btn-action-open-outfitter" data-bos-class="action" onClick={() => go('portal-outfitter')}>View outfitter</button></article>
+              <article className="sp-next" id="sp-snap-outfitter" data-spec-id="card-portal-outfitter-snap"><p className="sp-next-k">Your outfitter</p><h2>Jess Rivera</h2><p>Bish's RV Meridian · Ready to walk you through your #1.</p><button type="button" className="sp-save-btn" id="sp-snap-outfitter-open" data-spec-id="btn-action-open-outfitter" data-bos-class="action" onClick={() => go('portal-outfitter')}>View outfitter</button></article>
             </div>
             <section className="sp-sec" id="sp-answers-sec" data-spec-id="sec-portal-answers">
               <div className="sp-sec-h"><h2>Your Smart Shopper answers</h2><a className="sp-save-btn" id="sp-edit-answers" data-spec-id="btn-action-edit-answers" data-bos-class="action" href="?screen=summary">Edit answers</a></div>
@@ -148,7 +143,7 @@ export function Portal() {
             <p className="sp-text" id="sp-trade-sub">This is an estimate, not a quote. Jess can walk you through an appraisal in person.</p>
             <div className="sp-snaps">
               <article className="sp-next" id="sp-trade-value" data-spec-id="card-trade-value"><p className="sp-next-k">Estimated range</p><h2 id="sp-trade-value-v">$10,200 – $12,600</h2><p>2019 Flagstaff Super Lite · 26FKBS</p><p>Estimate, not a quote · Inspection scheduled</p><button type="button" className="sp-save-btn" id="sp-trade-appraisal" data-spec-id="btn-action-view-appraisal" data-bos-class="action">View appraisal</button></article>
-              <article className="sp-next" id="sp-trade-inspect" data-spec-id="card-trade-inspection"><p className="sp-next-k">Next up · Trade inspection</p><h2 id="sp-trade-inspect-t">Tuesday, November 17 · 11:00 AM</h2><p id="sp-trade-inspect-s">Bish's RV Meridian. Jess Rivera will meet you there.</p><StoreNote /><button type="button" className="sp-commit" id="sp-trade-expect" data-spec-id="btn-commit-what-to-expect" data-bos-class="commit">What to expect</button></article>
+              <article className="sp-next" id="sp-trade-inspect" data-spec-id="card-trade-inspection"><p className="sp-next-k">Next up · Trade inspection</p><h2 id="sp-trade-inspect-t">Tuesday, November 17 · 11:00 AM</h2><p id="sp-trade-inspect-s">Bish's RV Meridian. Jess Rivera will meet you there.</p><button type="button" className="sp-commit" id="sp-trade-expect" data-spec-id="btn-commit-what-to-expect" data-bos-class="commit">What to expect</button></article>
             </div>
           </section>
         )}
@@ -179,7 +174,6 @@ export function Portal() {
             <p className="sp-kicker">Outfitter</p>
             <h1 className="sp-hello" id="sp-outfitter-title">Your outfitter</h1>
             <p className="sp-text" id="sp-outfitter-sub">Jess Rivera is your person at Bish's RV Meridian.</p>
-            <StoreNote />
             <article className="sp-next" id="sp-outfitter-card" data-spec-id="card-outfitter-profile">
               <h2 id="sp-outfitter-name">Jess Rivera</h2>
               <p>Jess can walk you through your top three, answer the questions on your notes, and meet you for a trade inspection or a visit on the lot.</p>
@@ -210,7 +204,6 @@ export function Portal() {
                       <option value="">Choose a store</option>
                       {SAVE_STORES.map((s) => <option key={s.code} value={s.code}>{s.label}</option>)}
                     </select>
-                    <span className="sp-nr" data-needs-rule="store-list" data-spec-id="info-needs-rule#book-store">Placeholder · store list is still open — showing every staging store except Corp</span>
                   </div>
                   <div className="sp-field" id="sp-book-date-wrap">
                     <label className="sp-label" htmlFor="sp-book-date">Date</label>
@@ -242,7 +235,6 @@ export function Portal() {
                   <div><dt>When</dt><dd id="sp-book-confirm-when">{when} · {slotLabel}</dd></div>
                   <div><dt>With</dt><dd id="sp-book-confirm-who">Jess Rivera</dd></div>
                 </dl>
-                <StoreNote />
                 <div className="sp-actions">
                   <button type="button" className="sp-commit" id="sp-book-confirm" data-spec-id="btn-commit-confirm-visit" data-bos-class="commit" onClick={() => go('book-visit-success')}>Confirm visit</button>
                   <button type="button" className="sp-ghost" id="sp-book-back-edit" data-spec-id="btn-action-edit-visit" data-bos-class="action" onClick={() => go('book-visit')}>Change date or time</button>

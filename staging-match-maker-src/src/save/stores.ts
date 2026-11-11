@@ -1,4 +1,12 @@
-// Preferred-store list from the Save Progress handoff: staging stores, Corp removed. Q8 still needs a ruling.
+// Short list is Design Bot's SPEC: Meridian, Twin Falls, Idaho Falls, Salt Lake.
+export const SHORT_STORES: { code: string; label: string }[] = [
+  { code: 'MID', label: 'Meridian' },
+  { code: 'TWF', label: 'Twin Falls' },
+  { code: 'IDF', label: 'Idaho Falls' },
+  { code: 'SUT', label: 'Salt Lake' },
+];
+
+// Full preferred-store list: staging stores, Corp removed (27).
 export const SAVE_STORES: { code: string; label: string }[] = [
   { code: 'AUT', label: 'American Fork, UT' },
   { code: 'AIN', label: 'Anderson, IN' },

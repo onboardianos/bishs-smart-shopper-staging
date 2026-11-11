@@ -3,7 +3,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import type { Answers } from '../answers';
 import { loadAnswers } from '../answers';
 import { confirmSignInCode, submitCustomerProfile } from './submitProfile';
-import { SAVE_STORES } from './stores';
+import { SAVE_STORES, SHORT_STORES } from './stores';
 
 export const SAVE_PHASES = ['save', 'save-error', 'save-loading', 'save-code', 'save-merge', 'save-success'] as const;
 export type SavePhase = '' | (typeof SAVE_PHASES)[number];
@@ -30,10 +30,6 @@ const digits = (v: string) => v.replace(/\D/g, '');
 type Form = { first: string; last: string; email: string; phone: string; store: string; consent: boolean };
 const emptyForm = (): Form => ({ first: '', last: '', email: '', phone: '', store: '', consent: false });
 
-function Needs({ id, q, text }: { id: string; q: string; text: string }) {
-  return <span className="sp-nr" data-needs-rule={q} data-spec-id={`info-needs-rule#${id}`}>Placeholder · needs-rule {q} · {text}</span>;
-}
-
 export function SaveButton({ onOpen }: { onOpen: () => void }) {
   return (
     <div className="sp-save-slot" data-spec-id="sec-save-progress-slot" id="sp-save-slot">
@@ -41,13 +37,13 @@ export function SaveButton({ onOpen }: { onOpen: () => void }) {
         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" /><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7" /><path d="M7 3v4a1 1 0 0 0 1 1h7" /></svg>
         <span id="sp-save-progress-t">Save Progress</span>
       </button>
-      <span className="sp-nr" data-needs-rule="button-style" data-spec-id="info-needs-rule#button-style">Placeholder · Save Progress style is outline until decided</span>
     </div>
   );
 }
 
 export function SaveFlow({ phase, pins, saved, onPhase }: { phase: SavePhase; pins: string[]; saved: string[]; onPhase: (p: SavePhase) => void }) {
   const [form, setForm] = useState<Form>(emptyForm);
+  const [allStores, setAllStores] = useState(false);
   const [errors, setErrors] = useState({ first: false, last: false, email: false, phone: false, consent: false });
   const [banner, setBanner] = useState('Fix 3 things to continue.');
   const [code, setCode] = useState(['', '', '', '']);
@@ -57,7 +53,7 @@ export function SaveFlow({ phase, pins, saved, onPhase }: { phase: SavePhase; pi
   const ready = !!(form.first.trim() && form.last.trim() && form.email.trim() && form.consent);
 
   useEffect(() => {
-    if (phase === 'save') { setForm(emptyForm()); setErrors({ first: false, last: false, email: false, phone: false, consent: false }); setCode(['', '', '', '']); setCodeHint(''); }
+    if (phase === 'save') { setForm(emptyForm()); setAllStores(false); setErrors({ first: false, last: false, email: false, phone: false, consent: false }); setCode(['', '', '', '']); setCodeHint(''); }
     if (phase === 'save-error' && !form.first && !form.email) {
       setForm({ first: 'Alex', last: 'Morgan', email: 'alex.morgan@example', phone: '(208) 555-01', store: 'MID', consent: false });
       setErrors({ first: false, last: false, email: true, phone: true, consent: true });
@@ -160,11 +156,11 @@ export function SaveFlow({ phase, pins, saved, onPhase }: { phase: SavePhase; pi
                 <Field id="phone" label="Mobile phone" error="Enter a 10-digit mobile number." hint="Optional. We'll also text the code if you add a number." bad={errors.phone} value={form.phone} placeholder="(208) 555-0123" auto="tel" inputMode="tel" onChange={(phone) => setForm({ ...form, phone })} />
                 <div className="sp-field" id="sp-field-store-wrap">
                   <label className="sp-label" id="sp-field-store-l" htmlFor="sp-field-store">Preferred store <span id="sp-field-store-opt">(optional)</span></label>
-                  <select className="sp-ctrl" id="sp-field-store" data-spec-id="input-save-store" data-bos-class="input" value={form.store} onChange={(e) => setForm({ ...form, store: e.target.value })}>
+                  <select className="sp-ctrl" id="sp-field-store" data-spec-id="input-save-store" data-bos-class="input" value={form.store} onChange={(e) => { if (e.target.value === '__all__') { setAllStores(true); return; } setForm({ ...form, store: e.target.value }); }}>
                     <option value="">Choose a store</option>
-                    {SAVE_STORES.map((s) => <option key={s.code} id={`sp-store-opt-${s.code.toLowerCase()}`} value={s.code}>{s.label}</option>)}
+                    {(allStores ? SAVE_STORES : SHORT_STORES).map((s) => <option key={s.code} id={`sp-store-opt-${s.code.toLowerCase()}`} value={s.code}>{s.label}</option>)}
+                    {!allStores && <option value="__all__">Show all stores</option>}
                   </select>
-                  <Needs id="store" q="store-list" text="store list is still open — showing every staging store except Corp" />
                 </div>
               </div>
             </div>
