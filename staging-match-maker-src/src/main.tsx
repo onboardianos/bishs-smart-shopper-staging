@@ -14,6 +14,9 @@ import { Loading } from './steps/Loading';
 import { QLoading } from './steps/QLoading';
 import { StepCamping, StepTradeNow, StepTradeWhy, StepCampStyle, StepActivities, StepSleep, StepBedroom, StepTow, StepLength, StepGarage, StepMulti, StepSize, StepBuild, StepBudget, StepSummary } from './steps/more';
 import { App } from './results/App';
+import { Portal } from './save/Portal';
+import { savePhaseFromUrl } from './save/SaveFlow';
+import './save/save.css';
 
 const q = new URLSearchParams(location.search);
 const screen = q.get('screen') || '00';
@@ -58,7 +61,8 @@ function Screen() {
   if (screen === 'summary') return <StepSummary />;
   if (screen === 'qload') return <QLoading />;
   if (screen === 'loading') return <Loading />;
-  if (screen === 'results' || screen === 'matches') return <App />;
+  if (screen === 'portal' || q.get('state') === 'portal') return <Portal />;
+  if (screen === 'results' || screen === 'matches' || savePhaseFromUrl()) return <App />;
   return <Landing query={q.get('q') || ''} locOpen={q.get('loc') === '1'} />;
 }
 

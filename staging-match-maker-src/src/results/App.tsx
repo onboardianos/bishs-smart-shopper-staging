@@ -15,6 +15,8 @@ import { budgetText, budgetRows, people, answerText } from '../steps/answersText
 import { resetAnswers, go } from '../answers';
 import { setLiveBudget } from './inventory';
 import TOW from '../tow.json';
+import { loadProfile } from '../save/profile';
+import { SaveButton, SaveFlow, savePhaseFromUrl, type SavePhase } from '../save/SaveFlow';
 
 // DESIGN PREVIEW ONLY. Rebuild of the Match Maker results as two full-width pages (Zach refs A + B, t147u/t148u).
 // Gold only where Zach's refs put it; each such element carries (or "cta") so checks can audit it.
@@ -28,7 +30,12 @@ const q = () => new URLSearchParams(location.search);
 function pinsFromUrl(): string[] {
   const unit = q().get('unit');
   const raw = q().get('pins');
-  if (raw == null) return unit ? [unit, '', ''] : ['', '', ''];
+  if (raw == null) {
+    if (unit) return [unit, '', ''];
+    const kept = loadProfile()?.pins;
+    if (kept?.some(Boolean)) return [kept[0] || '', kept[1] || '', kept[2] || ''];
+    return ['', '', ''];
+  }
   const p = raw.split(',').map((s) => s.trim());
   return [p[0] || '', p[1] || '', p[2] || ''];
 }
@@ -66,15 +73,31 @@ export function App() {
   const [tab, setTab] = useState<Tab>(tabFromUrl);
   const [drawer, setDrawer] = useState(() => q().get('drawer') === '1');
   const [filtOpen, setFiltOpen] = useState(() => q().get('filters') === '1');
-  const [savedSet, setSavedSet] = useState<string[]>([]);
+  const [savedSet, setSavedSet] = useState<string[]>(() => loadProfile()?.saved || []);
+  const [savePhase, setSavePhase] = useState<SavePhase>(savePhaseFromUrl);
+  const openSave = () => {
+    const s = new URLSearchParams(location.search);
+    s.set('save', 'save');
+    history.pushState(null, '', `${location.pathname}?${s.toString()}`);
+    setSavePhase('save');
+  };
+  useEffect(() => {
+    const sync = () => setSavePhase(savePhaseFromUrl());
+    addEventListener('popstate', sync);
+    return () => removeEventListener('popstate', sync);
+  }, []);
   const saved = useMemo(() => rows.filter((m) => savedSet.includes(m.unit.stock)), [rows, savedSet]);
   const [dragStock, setDragStock] = useState<string | null>(null);
   const [over, setOver] = useState<number | null>(null);
   const [view, setView] = useState<View>(() => (q().get('view') === 'list' ? 'list' : 'grid'));
 
   useEffect(() => {
-    document.title = tab === 'top3' ? "Your top three · Smart Shopper · Bish's RV" : "Find your next getaway · Smart Shopper · Bish's RV";
-  }, [tab]);
+    if (savePhase === 'save' || savePhase === 'save-error') document.title = "Save Progress · Smart Shopper · Bish's RV";
+    else if (savePhase === 'save-loading') document.title = "Saving your progress · Smart Shopper · Bish's RV";
+    else if (savePhase === 'save-code') document.title = "Enter your sign-in code · Smart Shopper · Bish's RV";
+    else if (savePhase === 'save-success') document.title = "Your progress is saved · Smart Shopper · Bish's RV";
+    else document.title = tab === 'top3' ? "Your top three · Smart Shopper · Bish's RV" : tab === 'saved' ? "Saved · Smart Shopper · Bish's RV" : "Find your next getaway · Smart Shopper · Bish's RV";
+  }, [tab, savePhase]);
   useLayoutEffect(() => {
     if (tab !== 'inventory' || view !== 'grid') return;
     const slot = document.getElementById('mm-slot-1');
@@ -129,12 +152,12 @@ export function App() {
   const tileProps = { pins, saved: savedSet, onPin: pin, onSave: toggleSave, drag };
 
   return (
-    <div className={`ss${fit ? ` is-fit is-${view}` : ''}`} id="mm-root" data-bos-level="screen" data-bos-screen={`smart-shopper-${tab}${fit ? `-${view}` : ''}`}>
-      <TopBar />
-      <main className="pg" id="mm-main">
+    <div className={`ss${fit ? ` is-fit is-${view}` : ''}${savePhase ? ' is-overlay' : ''}`} id="mm-root" data-bos-level="screen" data-bos-screen={`smart-shopper-${tab}${fit ? `-${view}` : ''}`}>
+      <div inert={savePhase ? true : undefined}><TopBar /></div>
+      <main className="pg" id="mm-main" inert={savePhase ? true : undefined}>
         {tab === 'inventory' && (
           <>
-            <PageHead id="mm-inv-head" title="Find your next getaway." sub={`${live.total.toLocaleString('en-US')} matching units`} onAnswers={() => setDrawer(true)} extra={<Notice label={desk.towMax < desk.R.towMax ? `${desk.towMax.toLocaleString('en-US')} lbs` : ''} onAdd={() => setTowOpen(true)} />} budget={answers} />
+            <PageHead id="mm-inv-head" title="Find your next getaway." sub={`${live.total.toLocaleString('en-US')} matching units`} onAnswers={() => setDrawer(true)} extra={<Notice label={desk.towMax < desk.R.towMax ? `${desk.towMax.toLocaleString('en-US')} lbs` : ''} onAdd={() => setTowOpen(true)} />} budget={answers} save={<SaveButton onOpen={openSave} />} />
             <button type="button" className="filt-toggle" id="mm-filt-toggle" data-spec-id="btn-action-toggle-filters" data-bos-class="action" aria-expanded={filtOpen} aria-controls="mm-filt" onClick={() => setFiltOpen((v) => !v)}>
               <Svg id="mm-filt-toggle-icon" d={I.sliders} size={18} />
               <span id="mm-filt-toggle-t">Filters</span>
@@ -155,14 +178,14 @@ export function App() {
         )}
         {tab === 'top3' && (
           <>
-            <PageHead id="mm-tt-head" title="Your top three." sub="Choose your favorite to explore purchase options." onAnswers={() => setDrawer(true)} />
+            <PageHead id="mm-tt-head" title="Your top three." sub="Choose your favorite to explore purchase options." onAnswers={() => setDrawer(true)} save={<SaveButton onOpen={openSave} />} />
             <TabsRow tab={tab} onTab={setTab} savedN={savedSet.length} />
             <TopThreeBoard slots={slots} over={over} drag={drag} onRemove={unpin} onBrowse={() => setTab('inventory')} />
           </>
         )}
         {tab === 'saved' && (
           <>
-            <PageHead id="mm-sv-head" title="Saved." sub={`${savedSet.length} RVs you saved. Pin any of them into your top three.`} onAnswers={() => setDrawer(true)} />
+            <PageHead id="mm-sv-head" title="Saved." sub={`${savedSet.length} RVs you saved. Pin any of them into your top three.`} onAnswers={() => setDrawer(true)} save={<SaveButton onOpen={openSave} />} />
             <TabsRow tab={tab} onTab={setTab} savedN={savedSet.length} />
             <ul className="grid grid-saved" id="mm-saved-grid" data-spec-id="list-saved-tiles">
               {saved.filter((m) => savedSet.includes(m.unit.stock)).map((m) => <Tile key={m.unit.stock} m={m} {...tileProps} prefix="mm-sv" />)}
@@ -177,6 +200,7 @@ export function App() {
       )}
       {drawer && <AnswersDrawer onClose={() => setDrawer(false)} answers={answers} onTow={() => { setDrawer(false); setTowOpen(true); }} />}
       {towOpen && <TowSheet answers={answers} onClose={() => setTowOpen(false)} onSave={(towRating, towLabel) => { patch({ towRating, towLabel, tow: 'yes', towMode: 'derived' }); setDesk((d) => ({ ...d, towMax: Math.min(d.R.towMax, Math.round(towRating * 0.9)) })); setTowOpen(false); }} />}
+      <SaveFlow phase={savePhase} pins={pins} saved={savedSet} onPhase={setSavePhase} />
       {rows.length === 0 && <p className="mm-state" data-state="empty" data-spec-id="card-state-empty" role="status"><span><strong className="mm-state-title">No matching units</strong><span className="mm-state-body">Nothing on the lot fits these answers. Widen the budget, the tow rating, or the stores.</span></span></p>}
     </div>
   );
@@ -189,7 +213,7 @@ function TopBar() {
   return <SiteHeader prefix="mm" />;
 }
 
-function PageHead({ id, title, sub, onAnswers, extra, budget }: { id: string; title: string; sub: string; onAnswers: () => void; extra?: ReactNode; budget?: Answers }) {
+function PageHead({ id, title, sub, onAnswers, extra, budget, save }: { id: string; title: string; sub: string; onAnswers: () => void; extra?: ReactNode; budget?: Answers; save?: ReactNode }) {
   return (
     <header className="ph" id={id} data-spec-id="sec-page-heading">
       <div className="ph-txt" id={`${id}-txt`}>
@@ -201,8 +225,9 @@ function PageHead({ id, title, sub, onAnswers, extra, budget }: { id: string; ti
       <button type="button" className="answers-btn" id={`${id}-answers`} data-spec-id="btn-action-open-your-answers" data-bos-class="action" aria-haspopup="dialog" onClick={onAnswers}>
         <Svg id={`${id}-answers-icon`} d={I.user} size={18} />
         <span id={`${id}-answers-t`}>Your answers</span>
-        <span className="answers-sum" id={`${id}-answers-sum`}>{budget ? `${budgetText(budget)} · sleeps ${budget.picked.includes('adults') || budget.picked.includes('children') ? budget.adults + budget.children : '—'}` : ''}</span>
-      </button>
+<span className="answers-sum" id={`${id}-answers-sum`}>{budget ? `${budgetText(budget)} · sleeps ${budget.picked.includes('adults') || budget.picked.includes('children') ? budget.adults + budget.children : '—'}` : ''}</span>
+        </button>
+        {save}
       </div>
     </header>
   );
