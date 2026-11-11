@@ -63,6 +63,7 @@ body.kb-open .ssw-act, body.kb-open .sh { position: static; }
   }
   .ct-grid.g5 .ct-btn { flex-direction: column !important; text-align: center; }
   .ct-grid.g5 .ct-media { width: 100% !important; flex: none !important; aspect-ratio: 16 / 10; }
+  .ct-grid.g5 .ct-check { top: auto !important; bottom: 8px; margin-top: 0 !important; }
   .ct-grid > .ct, .ct-grid.g5 > .ct { max-width: none; flex: none; }
   .ct-grid .ct-btn { flex-direction: row; align-items: center; text-align: left; }
   .ct-grid .ct-media { width: 112px; flex: 0 0 112px; aspect-ratio: 1 / 1; }
