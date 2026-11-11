@@ -1,0 +1,94 @@
+import { useEffect, useState } from 'react';
+import { createRoot } from 'react-dom/client';
+import '@v1/tokens/tokens.css';
+import '@v1/components/components.css';
+import './steps/ssw.css';
+import './results/ss.css';
+import './steps/sh.css';
+import './steps/mq.css';
+import './results/bishify-fixes.css';
+import { ToastProvider } from '@v1/components/Toast';
+import { Landing } from './steps/Landing';
+import { Step1Start } from './steps/start';
+import { Step2Path, Step3Type, Step4Bumper, StepMotorhome } from './steps/screens';
+import { Loading } from './steps/Loading';
+import { QLoading } from './steps/QLoading';
+import { StepCamping, StepTradeNow, StepTradeWhy, StepCampStyle, StepActivities, StepSleep, StepBedroom, StepTow, StepLength, StepGarage, StepMulti, StepSize, StepBuild, StepBudget, StepSummary } from './steps/more';
+import { App } from './results/App';
+import { snapshotMeta } from './liveRank';
+
+const q = new URLSearchParams(location.search);
+const screen = q.get('screen') || '00';
+const sheet = q.get('case') === '1';
+if (q.get('freeze') === '1') document.documentElement.classList.add('freeze');
+
+function StateCard({ kind, title, body }: { kind: string; title: string; body: string }) {
+  return (
+    <div className="mm-state" data-state={kind} data-spec-id={`card-state-${kind}`} role="alert">
+      <span>
+        <strong className="mm-state-title">{title}</strong>
+        <span className="mm-state-body">{body}</span>
+      </span>
+    </div>
+  );
+}
+
+function StaleNote() {
+  const forced = q.get('state') === 'stale';
+  const onResults = screen === 'results' || screen === 'matches' || screen === 'qload';
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    if (forced) { setOn(true); return; }
+    if (onResults) return;
+    try { if (sessionStorage.getItem('mm-dismiss-stale')) return; } catch { /* ignore */ }
+    const at = Date.parse(snapshotMeta().generatedAt);
+    if (Number.isFinite(at) && Date.now() - at >= 24 * 60 * 60 * 1000) setOn(true);
+  }, [forced, onResults]);
+  if (!on) return null;
+  return (
+    <div className="mm-state" data-state="stale" data-spec-id="card-state-stale" role="status">
+      <span>
+        <strong className="mm-state-title">Inventory is a day old</strong>
+        <span className="mm-state-body">Snapshot {snapshotMeta().inventorySnapshotId} was built {snapshotMeta().generatedAt}. Counts and prices can have moved.</span>
+      </span>
+      <button type="button" data-spec-id="btn-action-dismiss-stale" data-bos-perm="discovery.navigate" onClick={() => { try { if (!forced) sessionStorage.setItem('mm-dismiss-stale', '1'); } catch { /* ignore */ } setOn(false); }}>Continue</button>
+    </div>
+  );
+}
+
+function Screen() {
+  const state = q.get('state');
+  if (state === 'error') return <StateCard kind="error" title="Matches didn't load" body="The inventory snapshot didn't come back. Refresh the page. Nothing was saved." />;
+  if (state === 'permission') return <StateCard kind="permission" title="An outfitter sends this" body="Purchase options uses match.send. Browsing uses discovery.navigate and discovery.advance." />;
+  if (screen === '01') return <Step1Start query={q.get('q') || ''} locMode={q.get('loc') || ''} />;
+  if (screen === '02') return <Step2Path sheet={sheet} />;
+  if (screen === '03') return <Step3Type sheet={sheet} />;
+  if (screen === '04') return <Step4Bumper garageOpen={q.get('garage') === '1'} sheet={sheet} />;
+  if (screen === 'mh') return <StepMotorhome sheet={sheet} />;
+  if (screen === 'camping') return <StepCamping />;
+  if (screen === 'trade-now') return <StepTradeNow />;
+  if (screen === 'trade-why') return <StepTradeWhy />;
+  if (screen === 'camp-style') return <StepCampStyle />;
+  if (screen === 'activities') return <StepActivities />;
+  if (screen === 'sleep') return <StepSleep />;
+  if (screen === 'bedroom') return <StepBedroom />;
+  if (screen === 'tow') return <StepTow />;
+  if (screen === 'length') return <StepLength />;
+  if (screen === 'garage') return <StepGarage />;
+  if (screen === 'bath' || screen === 'inside' || screen === 'outside') return <StepMulti key={screen} k={screen} />;
+  if (screen === 'size') return <StepSize />;
+  if (screen === 'build') return <StepBuild />;
+  if (screen === 'budget') return <StepBudget />;
+  if (screen === 'summary') return <StepSummary />;
+  if (screen === 'qload') return <QLoading />;
+  if (screen === 'loading') return <Loading />;
+  if (screen === 'results' || screen === 'matches') return <App />;
+  return <Landing query={q.get('q') || ''} locOpen={q.get('loc') === '1'} />;
+}
+
+createRoot(document.getElementById('root')!).render(
+  <ToastProvider>
+    <StaleNote />
+    <Screen />
+  </ToastProvider>,
+);

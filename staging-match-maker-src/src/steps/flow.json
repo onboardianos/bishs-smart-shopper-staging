@@ -1,0 +1,36 @@
+{
+  "_sources": {
+    "counts": "Step 2/3/4 counts = ss-preview-2026-11-11/copy.json (built from live bishsos.com INV-2026-11-09 snapshot: Towable 7,576 · Motorhome 134 · Destination 95; hitch and bumper splits added up from live per-type counts). In-stock total 8,067 = live snapshot INV-2026-11-09-80022971B2E4. Anything marked example:true is NOT from data.",
+    "copy": "Live wording where a live screen exists; Zach's words (t251u, voice 12:27 and 12:32 AM MST); everything else is preview wording, listed in NOTES.md."
+  },
+  "totalSteps": 18,
+  "inStock": 8067,
+  "cta": "Continue",
+  "multiHelper": "Not sure yet? No problem! Select more than one to start.",
+  "case": { "title": "Your case", "sub": "Getting sharper with every answer.", "empty": "Your answers show up here as you go.", "next": "Next up", "outfitter": "Your outfitter sees this case, so you never repeat yourself." },
+  "steps": {
+    "01": { "overline": "Step 1 · Start", "title": "Welcome to the Smart Shopper" },
+    "02": { "overline": "Step 2 · Path", "title": "Towable, motorhome or destination?", "hint": "Pulled behind your truck, drive it yourself, or park it and stay?", "caseLabel": "Path", "icon": "compass",
+      "options": [
+        { "id": "towable", "label": "Towable", "count": 7576, "img": "rv-travel-trailer.png" },
+        { "id": "motorhome", "label": "Motorhome", "count": 134, "img": "rv-class-a.png" },
+        { "id": "destination", "label": "Destination", "count": 95, "img": "rv-destination-trailer.png" } ] },
+    "03": { "overline": "Step 3 · Type", "title": "What type of towable?", "hint": "How it hooks up decides which campers can work for you.", "caseLabel": "Towable type", "icon": "truck",
+      "options": [
+        { "id": "bumper", "label": "Bumper pull", "count": 4540, "art": "bumper" },
+        { "id": "fifth", "label": "Fifth wheel", "count": 2548, "art": "fifth" },
+        { "id": "fifth-garage", "label": "FW Toy Hauler", "count": 358, "img": "rv-toy-hauler.png" },
+        { "id": "truck-bed", "label": "Truck camper", "count": 130, "img": "rv-truck-camper.png" } ] },
+    "04": { "overline": "Step 4 · Bumper pull", "title": "What types of bumper pull are you interested in?", "caseLabel": "Bumper pull", "icon": "list-ordered",
+      "options": [
+        { "id": "pop-up", "label": "Pop-up camper", "count": 9, "img": "rv-fold-down.png" },
+        { "id": "teardrop", "label": "Teardrop", "count": 8, "img": "rv-adventure-trailer.png" },
+        { "id": "hybrid", "label": "Hybrid trailer", "count": 6, "img": "rv-hybrid-trailer.png" },
+        { "id": "regular", "label": "Travel trailer", "count": 4159, "img": "rv-travel-trailer.png" },
+        { "id": "garage", "label": "With garage", "count": 358, "img": "rv-toy-hauler.png" } ] },
+    "garage": { "context": "With garage", "title": "Garage lengths", "hint": "Measure your longest toy. We’ll skip garages that are shorter.", "caseLabel": "Garage", "icon": "sliders-horizontal",
+      "lengths": ["10", "11", "12", "13", "14+"], "keptExample": 291,
+      "allKept": "Every garage length is in. Tap a length to take it out.", "noteTemplate": "This will eliminate toy haulers that are less than {len} feet." }
+  },
+  "upcoming": ["Camping today", "Camping style", "Who’s coming", "Sleeping"]
+}

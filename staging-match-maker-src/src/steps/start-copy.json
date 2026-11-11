@@ -1,0 +1,20 @@
+{
+ "overline": "Step 1 · Start",
+ "welcome": "Welcome to the Smart Shopper",
+ "question": "Do you know what you want to look at already or do you have a unit already in mind?",
+ "searchLabel": "Stock number or year / make / model",
+ "searchPlaceholder": "e.g. 96982 or 2026 Jayco Pinnacle",
+ "searchHint": "Type a stock number or a year, make and model.",
+ "noMatch": "No unit matches that yet — keep typing, or skip ahead.",
+ "pick": "Pick this one",
+ "resultsSource": "Live inventory snapshot {id}",
+ "rightOverline": "No unit in mind?",
+ "rightTitle": "We’ll find one together.",
+ "startNow": "Nope, take me to the Smart Shopper, start now",
+ "placeholderChip": "Placeholder",
+ "placeholderText": "Option 2 · TBD (Zach to define)",
+ "tradeIn": "Have a trade in",
+ "allLocations": "All locations",
+ "locTitle": "Which store are you shopping?",
+ "totalSteps": 18
+}

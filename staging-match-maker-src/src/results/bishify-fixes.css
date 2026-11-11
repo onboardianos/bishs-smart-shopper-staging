@@ -1,0 +1,79 @@
+/* Staging fixes carried with the Bishified Smart Shopper. Loaded last. */
+
+/* Global reset the DS bundle does not provide. Stops 100% + padding from overflowing the phone. */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; max-width: 100%; }
+img, svg, video { max-width: 100%; }
+body.kb-open .ssw-act, body.kb-open .sh { position: static; }
+
+/* The results slider uses .sl { display:flex; height:22px }. Loading must not use that class.
+   Header is a sibling above .load-stage and stays sticky and full width. */
+.load-page { display: flex; flex-direction: column; width: 100%; }
+.load-stage { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; }
+#sl-root .load-fill, #sl-root .sl-fill { position: static; top: auto; height: 100%; border-radius: 999px; background: var(--text-light-primary, #111); }
+
+/* DS dark-theme type sheet (h1 white, p cream) is loaded globally. Keep type ink on light surfaces. */
+:where(.ss, .ssw, .ld, .ss-frame) :is(h1, h2, h3, h4, h5, h6) { color: var(--text-light-primary, #111); }
+:where(.ss) :is(p, small, label) { color: inherit; }
+:where(.ss) a { color: inherit; }
+:where(.ss, .ssw, .ld) .overline { color: var(--text-light-secondary); }
+
+/* No "On the lot" badges. Floor plan examples: black badge, white text. */
+.badge-lot { display: none !important; }
+.badge-fp, .sm-badge-alt {
+  background: #111 !important;
+  color: #fff !important;
+}
+.badge-fp { position: absolute; top: 8px; left: 8px; z-index: 2; font-size: 11px; font-weight: 700; letter-spacing: .2px; padding: 4px 8px; border-radius: 999px; }
+.slot .badge-fp, .slot .badge-pick { left: 8px; top: 8px; display: inline-flex !important; }
+
+/* Ink selection, not gold, except real CTAs. */
+.num { background: var(--ink, #111); }
+.tab.is-on { border-bottom-color: var(--ink, #111) !important; }
+
+/* Phone: answers pill wraps; CTAs are full-width, >=48px, label >=16px. */
+@media (max-width: 719px) {
+  .answers-btn { white-space: normal; height: auto; min-height: 48px; max-width: 100%; padding: 8px 16px; flex-wrap: wrap; text-align: left; }
+  .answers-sum { flex-basis: 100%; }
+  .note { flex-wrap: wrap; max-width: 100%; white-space: normal; }
+  .ssw-btns, .mq-sum-act .ssw-btns, .gl-actions { flex-direction: column; align-items: stretch; }
+  .ssw-prev, .ssw-cta, .ld-cta, .v1-commit, .btn-commit, #s-summary-submit, #s04-garage-continue {
+    width: 100%;
+    max-width: 100%;
+    min-height: 48px;
+    min-width: 0;
+    flex: none;
+    font-size: 16px;
+  }
+  .ssw-prev-t { position: static; width: auto; height: auto; overflow: visible; clip: auto; }
+  .ld-cta.btn-lg, .ssw-cta.btn-lg, .btn-lg { font-size: 16px; letter-spacing: 1px; }
+  input, select, textarea { font-size: 16px; }
+  .ld-foot { white-space: normal; text-align: center; letter-spacing: 2px; flex-wrap: wrap; justify-content: center; }
+  .ld-trailer { width: 100% !important; max-width: 100% !important; max-height: 160px; height: auto; object-fit: contain; }
+  .ld, .ld-main, .ssw, .ss, .pg, .sl-card, .sl-main { min-width: 0; max-width: 100%; }
+  /* Type cards match the approved bumper-pull row: image left, copy right, one column. */
+  .ct-grid, .ct-grid.hitch, .ct-grid.g5, .ct-grid.mq-grid, .ct-grid.mq-grid.c2, .ct-grid.mq-grid.c4 {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px;
+  }
+  .ct-grid > .ct, .ct-grid.g5 > .ct { max-width: none; flex: none; }
+  .ct-grid .ct-btn { flex-direction: row; align-items: center; text-align: left; }
+  .ct-grid .ct-media { width: 112px; flex: 0 0 112px; aspect-ratio: 1 / 1; }
+  .ct-grid .ct-media img, .ct-grid .ha-img { width: 100%; height: 100%; object-fit: contain; object-position: center; }
+  .ct-grid .ct-text { flex: 1; min-width: 0; padding-right: 40px; }
+  .ct-grid .ct-label { padding: 0 12px 2px; font-size: 16px; }
+  /* Loading + results: one column, no fixed tablet widths. */
+  .sl-card { width: 100%; max-width: 100%; }
+  .t3-grid, .grid, .grid-saved, .tt-board, .tt-side, .rail-in, .f-row-1, .f-row-2, .inv-grid, .pin-row {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .t3-aside { display: none; }
+  .car-track { display: flex; flex-direction: column; overflow: visible; }
+  .car-track > li { flex: none !important; width: 100% !important; max-width: 100%; }
+  .pg, .bar-in, .pg-foot { padding-left: 16px; padding-right: 16px; }
+  .search, .slider, .f-cell, .tbl, .slot, .tile { min-width: 0 !important; }
+  .tbl { display: block; width: 100%; overflow-x: auto; }
+  .ph { flex-direction: column; align-items: stretch; }
+  .sm-grid { grid-template-columns: minmax(0, 1fr) !important; }
+}

@@ -1,0 +1,238 @@
+/* ═══════════════════════════════════════════════════════════════
+   BISH'S RV · NEXUS DESIGN SYSTEM
+   Colors + Type Tokens · v1.0 · April 2026
+   ═══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;500;600;700&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* ── BRAND PALETTE (raw; don't use directly in components) ── */
+  --brand-black:      #020000;
+  --brand-dark-green: #203232;
+  --brand-gold:       #8B752E;
+  --brand-cream:      #E7DDB4;
+  --brand-olive:      #545750;
+  --brand-white:      #FFFFFF;
+
+  /* Reserved brand-accent slots — MARKETING/SUB-BRAND CONTEXTS ONLY
+     (never for semantic status; see ui-guidelines in README) */
+  --brand-accent-red:       #A0252B;  /* PMS 7628 — heritage red */
+  --brand-accent-yellow:    #DCD334;  /* PMS 611 */
+  --brand-accent-lightblue: #C9E9EB;  /* PMS 628 */
+  --brand-accent-blue:      #005568;  /* PMS 7470 — legacy brand blue */
+
+  /* ── SURFACE · DARK (portal, marketing) ── */
+  --surface-page:     #020000;
+  --surface-deep:     #0A1414;
+  --surface-inset:    #111E1E;
+  --surface-card:     #1C2E2E;
+  --surface-raised:   #243838;
+
+  /* ── SURFACE · LIGHT (admin tools) ── */
+  --surface-light-page:    #F7F6F1;
+  --surface-light-inset:   #EFEDE4;
+  --surface-light-raised:  #FAFAF6;
+  --surface-light-card:    #FFFFFF;
+
+  /* ── TEXT · DARK BG ── */
+  --text-primary: #FFFFFF;
+  --text-body:    #E7DDB4;  /* cream — text only, never a fill */
+  --text-muted:   #A2A59C;
+  --text-subtle:  #4A4D46;  /* DISABLED / DECORATIVE ONLY — sub-2.5:1, never informational text */
+
+  /* ── TEXT · LIGHT BG ── */
+  --text-light-primary:   #0A0A09;
+  --text-light-secondary: #3D3D38;
+  --text-light-tertiary:  #6B6B63;
+  --text-light-muted:     #767670;
+
+  /* ── ACCENT ── */
+  --accent-gold:     #8B752E;
+  --accent-gold-hi:  #B89E4A;
+  --accent-gold-lo:  #5E4F1F;
+  --accent-olive:    #545750;
+  --accent-olive-hi: #6E7268;
+
+  /* ── SEMANTIC ──
+     Base values are tuned to read as status TEXT/ICONS on dark surfaces
+     (≥4.5:1 on card & raised) and to work as fills with near-black text.
+     For white-text fills use the *-dark variant; warning always takes
+     near-black text. The *-light values are tinted backgrounds for the
+     light theme, paired with *-dark text. */
+  --semantic-success:       #51CF66;
+  --semantic-success-light: #D3F9D8;
+  --semantic-success-dark:  #1B7A2E;
+  --semantic-warning:       #FFD43B;
+  --semantic-warning-light: #FFF3BF;
+  --semantic-warning-dark:  #C77C00;
+  --semantic-danger:        #FF8787;
+  --semantic-danger-light:  #FFE3E3;
+  --semantic-danger-dark:   #B02525;
+  --semantic-info:          #74C0FC;
+  --semantic-info-light:    #D0EBFF;
+  --semantic-info-dark:     #1864AB;
+
+  /* ── BORDERS ── */
+  --border-ghost:    rgba(255,255,255,0.07);
+  --border-mid:      rgba(255,255,255,0.13);
+  --border-gold:     rgba(139,117,46,0.28);
+  --border-gold-hi:  rgba(139,117,46,0.55);
+  --border-olive:    rgba(84,87,80,0.45);
+  --border-light:    rgba(0,0,0,0.08);
+  --border-light-mid:rgba(0,0,0,0.15);
+  /* Interactive control boundaries — must meet 3:1 vs their surface (WCAG 1.4.11) */
+  --border-input:       rgba(255,255,255,0.30);
+  --border-input-light: #949494;
+
+  /* ── TYPOGRAPHY FAMILIES ── */
+  --font-display: 'Bebas Neue', 'Barlow Condensed', Impact, sans-serif;
+  --font-ui:      'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --font-body:    'Source Sans 3', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  /* ── TYPE SIZES (Material 3 role mapping) ── */
+  --fs-display-lg: 48px;
+  --fs-display-md: 32px;
+  --fs-display-sm: 20px;
+  --fs-title-lg:   20px;
+  --fs-title-md:   14px;
+  --fs-label-lg:   13px;
+  --fs-label-md:   11px;
+  --fs-label-sm:   11px;
+  --fs-body-lg:    16px;
+  --fs-body-md:    14px;
+  --fs-body-sm:    12px;
+  --fs-code:       13px;
+  --fs-code-sm:    11px;
+
+  /* ── SPACING (4px base) ── */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px;
+  --sp-12: 48px;--sp-16: 64px;--sp-20: 80px;--sp-24: 96px;
+
+  /* ── RADII ── */
+  --radius-sm: 4px;  --radius-md: 8px;  --radius-lg: 12px;
+  --radius-xl: 16px; --radius-full: 9999px;
+
+  /* ── SHADOWS (light-theme usage) ── */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+  /* ── MOTION (Material 3) ── */
+  --ease-standard:   cubic-bezier(0.2, 0, 0, 1); /* @kind other */
+  --ease-decelerate: cubic-bezier(0, 0, 0, 1); /* @kind other */
+  --ease-accelerate: cubic-bezier(0.3, 0, 1, 1); /* @kind other */
+  --duration-fast:   150ms; /* @kind other */
+  --duration-normal: 250ms; /* @kind other */
+  --duration-slow:   350ms; /* @kind other */
+
+  /* ── Z-INDEX ── */
+  --z-base: 0; /* @kind other */
+  --z-dropdown: 100; /* @kind other */
+  --z-sticky: 200; /* @kind other */
+  --z-overlay: 300; /* @kind other */
+  --z-modal: 400; /* @kind other */
+  --z-toast: 500; /* @kind other */
+  --z-tooltip: 600; /* @kind other */
+
+  /* ── BRAND SHAPES ──
+     The Wayfinder is the apostrophe mark from the Bish's logo —
+     a horizontal right-pointing arrowhead with a concave back.
+     Native viewBox is 80×63 (aspect 1.27:1). Use as SVG path OR
+     as a CSS clip-path token on any rectangular element.           */
+  --wf-path: path('M73.5 35.5C73.5 35.5 11.5 58.7 7 61C2.5 63.3 0 57.5 2.5 55C5 52.5 15.5 41.3 15.5 30.5C15.5 19.7 4.7 10.7 3.25 9C0.4 5.8 2 0.3 7 2C12 3.7 61 22 71.5 26C77 28.1 80 31.7 73.5 35.5Z'); /* @kind other */
+  --wf-viewbox: 0 0 80 63; /* @kind other */
+  --wf-aspect: 1.27; /* @kind other */
+}
+
+/* ── SEMANTIC ELEMENT STYLES (dark theme default) ── */
+html, body { background: var(--surface-page); color: var(--text-primary); }
+body {
+  font-family: var(--font-body);
+  font-size: var(--fs-body-lg);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, .h1 {
+  font-family: var(--font-display);
+  font-size: var(--fs-display-lg);
+  letter-spacing: 1.5px;
+  line-height: 1;
+  color: var(--text-primary);
+  font-weight: 400;
+}
+h2, .h2 {
+  font-family: var(--font-display);
+  font-size: var(--fs-display-md);
+  letter-spacing: 1px;
+  line-height: 1.05;
+  color: var(--text-primary);
+  font-weight: 400;
+}
+h3, .h3 {
+  font-family: var(--font-display);
+  font-size: var(--fs-display-sm);
+  letter-spacing: 0.5px;
+  line-height: 1.1;
+  color: var(--text-primary);
+  font-weight: 400;
+}
+h4, .h4 {
+  font-family: var(--font-ui);
+  font-size: var(--fs-title-lg);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--text-primary);
+}
+h5, .h5 {
+  font-family: var(--font-ui);
+  font-size: var(--fs-title-md);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: var(--text-primary);
+  text-transform: uppercase;
+}
+
+p, .p {
+  font-family: var(--font-body);
+  font-size: var(--fs-body-md);
+  line-height: 1.6;
+  color: var(--text-body);
+}
+
+/* Overline / section labels — the signature Nexus eyebrow */
+.overline {
+  font-family: var(--font-ui);
+  font-size: var(--fs-label-sm);
+  font-weight: 600;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--accent-gold-hi);
+}
+.label {
+  font-family: var(--font-ui);
+  font-size: var(--fs-label-md);
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-body);
+}
+
+code, .code, pre {
+  font-family: var(--font-mono);
+  font-size: var(--fs-code);
+  color: var(--accent-gold-hi);
+}
+
+small, .small {
+  font-family: var(--font-body);
+  font-size: var(--fs-body-sm);
+  color: var(--text-muted);
+}
+
+a { color: var(--accent-gold-hi); text-decoration: underline; text-underline-offset: 2px; }
+a:hover { text-decoration: underline; }

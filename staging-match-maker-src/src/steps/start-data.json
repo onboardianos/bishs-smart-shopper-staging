@@ -1,0 +1,180 @@
+{
+ "_source": "bishsos.com/tools/wayfinder/snapshot.js INV-2026-11-09-80022971B2E4 (fetched 2026-11-11 12:28 AM MST); search = live findUnits() copied verbatim; stores = live locSelect() filter",
+ "snapshotId": "INV-2026-11-09-80022971B2E4",
+ "totalUnits": 8067,
+ "query": "2026 jayco eagle",
+ "results": [
+  {
+   "stock": "100384",
+   "title": "2026 JAYCO EAGLE 335LSTS",
+   "meta": "FIFTH WHEEL · $64,995 · Longview · stock 100384 · 11 in stock"
+  },
+  {
+   "stock": "101081",
+   "title": "2026 JAYCO EAGLE 370FBTS",
+   "meta": "FIFTH WHEEL · $69,911 · Longview · stock 101081 · 9 in stock"
+  },
+  {
+   "stock": "1040050",
+   "title": "2026 JAYCO EAGLE 28CRT",
+   "meta": "FIFTH WHEEL · $55,995 · Idaho Falls · stock 1040050 · 10 in stock"
+  },
+  {
+   "stock": "1041901",
+   "title": "2026 JAYCO EAGLE 321RSTS",
+   "meta": "FIFTH WHEEL · $66,995 · Idaho Falls · stock 1041901 · 12 in stock"
+  },
+  {
+   "stock": "1042256",
+   "title": "2026 JAYCO EAGLE 28RKS",
+   "meta": "FIFTH WHEEL · $41,995 · Billings · stock 1042256 · 6 in stock"
+  },
+  {
+   "stock": "1042556",
+   "title": "2026 JAYCO EAGLE 360DBOK",
+   "meta": "FIFTH WHEEL · $65,911 · Cedar Rapids · stock 1042556 · 9 in stock"
+  }
+ ],
+ "stores": [
+  {
+   "code": "AUT",
+   "name": "American Fork",
+   "units": 67
+  },
+  {
+   "code": "AIN",
+   "name": "Anderson",
+   "units": 354
+  },
+  {
+   "code": "ONE",
+   "name": "Bellevue/Omaha",
+   "units": 340
+  },
+  {
+   "code": "BMT",
+   "name": "Billings",
+   "units": 63
+  },
+  {
+   "code": "ZMT",
+   "name": "Bozeman",
+   "units": 184
+  },
+  {
+   "code": "CAL",
+   "name": "Calera",
+   "units": 295
+  },
+  {
+   "code": "CIA",
+   "name": "Cedar Rapids",
+   "units": 179
+  },
+  {
+   "code": "CWY",
+   "name": "Cheyenne",
+   "units": 517
+  },
+  {
+   "code": "CMI",
+   "name": "Coldwater",
+   "units": 321
+  },
+  {
+   "code": "CRD",
+   "name": "Corp",
+   "units": 1321
+  },
+  {
+   "code": "DIA",
+   "name": "Davenport",
+   "units": 329
+  },
+  {
+   "code": "FCA",
+   "name": "Fairfield",
+   "units": 486
+  },
+  {
+   "code": "GMT",
+   "name": "Great Falls",
+   "units": 119
+  },
+  {
+   "code": "IDF",
+   "name": "Idaho Falls",
+   "units": 331
+  },
+  {
+   "code": "JOR",
+   "name": "Junction City",
+   "units": 548
+  },
+  {
+   "code": "KMT",
+   "name": "Kalispell",
+   "units": 109
+  },
+  {
+   "code": "KNE",
+   "name": "Kearney",
+   "units": 162
+  },
+  {
+   "code": "LNE",
+   "name": "Lincoln",
+   "units": 325
+  },
+  {
+   "code": "LTX",
+   "name": "Longview",
+   "units": 235
+  },
+  {
+   "code": "LMI",
+   "name": "Ludington",
+   "units": 180
+  },
+  {
+   "code": "MID",
+   "name": "Meridian",
+   "units": 473
+  },
+  {
+   "code": "MKY",
+   "name": "Murray",
+   "units": 119
+  },
+  {
+   "code": "OKY",
+   "name": "Oak Grove",
+   "units": 145
+  },
+  {
+   "code": "RSD",
+   "name": "Rapid City",
+   "units": 223
+  },
+  {
+   "code": "SUT",
+   "name": "Salt Lake",
+   "units": 145
+  },
+  {
+   "code": "SSD",
+   "name": "Sioux Falls",
+   "units": 84
+  },
+  {
+   "code": "TMI",
+   "name": "Traverse City",
+   "units": 143
+  },
+  {
+   "code": "TWF",
+   "name": "Twin Falls",
+   "units": 264
+  }
+ ]
+}

@@ -1,0 +1,733 @@
+{
+"_source": "Live bishsos.com/tools/wayfinder/snapshot.js INV-2026-11-09-80022971B2E4 (fetched 2026-11-11 12:58 AM MST): rooftops lat/lon from lookups.rooftops, unit counts by class from units[].location/class, TT toy-hauler garage length from units[].garageLength (inches\u2192ft, 14 = 14+). Radius coordinates (2026-11-11 1:10 AM MST): Bishify Bot /workspace/conversions/smart-shopper-location-filter/stores.json \u2014 bishs.com/locations addresses geocoded (Census Geocoder; Nominatim/website-published where noted). AUT and CRD have no public address \u2192 lat/lon null \u2192 excluded from radius, still hand-pickable. ZIP origins: 2026 Census Gazetteer ZCTA (src/zcta.json, INTPTLAT/INTPTLONG).",
+"snapshotId": "INV-2026-11-09-80022971B2E4",
+"stores": [
+{
+"code": "AUT",
+"name": "American Fork",
+"units": 67,
+"lat": null,
+"lon": null,
+"byClass": {
+"TTTH": 5,
+"TT": 45,
+"FW": 7,
+"FWTH": 2,
+"B": 2,
+"TC": 5,
+"FD": 1
+},
+"ttthGarageFt": {
+"13": 2,
+"11": 3
+},
+"snapLat": 40.3553999,
+"snapLon": -111.7754362,
+"geo": "none",
+"address": null
+},
+{
+"code": "AIN",
+"name": "Anderson",
+"units": 354,
+"lat": 40.061242752923,
+"lon": -85.710905547979,
+"byClass": {
+"TT": 207,
+"FW": 101,
+"DT": 9,
+"TTTH": 12,
+"FWTH": 16,
+"TC": 9
+},
+"ttthGarageFt": {
+"14": 5,
+"10": 3,
+"8": 2,
+"unknown": 2
+},
+"snapLat": 40.063170109704906,
+"snapLon": -85.7163417187585,
+"geo": "census_geocoder",
+"address": "2730 W 53rd St, Anderson, IN 46013"
+},
+{
+"code": "ONE",
+"name": "Bellevue/Omaha",
+"units": 340,
+"lat": 41.167778269411,
+"lon": -96.140267508404,
+"byClass": {
+"FW": 144,
+"TT": 117,
+"TTTH": 14,
+"FWTH": 59,
+"C": 2,
+"B": 1,
+"DT": 3
+},
+"ttthGarageFt": {
+"14": 7,
+"10": 3,
+"8": 1,
+"13": 3
+},
+"snapLat": 41.212651,
+"snapLon": -96.0314543,
+"geo": "census_geocoder",
+"address": "9203 S 145th St, Gretna, NE 68138"
+},
+{
+"code": "BMT",
+"name": "Billings",
+"units": 63,
+"lat": 45.741612152332,
+"lon": -108.583571235883,
+"byClass": {
+"TT": 50,
+"FW": 8,
+"TC": 3,
+"C": 2
+},
+"ttthGarageFt": {},
+"snapLat": 45.7417804,
+"snapLon": -108.583162,
+"geo": "census_geocoder",
+"address": "6708 S Frontage Rd, Billings, MT 59101"
+},
+{
+"code": "ZMT",
+"name": "Bozeman",
+"units": 184,
+"lat": 45.670985290182,
+"lon": -111.129837612142,
+"byClass": {
+"TC": 4,
+"TT": 101,
+"TTTH": 9,
+"FW": 44,
+"C": 2,
+"DT": 3,
+"FWTH": 21
+},
+"ttthGarageFt": {
+"9": 2,
+"10": 4,
+"13": 1,
+"14": 2
+},
+"snapLat": 45.6712385,
+"snapLon": -111.0986711,
+"geo": "census_geocoder",
+"address": "8466 Huffine Ln, Bozeman, MT 59718"
+},
+{
+"code": "CAL",
+"name": "Calera",
+"units": 295,
+"lat": 33.142326075644,
+"lon": -86.746703085631,
+"byClass": {
+"TT": 134,
+"FWTH": 51,
+"FW": 93,
+"TTTH": 12,
+"C": 2,
+"DT": 3
+},
+"ttthGarageFt": {
+"10": 7,
+"14": 3,
+"unknown": 1,
+"13": 1
+},
+"snapLat": 33.17338975822677,
+"snapLon": -86.77522738834305,
+"geo": "census_geocoder",
+"address": "320 Co Rd 304, Calera, AL 35040"
+},
+{
+"code": "CIA",
+"name": "Cedar Rapids",
+"units": 179,
+"lat": 42.24261840832,
+"lon": -91.883983292858,
+"byClass": {
+"TT": 99,
+"TTTH": 17,
+"FW": 45,
+"C": 3,
+"TC": 2,
+"FWTH": 13
+},
+"ttthGarageFt": {
+"10": 7,
+"13": 3,
+"11": 2,
+"unknown": 5
+},
+"snapLat": 42.2420029,
+"snapLon": -91.8843837,
+"geo": "census_geocoder",
+"address": "5376 Hutton Dr, Urbana, IA 52345"
+},
+{
+"code": "CWY",
+"name": "Cheyenne",
+"units": 517,
+"lat": 41.1554142,
+"lon": -104.7354595,
+"byClass": {
+"FWTH": 64,
+"TT": 256,
+"FW": 155,
+"TTTH": 27,
+"C": 4,
+"CD": 6,
+"B": 4,
+"TC": 1
+},
+"ttthGarageFt": {
+"11": 6,
+"14": 9,
+"10": 5,
+"13": 4,
+"8": 3
+},
+"snapLat": 41.154061,
+"snapLon": -104.736516,
+"geo": "website_published",
+"address": "2621 Granite Peak Dr, Cheyenne, WY 82007"
+},
+{
+"code": "CMI",
+"name": "Coldwater",
+"units": 321,
+"lat": 41.934387659293,
+"lon": -84.962013551559,
+"byClass": {
+"TT": 182,
+"FW": 107,
+"TTTH": 14,
+"HTT": 1,
+"TC": 3,
+"FWTH": 12,
+"DT": 1,
+"C": 1
+},
+"ttthGarageFt": {
+"14": 5,
+"13": 1,
+"10": 8
+},
+"snapLat": 41.9344236,
+"snapLon": -84.9620805,
+"geo": "census_geocoder",
+"address": "891 E Chicago St, Coldwater, MI 49036"
+},
+{
+"code": "CRD",
+"name": "Corp",
+"units": 1321,
+"lat": null,
+"lon": null,
+"byClass": {
+"TT": 947,
+"TTTH": 30,
+"DT": 11,
+"TC": 10,
+"HT": 1,
+"FW": 223,
+"FWTH": 70,
+"FD": 5,
+"HTT": 1,
+"B": 10,
+"C": 3,
+"CD": 10
+},
+"ttthGarageFt": {
+"10": 4,
+"8": 2,
+"unknown": 11,
+"14": 4,
+"13": 6,
+"12": 1,
+"11": 2
+},
+"snapLat": 43.59939,
+"snapLon": -116.385425,
+"geo": "none",
+"address": null
+},
+{
+"code": "DIA",
+"name": "Davenport",
+"units": 329,
+"lat": 41.654793394411,
+"lon": -90.559993409619,
+"byClass": {
+"TT": 157,
+"FW": 93,
+"DT": 6,
+"FWTH": 42,
+"C": 3,
+"TTTH": 23,
+"B": 3,
+"CD": 2
+},
+"ttthGarageFt": {
+"10": 3,
+"13": 4,
+"11": 2,
+"14": 4,
+"unknown": 10
+},
+"snapLat": 41.654735,
+"snapLon": -90.560069,
+"geo": "census_geocoder",
+"address": "2000 E Le Claire Rd, Eldridge, IA 52748"
+},
+{
+"code": "FCA",
+"name": "Fairfield",
+"units": 486,
+"lat": 38.212561983254,
+"lon": -122.13951232831,
+"byClass": {
+"FW": 131,
+"TT": 248,
+"TC": 13,
+"AT": 8,
+"TTTH": 28,
+"FWTH": 51,
+"DT": 6,
+"C": 1
+},
+"ttthGarageFt": {
+"14": 16,
+"13": 4,
+"10": 5,
+"11": 2,
+"unknown": 1
+},
+"snapLat": 38.2494,
+"snapLon": -122.04,
+"geo": "census_geocoder",
+"address": "4850 Auto Plaza Ct, Fairfield, CA 94534"
+},
+{
+"code": "GMT",
+"name": "Great Falls",
+"units": 119,
+"lat": 47.464512476244,
+"lon": -111.37506390165,
+"byClass": {
+"TTTH": 16,
+"TC": 2,
+"FW": 13,
+"TT": 74,
+"FWTH": 3,
+"DT": 11
+},
+"ttthGarageFt": {
+"14": 7,
+"10": 5,
+"11": 2,
+"13": 1,
+"unknown": 1
+},
+"snapLat": 47.462318420410156,
+"snapLon": -111.384849548339,
+"geo": "census_geocoder",
+"address": "3928 Tri Hill Frontage Rd, Great Falls, MT 59404"
+},
+{
+"code": "IDF",
+"name": "Idaho Falls",
+"units": 331,
+"lat": 43.530839254555,
+"lon": -112.023745663245,
+"byClass": {
+"FW": 140,
+"TTTH": 13,
+"CD": 2,
+"C": 3,
+"TT": 114,
+"FWTH": 52,
+"TC": 4,
+"DT": 2,
+"B": 1
+},
+"ttthGarageFt": {
+"13": 3,
+"14": 8,
+"10": 2
+},
+"snapLat": 43.541953,
+"snapLon": -112.023788,
+"geo": "census_geocoder",
+"address": "3855 N 5th E, Idaho Falls, ID 83401"
+},
+{
+"code": "JOR",
+"name": "Junction City",
+"units": 548,
+"lat": 44.206563932846,
+"lon": -123.203987376794,
+"byClass": {
+"B": 4,
+"TT": 256,
+"TC": 18,
+"C": 6,
+"TTTH": 27,
+"FW": 151,
+"FWTH": 67,
+"CD": 2,
+"AG": 12,
+"DT": 4,
+"FD": 1
+},
+"ttthGarageFt": {
+"14": 11,
+"11": 3,
+"10": 9,
+"13": 4
+},
+"snapLat": 44.21476181562444,
+"snapLon": -123.206079341625,
+"geo": "census_geocoder",
+"address": "93668 Oregon 99, Junction City, OR 97448"
+},
+{
+"code": "KMT",
+"name": "Kalispell",
+"units": 109,
+"lat": 48.157391,
+"lon": -114.2889503,
+"byClass": {
+"TTTH": 12,
+"FW": 16,
+"TT": 65,
+"TC": 11,
+"FWTH": 5
+},
+"ttthGarageFt": {
+"13": 4,
+"14": 5,
+"10": 2,
+"11": 1
+},
+"snapLat": 48.16404342651367,
+"snapLon": -114.288108825683,
+"geo": "nominatim_poi",
+"address": "3100 US 93 S, Kalispell, MT 59901"
+},
+{
+"code": "KNE",
+"name": "Kearney",
+"units": 162,
+"lat": 40.670848923788,
+"lon": -99.08133375271,
+"byClass": {
+"TT": 56,
+"FW": 65,
+"CD": 2,
+"FWTH": 20,
+"TTTH": 13,
+"C": 5,
+"DT": 1
+},
+"ttthGarageFt": {
+"10": 2,
+"14": 6,
+"13": 4,
+"11": 1
+},
+"snapLat": 40.6703818,
+"snapLon": -99.0803227,
+"geo": "census_geocoder",
+"address": "115 E 1st St, Kearney, NE 68847"
+},
+{
+"code": "LNE",
+"name": "Lincoln",
+"units": 325,
+"lat": 40.697459921302,
+"lon": -96.707097579283,
+"byClass": {
+"TT": 189,
+"FW": 89,
+"TTTH": 13,
+"FWTH": 28,
+"C": 3,
+"DT": 3
+},
+"ttthGarageFt": {
+"10": 1,
+"14": 5,
+"13": 4,
+"8": 3
+},
+"snapLat": 40.697478,
+"snapLon": -96.708394,
+"geo": "census_geocoder",
+"address": "1040 Saltillo Rd, Roca, NE 68430"
+},
+{
+"code": "LTX",
+"name": "Longview",
+"units": 235,
+"lat": 32.57496933772,
+"lon": -94.753727260914,
+"byClass": {
+"FW": 84,
+"TTTH": 9,
+"FWTH": 11,
+"TT": 127,
+"HTT": 2,
+"C": 1,
+"TC": 1
+},
+"ttthGarageFt": {
+"14": 4,
+"13": 2,
+"10": 3
+},
+"snapLat": 32.5755864,
+"snapLon": -94.7548513,
+"geo": "census_geocoder",
+"address": "5009 Judson Rd, Longview, TX 75605"
+},
+{
+"code": "LMI",
+"name": "Ludington",
+"units": 180,
+"lat": 43.957035363971,
+"lon": -86.369474670635,
+"byClass": {
+"DT": 7,
+"TT": 80,
+"TC": 23,
+"HTT": 2,
+"FW": 51,
+"TTTH": 6,
+"FWTH": 11
+},
+"ttthGarageFt": {
+"8": 2,
+"14": 3,
+"13": 1
+},
+"snapLat": 43.957548,
+"snapLon": -86.369679,
+"geo": "census_geocoder",
+"address": "66 N Dennis Rd, Ludington, MI 49431"
+},
+{
+"code": "MID",
+"name": "Meridian",
+"units": 473,
+"lat": 43.590154680845,
+"lon": -116.407523589099,
+"byClass": {
+"FW": 171,
+"C": 4,
+"TTTH": 22,
+"TT": 207,
+"CD": 1,
+"FWTH": 62,
+"DT": 5,
+"TC": 1
+},
+"ttthGarageFt": {
+"14": 12,
+"10": 5,
+"13": 5
+},
+"snapLat": 43.5916505,
+"snapLon": -116.4100622,
+"geo": "census_geocoder",
+"address": "1300 W Overland Rd, Meridian, ID 83642"
+},
+{
+"code": "MKY",
+"name": "Murray",
+"units": 119,
+"lat": 36.68915,
+"lon": -88.30536,
+"byClass": {
+"CD": 3,
+"FW": 31,
+"FWTH": 27,
+"TT": 49,
+"DT": 3,
+"TTTH": 5,
+"B": 1
+},
+"ttthGarageFt": {
+"10": 3,
+"14": 1,
+"11": 1
+},
+"snapLat": 36.6890465,
+"snapLon": -88.3054815,
+"geo": "website_published",
+"address": "230 Victory Ln, Almo, KY 42020"
+},
+{
+"code": "OKY",
+"name": "Oak Grove",
+"units": 145,
+"lat": 36.683978103833,
+"lon": -87.414472357354,
+"byClass": {
+"TT": 75,
+"FW": 37,
+"TTTH": 5,
+"FWTH": 28
+},
+"ttthGarageFt": {
+"13": 3,
+"10": 1,
+"11": 1
+},
+"snapLat": 36.6840366,
+"snapLon": -87.4153616,
+"geo": "census_geocoder",
+"address": "2296 Walter Garrett Ln, Oak Grove, KY 42262"
+},
+{
+"code": "RSD",
+"name": "Rapid City",
+"units": 223,
+"lat": 44.267126224899,
+"lon": -103.417144718747,
+"byClass": {
+"TT": 115,
+"FW": 72,
+"FWTH": 21,
+"TTTH": 9,
+"C": 3,
+"DT": 3
+},
+"ttthGarageFt": {
+"14": 2,
+"8": 1,
+"13": 1,
+"10": 2,
+"unknown": 3
+},
+"snapLat": 44.2643,
+"snapLon": -103.4138,
+"geo": "census_geocoder",
+"address": "13203 High Plains Pl, Piedmont, SD 57769"
+},
+{
+"code": "SUT",
+"name": "Salt Lake",
+"units": 145,
+"lat": 40.828273409123,
+"lon": -111.93733791798,
+"byClass": {
+"TT": 78,
+"TC": 21,
+"FW": 20,
+"B": 2,
+"C": 3,
+"FWTH": 7,
+"TTTH": 12,
+"FD": 2
+},
+"ttthGarageFt": {
+"10": 4,
+"12": 2,
+"14": 4,
+"13": 2
+},
+"snapLat": 40.83119208526658,
+"snapLon": -111.937573600001,
+"geo": "census_geocoder",
+"address": "550 S Redwood Rd, North Salt Lake, UT 84054"
+},
+{
+"code": "SSD",
+"name": "Sioux Falls",
+"units": 84,
+"lat": 43.4680734,
+"lon": -96.7989343,
+"byClass": {
+"TT": 53,
+"TTTH": 7,
+"CD": 2,
+"FW": 17,
+"C": 2,
+"FWTH": 2,
+"B": 1
+},
+"ttthGarageFt": {
+"14": 3,
+"10": 3,
+"13": 1
+},
+"snapLat": 43.536388,
+"snapLon": -96.731667,
+"geo": "website_published",
+"address": "2415 N Bakker Landing Ave, Tea, SD 57064"
+},
+{
+"code": "TMI",
+"name": "Traverse City",
+"units": 143,
+"lat": 44.6967953,
+"lon": -85.6574402,
+"byClass": {
+"TT": 71,
+"DT": 5,
+"FW": 40,
+"TTTH": 5,
+"C": 1,
+"FWTH": 21
+},
+"ttthGarageFt": {
+"8": 1,
+"10": 1,
+"14": 2,
+"13": 1
+},
+"snapLat": 44.6971890870742,
+"snapLon": -85.6570554269876,
+"geo": "nominatim_poi",
+"address": "705 US-31 S, Traverse City, MI 49685"
+},
+{
+"code": "TWF",
+"name": "Twin Falls",
+"units": 264,
+"lat": 42.646224394703,
+"lon": -114.454079188756,
+"byClass": {
+"TT": 144,
+"FW": 54,
+"FWTH": 36,
+"TTTH": 17,
+"DT": 5,
+"C": 3,
+"B": 2,
+"TC": 1,
+"AG": 1,
+"CD": 1
+},
+"ttthGarageFt": {
+"11": 2,
+"10": 5,
+"13": 6,
+"14": 3,
+"12": 1
+},
+"snapLat": 42.563919,
+"snapLon": -114.609182,
+"geo": "census_geocoder",
+"address": "551 Arlen Dr, Jerome, ID 83338"
+}
+]
+}

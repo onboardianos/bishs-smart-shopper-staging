@@ -1,0 +1,33 @@
+{
+ "snapshotId": "INV-2026-11-09-80022971B2E4",
+ "names": {
+  "AUT": "American Fork",
+  "AIN": "Anderson",
+  "ONE": "Bellevue/Omaha",
+  "BMT": "Billings",
+  "ZMT": "Bozeman",
+  "CAL": "Calera",
+  "CIA": "Cedar Rapids",
+  "CWY": "Cheyenne",
+  "CMI": "Coldwater",
+  "CRD": "Corp",
+  "DIA": "Davenport",
+  "FCA": "Fairfield",
+  "GMT": "Great Falls",
+  "IDF": "Idaho Falls",
+  "JOR": "Junction City",
+  "KMT": "Kalispell",
+  "KNE": "Kearney",
+  "LNE": "Lincoln",
+  "LTX": "Longview",
+  "LMI": "Ludington",
+  "MID": "Meridian",
+  "MKY": "Murray",
+  "OKY": "Oak Grove",
+  "RSD": "Rapid City",
+  "SUT": "Salt Lake",
+  "SSD": "Sioux Falls",
+  "TMI": "Traverse City",
+  "TWF": "Twin Falls"
+ }
+}

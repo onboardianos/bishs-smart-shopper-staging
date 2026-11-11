@@ -1,0 +1,33 @@
+@import '../../../vendor/colors_and_type.css';
+html, body, #root { background: var(--surface-light-page); color: var(--text-light-primary); }
+.ssw .overline, .ld .overline, .modal-root .overline, .v1-modal-back .overline { color: var(--text-light-secondary); } /* was --accent-gold-lo: gold only on the COMMIT */
+.t-title, .t-title-2, .st-title, .ld-title, .ld-card-t {
+  font-family: var(--font-body);
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: var(--text-light-primary);
+  text-transform: none;
+}
+.t-subtitle, .ld-sub, .ld-card-s { font-family: var(--font-body); color: var(--text-light-secondary); }
+.tone-card { background: var(--surface-light-card); border: 1px solid var(--border-light); border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); }
+.v1-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: var(--radius-md); font-family: var(--font-ui); font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; cursor: pointer; }
+.v1-btn.is-block { width: 100%; }
+.v1-commit, .btn-commit { background: var(--accent-gold-hi); color: var(--brand-black); border: 0; }
+.v1-commit:hover, .btn-commit:hover { background: var(--accent-gold); }
+.v1-commit:disabled, .btn-commit:disabled { opacity: 0.45; cursor: not-allowed; }
+.v1-action { background: transparent; color: var(--accent-gold-lo); border: 1px solid var(--border-gold-hi); }
+.v1-shell-bar { display: flex; align-items: center; gap: 16px; height: 64px; padding: 0 24px; background: var(--surface-light-card); border-bottom: 1px solid var(--border-light); }
+.v1-shell-bar img { height: 28px; }
+.v1-shell-bar span { font-family: var(--font-ui); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+.v1-store { margin-left: auto; color: var(--text-light-secondary); font-size: 13px; }
+.v1-modal-back { position: fixed; inset: 0; z-index: var(--z-modal); background: rgba(2,0,0,.55); display: flex; align-items: flex-end; justify-content: center; }
+@media (min-width: 1024px) { .v1-modal-back { align-items: center; } }
+.mm-state { display: flex; gap: 16px; align-items: flex-start; max-width: 720px; margin: 12px auto; padding: 12px 16px; background: var(--surface-light-card); border: 1px solid var(--border-light); border-radius: var(--radius-lg); }
+.mm-state > span { display: grid; gap: 2px; }
+.mm-state-title { display: block; font-family: var(--font-body); font-size: 16px; letter-spacing: 0; text-transform: none; }
+.mm-state-body { display: block; }
+.mm-state[data-state="error"] { background: var(--semantic-danger-light); border-color: var(--semantic-danger-dark); }
+.mm-state[data-state="stale"] { background: var(--semantic-warning-light); border-color: var(--semantic-warning-dark); }
+.mm-state-title { margin: 0; font-family: var(--font-display); font-size: 28px; letter-spacing: 0.5px; color: var(--text-light-primary); }
+.mm-state-body { margin: 8px 0 0; color: var(--text-light-secondary); }
+.ph-t, .qv-t, .qv-pv { font-family: var(--font-body); }

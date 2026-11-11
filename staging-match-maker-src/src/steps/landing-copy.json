@@ -1,0 +1,19 @@
+{
+ "_source": "Zach's landing reference, 1:32 AM MST 2026-11-11 (refs/zach-landing-2026-11-11/, 3 states). Words are his, verbatim.",
+ "nav": [
+  "Inventory",
+  "Locations",
+  "Service"
+ ],
+ "title": "Smart Shopper",
+ "sub": "The fastest, easiest, and most enjoyable way to search for your next RV.",
+ "helpTitle": "Help me choose",
+ "helpSub": "Find an RV around the way you travel.",
+ "helpCta": "Shop Smart now",
+ "haveTitle": "I already have one in mind",
+ "haveSub": "Pick up where your search left off.",
+ "havePlaceholder": "Stock number, brand, or model",
+ "browse": "Browse all RVs",
+ "footer": "Your adventure. Your pace.",
+ "trailerAlt": "Travel trailer"
+}
