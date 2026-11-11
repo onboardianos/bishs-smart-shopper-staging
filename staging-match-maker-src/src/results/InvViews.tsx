@@ -10,12 +10,15 @@ export type View = 'grid' | 'list';
 type DragFns = { onDragStart: (stock: string, e: DragEvent) => void; onDragOver: (i: number | null) => void; onDrop: (i: number, e: DragEvent) => void };
 type Common = { pins: string[]; saved: string[]; onPin: (s: string) => void; onSave: (s: string) => void; drag: DragFns };
 
-export function InvTools({ view, onView }: { view: View; onView: (v: View) => void }) {
+export function InvTools({ view, onView, search, onSearch, location, onLocation, stores, total }: {
+  view: View; onView: (v: View) => void; search: string; onSearch: (q: string) => void; location: string; onLocation: (code: string) => void;
+  stores: { code: string; name: string; units: number }[]; total: number;
+}) {
   return (
     <div className="inv-tools" id="mm-inv-tools">
       <label className="search" id="mm-search-wrap">
         <Svg id="mm-search-i" d={I.search} size={16} />
-        <input id="mm-search" placeholder="Search" aria-label="Search inventory" data-spec-id="input-search-inventory" data-bos-class="input" />
+        <input id="mm-search" placeholder="Search" aria-label="Search inventory" data-spec-id="input-search-inventory" data-bos-class="input" value={search} onChange={(e) => onSearch(e.target.value)} />
       </label>
       <div className="views" id="mm-views" role="radiogroup" aria-label="View">
         <button type="button" role="radio" aria-checked={view === 'grid'} className={`view-b${view === 'grid' ? ' is-on' : ''}`} id="mm-view-grid" data-spec-id="input-choice-view-grid" data-bos-class="input" aria-label="Grid view" title="Grid view" onClick={() => onView('grid')}><GridGlyph id="mm-view-grid-i" /></button>
@@ -23,9 +26,9 @@ export function InvTools({ view, onView }: { view: View; onView: (v: View) => vo
       </div>
       <div className="sel sel-sm" id="mm-loc-wrap">
         <Svg id="mm-loc-pin" d={I.mapPin} size={16} className="sel-lead" />
-        <select className="sel-in" id="mm-loc" data-spec-id="input-location" data-bos-class="input" defaultValue="" aria-label="Location">
-          <option id="mm-loc-all" value="">All locations</option>
-          <option id="mm-loc-mid" value="MID">Meridian, ID</option>
+        <select className="sel-in" id="mm-loc" data-spec-id="input-location" data-bos-class="input" value={location} aria-label="Location" onChange={(e) => onLocation(e.target.value)}>
+          <option id="mm-loc-all" value="">All locations ({total.toLocaleString('en-US')})</option>
+          {stores.map((s) => <option key={s.code} id={`mm-loc-${s.code}`} value={s.code}>{s.name} ({s.units.toLocaleString('en-US')})</option>)}
         </select>
         <Svg id="mm-loc-caret" d={I.chevronDown} size={16} className="sel-caret" />
       </div>

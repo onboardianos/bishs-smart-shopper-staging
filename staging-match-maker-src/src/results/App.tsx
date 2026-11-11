@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useState, type DragEvent, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from 'react';
 import { GridGlyph, Grip, I, ListGlyph, Svg } from './icons';
 import logo from './assets/logo-bishs-rv-black-gold.png';
 import { Carousel, InvTable, InvTools, type View } from './InvViews';
@@ -7,7 +7,8 @@ import {
   unitImg, unitTitle, lengthFt, type Match,
 } from './inventory';
 import { loadAnswers, saveAnswers, onPurchase, type Answers } from '../answers';
-import { rankLive, withPicked } from '../liveRank';
+import { snapshotMeta, withPicked } from '../liveRank';
+import { locationsOf, rankDesk, seedDesk, snapshotUnitCount, type Desk, type Toggle } from '../deskRank';
 import { SiteHeader } from '../steps/SiteHeader';
 import { buildSession, gvwrOf } from '../session';
 import { budgetText, budgetRows, people, answerText } from '../steps/answersText';
@@ -57,7 +58,8 @@ export function App() {
     return a;
   });
   const [towOpen, setTowOpen] = useState(false);
-  const live = useMemo(() => { const r = withPicked(rankLive(answers, 120), q().get('unit')); if (r.ceiling) setLiveBudget(r.ceiling); return r; }, [answers]);
+  const [desk, setDesk] = useState<Desk>(() => seedDesk(answers));
+  const live = useMemo(() => { const r = withPicked(rankDesk(answers, desk, 120), q().get('unit')); if (r.ceiling) setLiveBudget(r.ceiling); return r; }, [answers, desk]);
   const rows = live.matches as Match[];
   const patch = (p: Partial<Answers>) => setAnswers(saveAnswers(p));
   const [pins, setPins] = useState<string[]>(pinsFromUrl);
@@ -91,11 +93,13 @@ export function App() {
     return () => removeEventListener('keydown', k);
   }, [drawer]);
 
-  const slots = pins.map((s) => (s ? (rows.find((m) => m.unit.stock === s) || matchOf(s)) : null));
+  const pinCache = useRef<Record<string, Match>>({});
+  rows.forEach((m) => { pinCache.current[m.unit.stock] = m; });
+  const slots = pins.map((s) => (s ? (rows.find((m) => m.unit.stock === s) || pinCache.current[s] || matchOf(s)) : null));
+  const seededPins = useRef(pins.some(Boolean));
   useEffect(() => {
-    const held = pins.filter((s) => rows.some((m) => m.unit.stock === s));
-    const want = Math.min(3, rows.length);
-    if (held.length >= want) return;
+    if (seededPins.current || !rows.length) return;
+    seededPins.current = true;
     setPins([rows[0]?.unit.stock || '', rows[1]?.unit.stock || '', rows[2]?.unit.stock || '']);
   }, [rows]);
   const others = rows.filter((m) => !pins.includes(m.unit.stock)).slice(0, PAGE);
@@ -130,15 +134,15 @@ export function App() {
       <main className="pg" id="mm-main">
         {tab === 'inventory' && (
           <>
-            <PageHead id="mm-inv-head" title="Find your next getaway." sub="Explore RVs around what matters to you." onAnswers={() => setDrawer(true)} extra={<Notice label={gvwrOf(answers) ? `${gvwrOf(answers)!.toLocaleString('en-US')} lbs (90% of ${Number(answers.towRating).toLocaleString('en-US')})` : ''} onAdd={() => setTowOpen(true)} />} budget={answers} />
+            <PageHead id="mm-inv-head" title="Find your next getaway." sub={`${live.total.toLocaleString('en-US')} matching units`} onAnswers={() => setDrawer(true)} extra={<Notice label={desk.towMax < desk.R.towMax ? `${desk.towMax.toLocaleString('en-US')} lbs` : ''} onAdd={() => setTowOpen(true)} />} budget={answers} />
             <button type="button" className="filt-toggle" id="mm-filt-toggle" data-spec-id="btn-action-toggle-filters" data-bos-class="action" aria-expanded={filtOpen} aria-controls="mm-filt" onClick={() => setFiltOpen((v) => !v)}>
               <Svg id="mm-filt-toggle-icon" d={I.sliders} size={18} />
               <span id="mm-filt-toggle-t">Filters</span>
-              <span className="filt-toggle-n" id="mm-filt-toggle-n">4 set</span>
+              <span className="filt-toggle-n" id="mm-filt-toggle-n">{activeFilters(desk) ? `${activeFilters(desk)} set` : 'Any'}</span>
               <Svg id="mm-filt-toggle-caret" d={I.chevronDown} size={16} className={filtOpen ? 'is-up' : ''} />
             </button>
-            <Filters open={filtOpen} answers={answers} onChange={patch} />
-            <TabsRow tab={tab} onTab={setTab} savedN={savedSet.length} tools={<InvTools view={view} onView={setView} />} />
+            <Filters open={filtOpen} desk={desk} onChange={setDesk} />
+            <TabsRow tab={tab} onTab={setTab} savedN={savedSet.length} tools={<InvTools view={view} onView={setView} search={desk.search} onSearch={(search) => setDesk((d) => ({ ...d, search }))} location={desk.location} onLocation={(location) => setDesk((d) => ({ ...d, location }))} stores={locationsOf()} total={snapshotUnitCount()} />} />
             {view === 'grid' ? (
               <>
                 <TopStrip slots={slots} over={over} drag={drag} onRemove={unpin} onOpen={() => setTab('top3')} />
@@ -168,11 +172,11 @@ export function App() {
       </main>
       {!fit && (
         <footer className="pg-foot" id="mm-foot" data-spec-id="info-preview-footer">
-          <span id="mm-foot-t">Design preview · illustrative inventory from snapshot INV-2026-11-09 · class art, not unit photos</span>
+          <span id="mm-foot-t">Snapshot {snapshotMeta().inventorySnapshotId} · {snapshotUnitCount().toLocaleString('en-US')} units · {locationsOf().length} locations · class art, not unit photos</span>
         </footer>
       )}
       {drawer && <AnswersDrawer onClose={() => setDrawer(false)} answers={answers} onTow={() => { setDrawer(false); setTowOpen(true); }} />}
-      {towOpen && <TowSheet answers={answers} onClose={() => setTowOpen(false)} onSave={(towRating, towLabel) => { patch({ towRating, towLabel, tow: 'yes', towMode: 'derived' }); setTowOpen(false); }} />}
+      {towOpen && <TowSheet answers={answers} onClose={() => setTowOpen(false)} onSave={(towRating, towLabel) => { patch({ towRating, towLabel, tow: 'yes', towMode: 'derived' }); setDesk((d) => ({ ...d, towMax: Math.min(d.R.towMax, Math.round(towRating * 0.9)) })); setTowOpen(false); }} />}
       {rows.length === 0 && <p className="mm-state" data-state="empty" data-spec-id="card-state-empty" role="status"><span><strong className="mm-state-title">No matching units</strong><span className="mm-state-body">Nothing on the lot fits these answers. Widen the budget, the tow rating, or the stores.</span></span></p>}
     </div>
   );
@@ -206,26 +210,31 @@ function PageHead({ id, title, sub, onAnswers, extra, budget }: { id: string; ti
 
 /* ─────────── filters ─────────── */
 
-function Seg({ id, label, opts, on }: { id: string; label: string; opts: string[]; on: number | null }) {
+function Seg<K extends keyof Toggle>({ id, label, opts, value, onPick }: { id: string; label: string; opts: string[]; value: string | null; onPick: (v: Toggle[K] | null) => void }) {
   return (
     <div className="f-cell" id={id}>
       <span className="f-l" id={`${id}-l`}>{label}</span>
       <div className="seg" id={`${id}-seg`} role="radiogroup" aria-labelledby={`${id}-l`} data-spec-id={`input-filter-${id.replace('mm-f-', '')}`}>
-        {opts.map((o, i) => (
-          <button key={o} type="button" role="radio" aria-checked={on === i} className={`seg-b${on === i ? ' is-on' : ''}`} id={`${id}-${o.toLowerCase()}`} data-spec-id={`input-choice-${id.replace('mm-f-', '')}-${o.toLowerCase()}`} data-bos-class="input">
-            {on === i && <Svg id={`${id}-${o.toLowerCase()}-chk`} d={I.check} size={14} stroke={3} />}
-            <span id={`${id}-${o.toLowerCase()}-t`}>{o}</span>
-          </button>
-        ))}
+        {opts.map((o) => {
+          const on = value === o;
+          return (
+            <button key={o} type="button" role="radio" aria-checked={on} className={`seg-b${on ? ' is-on' : ''}`} id={`${id}-${o.toLowerCase()}`} data-spec-id={`input-choice-${id.replace('mm-f-', '')}-${o.toLowerCase()}`} data-bos-class="input"
+              onClick={() => onPick((on ? null : o) as Toggle[K] | null)}>
+              {on && <Svg id={`${id}-${o.toLowerCase()}-chk`} d={I.check} size={14} stroke={3} />}
+              <span id={`${id}-${o.toLowerCase()}-t`}>{o}</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
 }
 
-function Slider({ id, label, min, max, value, dir, minL, maxL, valL, any }: {
-  id: string; label: string; min: number; max: number; value: number; dir: 'max' | 'min'; minL: string; maxL: string; valL: string; any: string;
+function Slider({ id, label, min, max, step, value, dir, minL, maxL, valL, any, onChange }: {
+  id: string; label: string; min: number; max: number; step?: number; value: number; dir: 'max' | 'min'; minL: string; maxL: string; valL: string; any: string; onChange: (n: number) => void;
 }) {
-  const pct = ((value - min) / (max - min)) * 100;
+  const span = Math.max(1, max - min);
+  const pct = ((value - min) / span) * 100;
   return (
     <div className="f-cell f-slider" id={id}>
       <div className="f-lrow" id={`${id}-lrow`}>
@@ -235,52 +244,68 @@ function Slider({ id, label, min, max, value, dir, minL, maxL, valL, any }: {
       <div className="sl" id={`${id}-wrap`}>
         <span className="sl-rail" id={`${id}-rail`} />
         <span className="sl-fill" id={`${id}-fill`} style={dir === 'max' ? { left: 0, width: `${pct}%` } : { left: `${pct}%`, right: 0 }} />
-        <input className="sl-in" id={`${id}-in`} type="range" min={min} max={max} defaultValue={value} aria-label={label} aria-valuetext={valL || any} data-spec-id={`input-${id.replace('mm-f-', 'filter-')}`} data-bos-class="input" />
+        <input className="sl-in" id={`${id}-in`} type="range" min={min} max={max} step={step || 1} value={value} aria-label={label} aria-valuetext={valL || any} data-spec-id={`input-${id.replace('mm-f-', 'filter-')}`} data-bos-class="input" onChange={(e) => onChange(Number(e.target.value))} />
       </div>
       <div className="sl-ends" id={`${id}-ends`}><span id={`${id}-min`}>{minL}</span><span id={`${id}-max`}>{maxL}</span></div>
     </div>
   );
 }
 
-function Filters({ open, answers, onChange }: { open: boolean; answers: Answers; onChange: (p: Partial<Answers>) => void }) {
-  const finance = answers.budgetMode === 'finance';
-  const shown = finance ? String(answers.payment) : answers.maxSpend > 0 ? `$${answers.maxSpend.toLocaleString('en-US')}` : 'Any';
-  const typeValue = answers.classes.includes('C') && !answers.classes.includes('FW') && !answers.classes.includes('TT') ? 'C'
-    : answers.classes.includes('FW') && !answers.classes.includes('TT') ? 'FW'
-    : answers.classes.length === 1 && answers.classes[0] === 'TT' ? 'TT' : 'ALL';
+function classOptions() {
+  const snap = (window as unknown as { BISH_SNAPSHOT?: { units: { class: string }[]; lookups?: { classes?: Record<string, { description?: string }> } } }).BISH_SNAPSHOT;
+  const counts: Record<string, number> = {};
+  for (const u of snap?.units || []) counts[u.class] = (counts[u.class] || 0) + 1;
+  return Object.keys(counts).sort().map((code) => ({ code, name: snap?.lookups?.classes?.[code]?.description || code, units: counts[code] }));
+}
+
+function activeFilters(d: Desk) {
+  let n = 0;
+  if (d.method === 'Cash' ? d.cash > 0 : d.payment > 0) n += 1;
+  if (d.toggle.bunks) n += 1;
+  if (d.toggle.slides) n += 1;
+  if (d.toggle.bedroom) n += 1;
+  if (d.toggle.build) n += 1;
+  if (d.lenMax < d.R.lenMax) n += 1;
+  if (d.towMax < d.R.towMax) n += 1;
+  if (d.sleepMin > d.R.sleepMin) n += 1;
+  if (d.unitType !== 'ALL') n += 1;
+  if (d.location) n += 1;
+  if (d.search.trim()) n += 1;
+  return n;
+}
+
+function Filters({ open, desk, onChange }: { open: boolean; desk: Desk; onChange: (fn: (d: Desk) => Desk) => void }) {
+  const finance = desk.method === 'Finance';
+  const shown = finance ? String(desk.payment || '') : desk.cash > 0 ? String(desk.cash) : '';
+  const setToggle = <K extends keyof Toggle>(key: K, v: Toggle[K] | null) => onChange((d) => ({ ...d, toggle: { ...d.toggle, [key]: v } }));
+  const types = classOptions();
   return (
     <section className={`filt${open ? ' is-open' : ''}`} id="mm-filt" data-spec-id="sec-filters" data-bos-level="section" data-bos-type="toolbar" aria-label="Filters">
       <div className="f-row f-row-1" id="mm-filt-r1">
         <div className="f-cell" id="mm-f-price">
           <label className="f-l" id="mm-f-price-l" htmlFor="mm-f-price-in">{finance ? 'Payment ($/mo)' : 'Sales price ($)'}</label>
           <div className="step" id="mm-f-price-box">
-            <button type="button" className="step-b" id="mm-f-price-mode" data-spec-id="btn-action-budget-mode" data-bos-perm="discovery.navigate" aria-pressed={finance} onClick={() => onChange({ budgetMode: finance ? 'cash' : 'finance', ...(finance ? {} : { tier: answers.tier || 'good' }) })}>{finance ? '/mo' : 'Cash'}</button>
-            <button type="button" className="step-b" id="mm-f-price-dec" data-spec-id="btn-action-price-dec" data-bos-class="action" aria-label="Lower price" onClick={() => onChange(finance ? { payment: Math.max(50, answers.payment - 50) } : { maxSpend: Math.max(5000, answers.maxSpend - 5000) })}><Svg id="mm-f-price-dec-i" d={I.minus} size={16} stroke={2} /></button>
-            <input className="step-in" id="mm-f-price-in" data-spec-id="input-filter-price" data-bos-class="input" value={shown} inputMode="numeric" aria-label={finance ? 'Monthly payment' : 'Maximum sales price'} onChange={(e) => { const n = Number(e.target.value.replace(/[^0-9]/g, '')); onChange(finance ? { payment: n || 0 } : { maxSpend: n || 0 }); }} />
-            <button type="button" className="step-b" id="mm-f-price-inc" data-spec-id="btn-action-price-inc" data-bos-class="action" aria-label="Raise price" onClick={() => onChange(finance ? { payment: answers.payment + 50 } : { maxSpend: answers.maxSpend + 5000 })}><Svg id="mm-f-price-inc-i" d={I.plus} size={16} stroke={2} /></button>
+            <button type="button" className="step-b" id="mm-f-price-mode" data-spec-id="btn-action-budget-mode" data-bos-perm="discovery.navigate" aria-pressed={finance} onClick={() => onChange((d) => ({ ...d, method: finance ? 'Cash' : 'Finance' }))}>{finance ? '/mo' : 'Cash'}</button>
+            <button type="button" className="step-b" id="mm-f-price-dec" data-spec-id="btn-action-price-dec" data-bos-class="action" aria-label="Lower price" onClick={() => onChange((d) => finance ? { ...d, payment: Math.max(0, d.payment - 50) } : { ...d, cash: Math.max(0, d.cash - 500) })}><Svg id="mm-f-price-dec-i" d={I.minus} size={16} stroke={2} /></button>
+            <input className="step-in" id="mm-f-price-in" data-spec-id="input-filter-price" data-bos-class="input" value={shown} placeholder="Any" inputMode="numeric" aria-label={finance ? 'Monthly payment' : 'Maximum sales price'} onChange={(e) => { const n = Number(e.target.value.replace(/[^0-9]/g, '')) || 0; onChange((d) => finance ? { ...d, payment: n } : { ...d, cash: n }); }} />
+            <button type="button" className="step-b" id="mm-f-price-inc" data-spec-id="btn-action-price-inc" data-bos-class="action" aria-label="Raise price" onClick={() => onChange((d) => finance ? { ...d, payment: d.payment + 50 } : { ...d, cash: d.cash + 500 })}><Svg id="mm-f-price-inc-i" d={I.plus} size={16} stroke={2} /></button>
           </div>
         </div>
-        <Seg id="mm-f-bunks" label="Bunks" opts={['Yes', 'No']} on={answers.children > 0 && answers.childSetup === 'must' ? 0 : null} />
-        <Seg id="mm-f-slides" label="Slides" opts={['Yes', 'No']} on={answers.size === 'space' ? 0 : answers.size === 'simple' ? 1 : null} />
-        <Seg id="mm-f-bedroom" label="Bedroom" opts={['Private', 'Open']} on={answers.bedroom === 'must' || answers.bedroom === 'prefer' ? 0 : answers.bedroom === 'space' ? 1 : null} />
-        <Seg id="mm-f-build" label="Build" opts={['Fiber', 'Alum']} on={answers.build === 'laminate' ? 0 : answers.build === 'value' ? 1 : null} />
+        <Seg id="mm-f-bunks" label="Bunks" opts={['Yes', 'No']} value={desk.toggle.bunks} onPick={(v) => setToggle('bunks', v)} />
+        <Seg id="mm-f-slides" label="Slides" opts={['Yes', 'No']} value={desk.toggle.slides} onPick={(v) => setToggle('slides', v)} />
+        <Seg id="mm-f-bedroom" label="Bedroom" opts={['Private', 'Open']} value={desk.toggle.bedroom} onPick={(v) => setToggle('bedroom', v)} />
+        <Seg id="mm-f-build" label="Build" opts={['Fiber', 'Alum']} value={desk.toggle.build} onPick={(v) => setToggle('build', v)} />
       </div>
       <div className="f-row f-row-2" id="mm-filt-r2">
-        <Slider id="mm-f-length" label="Length (max)" min={10} max={49} value={answers.lengthMode === 'hard' && answers.lengthFt < 41 ? answers.lengthFt : 49} dir="max" minL="10 ft" maxL="49 ft" valL={answers.lengthMode === 'hard' && answers.lengthFt < 41 ? `${answers.lengthFt} ft` : '49 ft'} any="Any" />
-        <Slider id="mm-f-tow" label="Tow limit" min={1} max={27} value={gvwrOf(answers) ? Math.min(27, Math.round(gvwrOf(answers)! / 1000)) : 27} dir="max" minL="0.75K lbs" maxL="27K lbs" valL={gvwrOf(answers) ? `${gvwrOf(answers)!.toLocaleString('en-US')} lbs` : ''} any="Any" />
-        <Slider id="mm-f-sleeps" label="Sleeps" min={1} max={12} value={answers.sleepsMin} dir="min" minL="1" maxL="12+" valL={`${answers.sleepsMin}+`} any="At least" />
+        <Slider id="mm-f-length" label="Length (max)" min={desk.R.lenMin} max={desk.R.lenMax} value={desk.lenMax} dir="max" minL={`${desk.R.lenMin} ft`} maxL={`${desk.R.lenMax} ft`} valL={`${desk.lenMax} ft`} any={desk.lenMax < desk.R.lenMax ? 'Up to' : 'Any'} onChange={(n) => onChange((d) => ({ ...d, lenMax: n }))} />
+        <Slider id="mm-f-tow" label="Tow limit" min={desk.R.towMin} max={desk.R.towMax} step={250} value={desk.towMax} dir="max" minL={`${(desk.R.towMin / 1000).toFixed(2).replace(/0$/, '')}K`} maxL={`${(desk.R.towMax / 1000).toFixed(2).replace(/0$/, '')}K`} valL={`${(desk.towMax / 1000).toFixed(2)}K lbs`} any={desk.towMax < desk.R.towMax ? 'Up to' : 'Any'} onChange={(n) => onChange((d) => ({ ...d, towMax: n }))} />
+        <Slider id="mm-f-sleeps" label="Sleeps" min={desk.R.sleepMin} max={desk.R.sleepMax} value={desk.sleepMin} dir="min" minL={`${desk.R.sleepMin}`} maxL={`${desk.R.sleepMax}+`} valL={`${desk.sleepMin}+`} any={desk.sleepMin > desk.R.sleepMin ? 'At least' : 'Any'} onChange={(n) => onChange((d) => ({ ...d, sleepMin: n }))} />
         <div className="f-cell" id="mm-f-type">
           <label className="f-l" id="mm-f-type-l" htmlFor="mm-f-type-sel">Unit type</label>
           <div className="sel" id="mm-f-type-wrap">
-            <select className="sel-in" id="mm-f-type-sel" data-spec-id="input-filter-unit-type" data-bos-class="input" value={typeValue} onChange={(e) => {
-              const v = e.target.value;
-              const map: Record<string, string[]> = { ALL: ['TT', 'FW', 'FWTH', 'TTTH', 'TC', 'FD', 'AT', 'HTT', 'DT', 'AG', 'AD', 'C', 'CD', 'B'], FW: ['FW', 'FWTH'], TT: ['TT'], C: ['C', 'CD'] };
-              onChange({ classes: map[v] || map.ALL });
-            }}>
-              <option id="mm-f-type-all" value="ALL">All types</option>
-              <option id="mm-f-type-fw" value="FW">Fifth Wheel</option>
-              <option id="mm-f-type-tt" value="TT">Travel Trailer</option>
-              <option id="mm-f-type-c" value="C">Class C</option>
+            <select className="sel-in" id="mm-f-type-sel" data-spec-id="input-filter-unit-type" data-bos-class="input" value={desk.unitType} onChange={(e) => onChange((d) => ({ ...d, unitType: e.target.value }))}>
+              <option id="mm-f-type-all" value="ALL">All types ({snapshotUnitCount().toLocaleString('en-US')})</option>
+              {types.map((c) => <option key={c.code} id={`mm-f-type-${c.code}`} value={c.code}>{c.name} ({c.units.toLocaleString('en-US')})</option>)}
             </select>
             <Svg id="mm-f-type-caret" d={I.chevronDown} size={18} className="sel-caret" />
           </div>

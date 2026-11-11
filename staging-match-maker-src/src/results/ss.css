@@ -267,7 +267,7 @@ html, body, #root { margin: 0; background: var(--surface-light-card); }
   .t3-aside { grid-column: 4 / -1; padding: 14px; }
   .t3-foot { font-size: 15px; align-items: flex-start; }
   .t3-aside-s { font-size: 13px; }
-  .inv-h-r .sel-sm { display: none; }
+  .inv-h-r .sel-sm { display: flex; }
   .tt-media { height: 220px; }
   .tt-name { font-size: 23px; }
   .tt-price { font-size: 26px; }
@@ -303,7 +303,7 @@ html, body, #root { margin: 0; background: var(--surface-light-card); }
   .f-row-1, .f-row-2 { grid-template-columns: 1fr 1fr; row-gap: 14px; }
   .f-row-1 > :first-child { grid-column: 1 / -1; }
   .note { font-size: 13px; padding: 8px 12px; flex-wrap: wrap; row-gap: 2px; }
-  .tabs .sel-sm { display: none; }
+  .tabs .inv-tools .sel-sm { display: flex; }
   .tabs-l { gap: 20px; }
   .tab { font-size: 16px !important; }
   .t3 { border-radius: 12px; padding: 6px 8px 8px; }

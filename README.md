@@ -17,7 +17,7 @@ The page sends `noindex, nofollow` in a robots meta tag and in an `X-Robots-Tag`
 Redesigned Smart Shopper (question order and skip rules from live Wayfinder v2.1) plus the mobile and owner fixes. Source is `staging-match-maker-src/` (`npm install` then `npm run build` with base `/staging-match-maker/`). Question-by-question parity is in `QUESTION-PARITY.md`.
 
 - Engine **1.2.0** (match-maker scoring). `index.html` restores it after `vendor/_ds_bundle.js` loads. Permission verbs stay `discovery.*` and `match.send`.
-- Inventory snapshot **INV-2026-11-09-80022971B2E4** (8,067 in-scope units, generated 2026-11-09)
+- Inventory snapshot **INV-2026-11-09-80022971B2E4** (8,067 in-scope units, generated 2026-11-09). Byte-identical to the live Match Maker snapshot at `bishsos.com/tools/wayfinder/snapshot.js`. No newer snapshot is published, so the day-old note still shows on the question screens. The results pool is that full file: every in-scope unit, every location, sale price / DSRP (`price`), never MSRP.
 - Tow gate keeps campers within **90%** of the published tow rating unless the shopper chooses the exact number
 - Budgets gate on the snapshot `price` field (sale price, with evo DSRP as the fallback). The matches screen labels that figure DSRP. MSRP is not the budget.
 - Known-unit search and the loader both key off snapshot `stocknumber`. A suggestion navigates to `?screen=loading&unit=<stock>` with no hash.

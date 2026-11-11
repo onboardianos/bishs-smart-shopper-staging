@@ -1,10 +1,38 @@
 import data from './stores.json';
 
-// Hard store filter + counts, all computed from the live snapshot (stores.json). One function feeds every count on every step.
+// Hard store filter + counts. The published list is the live snapshot's stores; any rooftop or stocked location
+// missing from that file (POC, and stores with zero units) is added so "All locations" is the whole dataset.
 export type Store = (typeof data.stores)[number];
-export const STORES: Store[] = [...data.stores].sort((a, b) => a.name.localeCompare(b.name));
+type SnapU = { class: string; location: string };
+function fullStoreList(stores: Store[]): Store[] {
+  const snap = (window as unknown as { BISH_SNAPSHOT?: { units?: SnapU[]; lookups?: { rooftops?: Record<string, { storeName?: string; lat?: number; lon?: number }> } } }).BISH_SNAPSHOT;
+  if (!snap?.units) return stores;
+  const have = new Set(stores.map((s) => s.code));
+  const counts: Record<string, number> = {};
+  const byClass: Record<string, Record<string, number>> = {};
+  for (const u of snap.units) {
+    counts[u.location] = (counts[u.location] || 0) + 1;
+    const row = byClass[u.location] || (byClass[u.location] = {});
+    row[u.class] = (row[u.class] || 0) + 1;
+  }
+  const roofs = snap.lookups?.rooftops || {};
+  const extra: Store[] = [];
+  for (const code of new Set([...Object.keys(roofs), ...Object.keys(counts)])) {
+    if (have.has(code)) continue;
+    const roof = roofs[code];
+    extra.push({
+      code, name: roof?.storeName || code, units: counts[code] || 0,
+      lat: roof?.lat ?? null, lon: roof?.lon ?? null,
+      byClass: byClass[code] || {}, ttthGarageFt: {},
+      snapLat: roof?.lat ?? null, snapLon: roof?.lon ?? null,
+      geo: roof?.lat != null ? 'snapshot' : 'none', address: null,
+    } as Store);
+  }
+  return [...stores, ...extra];
+}
+export const STORES: Store[] = fullStoreList([...data.stores]).sort((a, b) => a.name.localeCompare(b.name));
 export const SNAPSHOT = data.snapshotId;
-export const ALL_UNITS = 8067; // snapshot total (includes 6 units at POC, which is not in the live store list)
+export const ALL_UNITS = STORES.reduce((sum, s) => sum + s.units, 0);
 // ZIP origins: 2026 Census Gazetteer ZCTA internal points (33,791 ZIPs), loaded lazily the first time the picker opens.
 export type ZipTable = Record<string, [number, number]>;
 let zcta: ZipTable | null = null;
