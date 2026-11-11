@@ -28,4 +28,4 @@ Live source of truth: Wayfinder v2.1 on bishsos.com/smart-shopper (engine 1.2.0)
 
 Skip rules live in `staging-match-maker-src/src/steps/flowSteps.ts`. Session gates live in `src/session.ts` (port of live `buildSession`, tow margin 90%).
 
-Hitch drawings for Bumper pull and Fifth wheel are the only art in `src/steps/HitchArt.tsx` (`HITCH_ART`). Owner PNG replacements were not in this environment, so the built-in drawings remain until those two files are set.
+Bumper pull and fifth wheel card art is the owner PNGs in `src/steps/HitchArt.tsx` (`HITCH_ART`): `hitch-bumper-pull.png` and `hitch-fifth-wheel.png`. Replace those two files to swap the art.

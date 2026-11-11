@@ -1,10 +1,12 @@
 // SWAP HITCH ART IN THIS FILE ONLY.
-// Owner PNGs (512×512, white): src/steps/assets/hitch-bumper-pull.png and hitch-fifth-wheel.png.
-// Set bumper/fifth to those imported URLs and the cards use <img class="ha-img"> (object-fit: contain).
-// null keeps the built-in drawing until the files are dropped in.
-export const HITCH_ART: { bumper: string | null; fifth: string | null } = {
-  bumper: null,
-  fifth: null,
+// Owner PNGs (512×512): hitch-bumper-pull.png (transparent) and hitch-fifth-wheel.png (white).
+// Cards render these with .ha-img { object-fit: contain } so the whole drawing stays inside the tile.
+import bumperPng from './assets/hitch-bumper-pull.png';
+import fifthPng from './assets/hitch-fifth-wheel.png';
+
+export const HITCH_ART = {
+  bumper: bumperPng,
+  fifth: fifthPng,
 };
 
 export function BumperHitchArt({ id }: { id: string }) {
