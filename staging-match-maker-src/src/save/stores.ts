@@ -1,6 +1,7 @@
 import { STORES, miles } from '../steps/inventory';
+import { getApproxLocation, type ApproxLocation } from './approxLocation';
 
-// Fixed short list when step 1 has no ZIP, or the ZIP is not a Gazetteer ZCTA.
+// Fixed short list when there is no ZIP and getApproxLocation() returns null.
 // Meridian, Twin Falls, Idaho Falls, Salt Lake.
 export const SHORT_STORES: { code: string; label: string }[] = [
   { code: 'MID', label: 'Meridian' },
@@ -60,17 +61,38 @@ export function saveStoreLabel(code: string) {
 
 export type NearStore = { code: string; label: string; miles?: number };
 
+const STATE_NAME: Record<string, string> = {
+  AL: 'Alabama', CA: 'California', ID: 'Idaho', IN: 'Indiana', IA: 'Iowa', KY: 'Kentucky',
+  MI: 'Michigan', MT: 'Montana', NE: 'Nebraska', OR: 'Oregon', SD: 'South Dakota', TX: 'Texas',
+  UT: 'Utah', WY: 'Wyoming',
+};
+
+function stateFromAddress(address: string | null): string | null {
+  const match = address?.match(/,\s*([A-Z]{2})\s+\d{5}\s*$/);
+  return match ? match[1] : null;
+}
+
+const STATE_BY_CODE = new Map(STORES.map((s) => [s.code, stateFromAddress(s.address)]));
+
+/** The 14 states that have a store with an address in stores.json. American Fork and Corp have none, so they are left out. */
+export const STORE_STATES: { code: string; name: string }[] = [...new Set(
+  SAVE_STORES.map((s) => STATE_BY_CODE.get(s.code)).filter((code): code is string => !!code),
+)].map((code) => ({ code, name: STATE_NAME[code] || code }))
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+export function storesInState(state: string): NearStore[] {
+  return SAVE_STORES.filter((s) => STATE_BY_CODE.get(s.code) === state)
+    .map((s) => ({ code: s.code, label: s.label, name: STORES.find((row) => row.code === s.code)?.name || s.label }))
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(({ code, label }) => ({ code, label }));
+}
+
 /**
- * Three stores closest to the step-1 ZIP. Straight-line miles from the ZIP's
- * Census ZCTA center to each store's lat/lon in stores.json. Stores with no
- * coordinates (American Fork, Corp) are skipped. Ties break alphabetically by name.
- * No ZIP, or a ZIP that is not in the gazetteer, uses the fixed short list.
+ * Closest stores to a point. Straight-line miles from stores.json coordinates.
+ * Stores without coordinates are skipped. Equal distances break alphabetically by name.
+ * A 4th store is included when it is within 5 miles of the 3rd.
  */
-export function nearestStores(zip: string, zips: Record<string, [number, number]> | null): { stores: NearStore[]; fallback: boolean; zip: string } {
-  const key = zip.trim();
-  const hit = zips && /^\d{5}$/.test(key) ? zips[key] : undefined;
-  if (!hit) return { stores: SHORT_STORES.map((s) => ({ ...s })), fallback: true, zip: key };
-  const origin = { lat: hit[0], lon: hit[1] };
+export function nearestTo(origin: ApproxLocation, approximate = false): { stores: NearStore[]; tie: boolean } {
   const byCode = new Map(STORES.map((s) => [s.code, s]));
   const ranked = SAVE_STORES.flatMap((s) => {
     const store = byCode.get(s.code);
@@ -78,8 +100,34 @@ export function nearestStores(zip: string, zips: Record<string, [number, number]
     const dist = miles(origin, store);
     if (!Number.isFinite(dist)) return [];
     return [{ code: s.code, name: store.name, label: s.label, miles: dist }];
-  }).sort((a, b) => a.miles - b.miles || a.name.localeCompare(b.name))
-    .slice(0, 3)
-    .map((s) => ({ code: s.code, label: `${s.label} · ${s.miles.toFixed(1)} mi`, miles: s.miles }));
-  return { stores: ranked, fallback: false, zip: key };
+  }).sort((a, b) => a.miles - b.miles || a.name.localeCompare(b.name));
+  const tie = ranked.length > 3 && ranked[3].miles - ranked[2].miles <= 5;
+  return {
+    tie,
+    stores: ranked.slice(0, tie ? 4 : 3).map((s) => ({
+      code: s.code,
+      miles: s.miles,
+      label: approximate ? `${s.label} · about ${Math.round(s.miles)} mi` : `${s.label} · ${s.miles.toFixed(1)} mi`,
+    })),
+  };
+}
+
+export type PickerMode =
+  | { kind: 'zip'; zip: string; stores: NearStore[]; tie: boolean }
+  | { kind: 'invalid'; zip: string }
+  | { kind: 'ip'; stores: NearStore[]; tie: boolean }
+  | { kind: 'ip-fallback' };
+
+/** No ZIP asks getApproxLocation(). A ZIP that is not a ZCTA is invalid. A real ZIP is ranked. */
+export function pickerModeFor(zip: string, zips: Record<string, [number, number]> | null): PickerMode {
+  const key = zip.trim();
+  if (!key) {
+    const loc = getApproxLocation();
+    if (!loc) return { kind: 'ip-fallback' };
+    const near = nearestTo(loc, true);
+    return { kind: 'ip', ...near };
+  }
+  const hit = zips && /^\d{5}$/.test(key) ? zips[key] : undefined;
+  if (!hit) return { kind: 'invalid', zip: key };
+  return { kind: 'zip', zip: key, ...nearestTo({ lat: hit[0], lon: hit[1] }) };
 }
