@@ -7,7 +7,8 @@ import { lengthFt, money, unitImg, unitTitle } from '../results/inventory';
 import { storeName } from '../steps/inventory';
 import { answerText, budgetText, towText } from '../steps/answersText';
 import { loadProfile } from './profile';
-import { SAVE_STORES, saveStoreLabel } from './stores';
+import { saveStoreLabel } from './stores';
+import { StorePicker } from './StorePicker';
 import './save.css';
 
 const VIEWS = ['portal', 'portal-alerts', 'portal-nav', 'portal-trade', 'portal-notes', 'portal-outfitter', 'book-visit', 'book-visit-confirm', 'book-visit-success'] as const;
@@ -215,10 +216,7 @@ export function Portal() {
                 <div className="sp-fields">
                   <div className="sp-field" id="sp-book-store-wrap">
                     <label className="sp-label" htmlFor="sp-book-store">Store</label>
-                    <select className="sp-ctrl" id="sp-book-store" data-spec-id="input-book-store" data-bos-class="input" value={bookStore} onChange={(e) => setBookStore(e.target.value)}>
-                      <option value="">Choose a store</option>
-                      {SAVE_STORES.map((s) => <option key={s.code} value={s.code}>{s.label}</option>)}
-                    </select>
+                    <StorePicker id="sp-book-store" optPrefix="sp-book-store-opt-" value={bookStore} onChange={setBookStore} />
                   </div>
                   <div className="sp-field" id="sp-book-date-wrap">
                     <label className="sp-label" htmlFor="sp-book-date">Date</label>

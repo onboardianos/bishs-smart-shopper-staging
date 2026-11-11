@@ -10,6 +10,7 @@ import { searchLive } from '../liveRank';
 import trailer from './assets/landing-trailer.png';
 import { SiteHeader } from './SiteHeader';
 import { navigate, resetAnswers } from '../answers';
+import { rememberStepZip } from '../save/stores';
 import { focusIntoView } from './keyboard';
 
 // Screen 00 · public landing (Zach's reference, 1:32 AM MST). Shown BEFORE Step 1, the customer AppShell and the Your case rail:
@@ -18,7 +19,8 @@ import { focusIntoView } from './keyboard';
 export function Landing({ query = '', locOpen = false }: { query?: string; locOpen?: boolean }) {
   const [q, setQ] = useState(query);
   const [selected, setSelected] = useState<string[] | null>(storesFromUrl());
-  const [zip, setZip] = useState('');
+  const [zip, setZipState] = useState('');
+  const setZip = (z: string) => { setZipState(z); rememberStepZip(z); };
   const [radius, setRadius] = useState(50);
   const [auto, setAuto] = useState<string[]>([]);
   const [open, setOpen] = useState(locOpen);

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { CustomerShell } from './Shell';
 import { posOf } from './flowSteps';
 import { navigate, saveAnswers } from '../answers';
+import { rememberStepZip } from '../save/stores';
 import { MatchBox } from './Case';
 import flow from './flow.json';
 import { LocationPicker, locLabel } from './LocationPicker';
@@ -24,7 +25,9 @@ export function Step1Start({ query = '', locMode = '' }: { query?: string; locMo
   const P: Record<string, { sel: string[] | null; zip: string }> = { multi: { sel: ['MID', 'TWF'], zip: '' }, radius: { sel: null, zip: '83642' },
     zero: { sel: null, zip: '83814' }, invalid: { sel: ['MID', 'TWF'], zip: '99999' }, cleared: { sel: [], zip: '' } };
   const [selected, setSelected] = useState<string[] | null>(P[locMode]?.sel ?? storesFromUrl());
-  const [zip, setZip] = useState(P[locMode]?.zip ?? '');
+  const [zip, setZipState] = useState(P[locMode]?.zip ?? '');
+  const setZip = (z: string) => { setZipState(z); rememberStepZip(z); };
+  useEffect(() => { if (zip) rememberStepZip(zip); }, []);
   const [radius, setRadius] = useState(50);
   const [auto, setAuto] = useState<string[]>([]);
   const [open, setOpen] = useState(!!locMode);

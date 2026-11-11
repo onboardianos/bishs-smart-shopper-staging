@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import type { Answers } from '../answers';
 import { loadAnswers } from '../answers';
 import { confirmSignInCode, submitCustomerProfile } from './submitProfile';
-import { SAVE_STORES, SHORT_STORES } from './stores';
+import { StorePicker } from './StorePicker';
 
 export const SAVE_PHASES = ['save', 'save-error', 'save-loading', 'save-code', 'save-merge', 'save-success'] as const;
 export type SavePhase = '' | (typeof SAVE_PHASES)[number];
@@ -44,7 +44,6 @@ export function SaveButton({ onOpen }: { onOpen: () => void }) {
 
 export function SaveFlow({ phase, pins, saved, onPhase }: { phase: SavePhase; pins: string[]; saved: string[]; onPhase: (p: SavePhase) => void }) {
   const [form, setForm] = useState<Form>(emptyForm);
-  const [allStores, setAllStores] = useState(false);
   const [errors, setErrors] = useState({ first: false, last: false, email: false, phone: false, consent: false });
   const [banner, setBanner] = useState('Fix 3 things to continue.');
   const [code, setCode] = useState(['', '', '', '']);
@@ -54,7 +53,7 @@ export function SaveFlow({ phase, pins, saved, onPhase }: { phase: SavePhase; pi
   const ready = !!(form.first.trim() && form.last.trim() && form.email.trim() && form.consent);
 
   useEffect(() => {
-    if (phase === 'save') { setForm(emptyForm()); setAllStores(false); setErrors({ first: false, last: false, email: false, phone: false, consent: false }); setCode(['', '', '', '']); setCodeHint(''); }
+    if (phase === 'save') { setForm(emptyForm()); setErrors({ first: false, last: false, email: false, phone: false, consent: false }); setCode(['', '', '', '']); setCodeHint(''); }
     if (phase === 'save-error' && !form.first && !form.email) {
       setForm({ first: 'Alex', last: 'Morgan', email: 'alex.morgan@example', phone: '(208) 555-01', store: 'MID', consent: false });
       setErrors({ first: false, last: false, email: true, phone: true, consent: true });
@@ -167,11 +166,7 @@ export function SaveFlow({ phase, pins, saved, onPhase }: { phase: SavePhase; pi
                 <Field id="phone" label="Mobile phone" error="Enter a 10-digit mobile number." hint="Optional. We'll also text the code if you add a number." bad={errors.phone} value={form.phone} placeholder="(208) 555-0123" auto="tel" inputMode="tel" onChange={(phone) => setForm({ ...form, phone })} />
                 <div className="sp-field" id="sp-field-store-wrap">
                   <label className="sp-label" id="sp-field-store-l" htmlFor="sp-field-store">Preferred store <span id="sp-field-store-opt">(optional)</span></label>
-                  <select className="sp-ctrl" id="sp-field-store" data-spec-id="input-save-store" data-bos-class="input" value={form.store} onChange={(e) => { if (e.target.value === '__all__') { setAllStores(true); return; } setForm({ ...form, store: e.target.value }); }}>
-                    <option value="">Choose a store</option>
-                    {(allStores ? SAVE_STORES : SHORT_STORES).map((s) => <option key={s.code} id={`sp-store-opt-${s.code.toLowerCase()}`} value={s.code}>{s.label}</option>)}
-                    {!allStores && <option value="__all__">Show all stores</option>}
-                  </select>
+                  <StorePicker id="sp-field-store" optPrefix="sp-store-opt-" value={form.store} onChange={(store) => setForm({ ...form, store })} />
                 </div>
               </div>
             </div>
