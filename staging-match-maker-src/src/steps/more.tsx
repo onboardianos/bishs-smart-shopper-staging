@@ -111,7 +111,6 @@ function Check({ id, spec, label, on, onChange }: { id: string; spec: string; la
   );
 }
 const toggle = (list: string[], id: string) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
-const RECORDED = 'Recorded for your outfitter — no effect on matching.';
 const fit = (P: ReturnType<typeof poolOf>) => P.pool.length;
 const optHint = (a: Answers, P: ReturnType<typeof poolOf>) => (o: Opt) => liveText(o, a, P);
 
@@ -123,7 +122,6 @@ export function StepCamping() {
     <StepFrame id="s-camping" stepId="camping" overline="Step 5 · Camping today" title="How are you camping today?" hint="Just so we know where you’re starting from." rows={rows} count={fit(P)} prev={prev}
       ctaOn={!!a.camping} disabledWhy="Pick one to continue" onContinue={next}>
       <Tiles sid="camping" opts={opts} sel={a.camping ? [a.camping] : []} onPick={(id) => set({ camping: id })} hint={(id) => opts.find((o) => o.id === id)?.hint} />
-      <Note id="s-camping-note" spec="info-recorded-for-outfitter#camping">{RECORDED}</Note>
     </StepFrame>
   );
 }
@@ -159,7 +157,6 @@ export function StepTradeNow() {
         </div>
       </Group>
       <Note id="s-trade-now-note" spec="info-trade-lists-source#trade-now">The lists are the manufacturers, brands and models on our lot today — type yours in if it isn’t there.</Note>
-      <Note id="s-trade-now-rec" spec="info-recorded-for-outfitter#trade-now">Trade-in record for your outfitter — no effect on matching.</Note>
     </StepFrame>
   );
 }
@@ -176,7 +173,6 @@ export function StepTradeWhy() {
         <textarea className="mq-textarea" id="s-trade-why-text-in" data-spec-id="input-trade-notes#trade-why" data-bos-class="input" data-bos-perm="case.write" data-bos-access="act" maxLength={600} rows={3}
           placeholder="What’s working, what isn’t, what you’d want next time" value={t.text} onChange={(e) => put({ text: e.target.value })} />
       </Field>
-      <Note id="s-trade-why-rec" spec="info-recorded-for-outfitter#trade-why">Trade-in record for your outfitter — no effect on matching.</Note>
     </StepFrame>
   );
 }
@@ -187,7 +183,6 @@ export function StepCampStyle() {
   return (
     <StepFrame id="s-camp-style" stepId="camp-style" overline="Step 8 · Camping style" title="What type of camping do you see yourself doing?" helper="Select all that apply." multi rows={rows} count={fit(P)} prev={prev} onContinue={next}>
       <Tiles sid="camp-style" cols={2} opts={CAMP_STYLE} sel={a.campStyle} multi onPick={(id) => set({ campStyle: toggle(a.campStyle, id) })} />
-      <Note id="s-camp-style-note" spec="info-recorded-for-outfitter#camp-style">{RECORDED}</Note>
     </StepFrame>
   );
 }
@@ -201,7 +196,6 @@ export function StepActivities() {
       <Field id="s-activities-other" label="Other">
         <input className="mq-input" id="s-activities-other-in" data-spec-id="input-other-activity#activities" data-bos-class="input" data-bos-perm="case.write" data-bos-access="act" type="text" placeholder="Other…" value={a.activitiesOther} onChange={(e) => set({ activitiesOther: e.target.value })} />
       </Field>
-      <Note id="s-activities-note" spec="info-recorded-for-outfitter#activities">{RECORDED}</Note>
     </StepFrame>
   );
 }
@@ -489,7 +483,6 @@ export function StepSummary() {
                       <div className="mq-sum-b" id={`s-summary-g-${s.id}-b`}>
                         <div className="mq-sum-h" id={`s-summary-g-${s.id}-h`}>
                           <span className="mq-sum-l" id={`s-summary-g-${s.id}-l`}>{s.nav}</span>
-                          {INERT.includes(s.id) && <span className="chip chip-neutral" id={`s-summary-g-${s.id}-inert`} data-spec-id="label-recorded-for-outfitter">For your outfitter</span>}
                           {miss && <span className="chip mq-chip-bad" id={`s-summary-g-${s.id}-miss`} data-spec-id="label-needs-an-answer">Needs an answer</span>}
                         </div>
                         <dl className="mq-sum-dl" id={`s-summary-g-${s.id}-dl`}>

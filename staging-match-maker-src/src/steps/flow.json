@@ -18,8 +18,7 @@
     "03": { "overline": "Step 3 · Type", "title": "What type of towable?", "hint": "How it hooks up decides which campers can work for you.", "caseLabel": "Towable type", "icon": "truck",
       "options": [
         { "id": "bumper", "label": "Bumper pull", "count": 4540, "art": "bumper" },
-        { "id": "fifth", "label": "Fifth wheel", "count": 2548, "art": "fifth" },
-        { "id": "fifth-garage", "label": "FW Toy Hauler", "count": 358, "img": "rv-toy-hauler.png" },
+        { "id": "fifth", "label": "Fifth wheel", "count": 2906, "art": "fifth" },
         { "id": "truck-bed", "label": "Truck camper", "count": 130, "img": "rv-truck-camper.png" } ] },
     "04": { "overline": "Step 4 · Bumper pull", "title": "What types of bumper pull are you interested in?", "caseLabel": "Bumper pull", "icon": "list-ordered",
       "options": [

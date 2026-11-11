@@ -1,9 +1,12 @@
 /* Bishified question controls for Steps 5+ (more.tsx). DS tokens only; light surfaces; selection = 2px ink border + ink check;
    no gold (gold stays on the single Continue / Submit COMMIT). Container-driven postures on .ssw (641 / 1024), mobile tiles inherit ssw.css. */
 .ss-frame { min-height: 100vh; background: var(--surface-light-page); }
-.ct-grid.mq-grid.c2 { grid-template-columns: repeat(2, minmax(0, 260px)); }
-.ct-grid.mq-grid.c4 { grid-template-columns: repeat(4, minmax(0, 190px)); }
-.ct-grid.mq-grid.c1 { grid-template-columns: minmax(0, 260px); }
+.ct-grid.mq-grid,
+.ct-grid.mq-grid.c2,
+.ct-grid.mq-grid.c3,
+.ct-grid.mq-grid.c4,
+.ct-grid.mq-grid.c1 { width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); justify-content: stretch; }
+.mq-note { width: 100%; max-width: 100%; box-sizing: border-box; align-self: stretch; }
 .mq-art { display: grid; place-items: center; width: 100%; height: 100%; color: var(--text-light-primary); }
 .ssw-answers > * + * { margin-top: var(--sp-5); }
 .mq-note { display: flex; align-items: flex-start; gap: var(--sp-2); margin: 0; padding: var(--sp-3) var(--sp-4); background: var(--surface-light-inset); border-radius: var(--radius-md); font-size: var(--fs-body-md); line-height: 1.45; color: var(--text-light-secondary); }
@@ -47,7 +50,7 @@
 .mq-ok { display: flex; align-items: center; gap: var(--sp-2); margin: 0; font-weight: 700; color: var(--text-light-primary); }
 .mq-link { align-self: flex-start; min-height: 44px; padding: 0; border: 0; background: transparent; font: inherit; font-weight: 600; color: var(--text-light-primary); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .mq-src { margin: 0; font-size: var(--fs-body-sm); color: var(--text-light-secondary); }
-.ssw-why { margin: 0; font-size: var(--fs-body-sm); font-weight: 600; color: var(--text-light-secondary); text-align: right; }
+.ssw-why { margin: 0; font-size: 14px; font-weight: 600; color: var(--text-light-secondary); text-align: right; }
 /* Summary */
 .mq-sum-in { max-width: 920px; }
 .mq-sum { list-style: none; margin: var(--sp-5) 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
@@ -64,7 +67,7 @@
 .mq-chip-bad { border-color: var(--text-light-primary); color: var(--text-light-primary); }
 .mq-sum-act { position: sticky; bottom: 0; z-index: var(--z-sticky, 20); margin: 0 calc(-1 * var(--sp-4)); padding: var(--sp-3) var(--sp-4); background: var(--surface-light-page); border-top: 1px solid var(--border-light); }
 @container ssw (max-width: 1023px) {
-  .ct-grid.mq-grid.c4 { grid-template-columns: repeat(2, minmax(0, 220px)); }
+  .ct-grid.mq-grid.c4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .mq-form4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .mq-sum-in { padding-bottom: 0; }
 }

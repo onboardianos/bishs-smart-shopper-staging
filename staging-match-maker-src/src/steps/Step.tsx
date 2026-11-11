@@ -49,13 +49,15 @@ export function StepFrame({ id, stepId, overline, title, hint, helper, multi, ro
             </section>
             <div className="ssw-act" id={`${id}-act`} data-spec-id="sec-step-footer" data-bos-level="section" data-bos-type="footer">
               <CaseBar rows={rows} count={count} example={example} open={sheet} onOpen={() => setSheet(true)} />
-              {!ctaOn && disabledWhy && <p className="ssw-why" id={`${id}-why`} data-spec-id="info-commit-disabled-reason" role="status">{disabledWhy}</p>}
               <div className="ssw-btns" id={`${id}-btns`}>
                 <Button kind="action" id={`${id}-prev`} data-spec-id="btn-action-previous" aria-label="Previous" className="ssw-prev" onClick={onBack || (() => go(P.prev))}>
                   <Icon name="chevrons-left" size={18} /><span className="ssw-prev-t">Previous</span>
                 </Button>
                 <button type="button" className="ssw-trade" id={`${id}-trade-in`} data-spec-id="btn-action-have-a-trade-in" data-bos-class="action" onClick={onTrade}>{loadTradeLabel()}</button>
-                <Button kind="commit" id={`${id}-continue`} data-spec-id="btn-commit-continue" size="lg" trailingIcon="arrow-right" className="ssw-cta" disabled={!ctaOn} aria-disabled={!ctaOn} onClick={onContinue || (() => goNext(sid))}>{ctaLabel || (ret === 'summary' ? 'Back to summary' : flow.cta)}</Button>
+                <div className="ssw-go" id={`${id}-go`}>
+                  <Button kind="commit" id={`${id}-continue`} data-spec-id="btn-commit-continue" size="lg" trailingIcon="arrow-right" className="ssw-cta" disabled={!ctaOn} aria-disabled={!ctaOn} onClick={onContinue || (() => goNext(sid))}>{ctaLabel || (ret === 'summary' ? 'Back to summary' : flow.cta)}</Button>
+                  {!ctaOn && disabledWhy && <p className="ssw-why" id={`${id}-why`} data-spec-id="info-commit-disabled-reason" role="status">{disabledWhy}</p>}
+                </div>
               </div>
             </div>
           </div>

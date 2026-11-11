@@ -36,15 +36,14 @@ body.kb-open .ssw-act, body.kb-open .sh { position: static; }
   .answers-btn { white-space: normal; height: auto; min-height: 48px; max-width: 100%; padding: 8px 16px; flex-wrap: wrap; text-align: left; }
   .answers-sum { flex-basis: 100%; }
   .note { flex-wrap: wrap; max-width: 100%; white-space: normal; }
-  .ssw-btns, .mq-sum-act .ssw-btns, .gl-actions { flex-direction: column; align-items: stretch; }
+  .mq-sum-act .ssw-btns, .gl-actions { flex-direction: column; align-items: stretch; }
+  .ssw-btns { flex-direction: row; align-items: flex-start; }
   .ssw-prev, .ssw-cta, .ld-cta, .v1-commit, .btn-commit, #s-summary-submit, #s04-garage-continue {
-    width: 100%;
-    max-width: 100%;
     min-height: 48px;
     min-width: 0;
-    flex: none;
     font-size: 16px;
   }
+  .ld-cta, #s-summary-submit, #s04-garage-continue, .gl-actions .v1-commit { width: 100%; max-width: 100%; }
   .ssw-prev-t { position: static; width: auto; height: auto; overflow: visible; clip: auto; }
   .ld-cta.btn-lg, .ssw-cta.btn-lg, .btn-lg { font-size: 16px; letter-spacing: 1px; }
   input, select, textarea { font-size: 16px; }
@@ -52,11 +51,18 @@ body.kb-open .ssw-act, body.kb-open .sh { position: static; }
   .ld-trailer { width: 100% !important; max-width: 100% !important; max-height: 160px; height: auto; object-fit: contain; }
   .ld, .ld-main, .ssw, .ss, .pg, .sl-card, .sl-main { min-width: 0; max-width: 100%; }
   /* Type cards match the approved bumper-pull row: image left, copy right, one column. */
-  .ct-grid, .ct-grid.hitch, .ct-grid.g5, .ct-grid.mq-grid, .ct-grid.mq-grid.c2, .ct-grid.mq-grid.c4 {
+  .ct-grid, .ct-grid.hitch, .ct-grid.mq-grid, .ct-grid.mq-grid.c2, .ct-grid.mq-grid.c4 {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
     gap: 8px;
   }
+  .ct-grid.g5 {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px;
+  }
+  .ct-grid.g5 .ct-btn { flex-direction: column !important; text-align: center; }
+  .ct-grid.g5 .ct-media { width: 100% !important; flex: none !important; aspect-ratio: 16 / 10; }
   .ct-grid > .ct, .ct-grid.g5 > .ct { max-width: none; flex: none; }
   .ct-grid .ct-btn { flex-direction: row; align-items: center; text-align: left; }
   .ct-grid .ct-media { width: 112px; flex: 0 0 112px; aspect-ratio: 1 / 1; }
