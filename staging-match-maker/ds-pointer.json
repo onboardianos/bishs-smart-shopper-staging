@@ -1,0 +1,11 @@
+{
+  "rule": "vendored-for-a-liftable-folder",
+  "repo": "onboardianos/bishs-design-system",
+  "commit": "63d64d5ccbb222b7d0b266dd84a7383c01e95532",
+  "note": "colors_and_type.css, _ds_bundle.js, the two Bish's OS logos, React 18.3.1, and the Lucide icons this page uses are copied into vendor/ and vendor/icons/. The folder does not depend on the rest of this repo. Lift site/public/staging-match-maker/ as-is.",
+  "css": "vendor/colors_and_type.css",
+  "bundle": "vendor/_ds_bundle.js",
+  "logoLight": "vendor/logo-bishs-os.png",
+  "logoDark": "vendor/logo-bishs-os-white.png",
+  "engineRestore": "The page keeps window.Engine from match-maker 1.2.0. The design-system bundle also defines Engine. shell load order saves 1.2.0 and puts it back after the bundle."
+}
