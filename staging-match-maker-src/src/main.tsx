@@ -1,4 +1,9 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
 import { createRoot } from 'react-dom/client';
+
+(window as unknown as { React: typeof React; ReactDOM: typeof ReactDOM }).React = React;
+(window as unknown as { ReactDOM: typeof ReactDOM }).ReactDOM = ReactDOM;
 import '@v1/tokens/tokens.css';
 import '@v1/components/components.css';
 import './steps/ssw.css';
@@ -14,9 +19,10 @@ import { Loading } from './steps/Loading';
 import { QLoading } from './steps/QLoading';
 import { StepCamping, StepTradeNow, StepTradeWhy, StepCampStyle, StepActivities, StepSleep, StepBedroom, StepTow, StepLength, StepGarage, StepMulti, StepSize, StepBuild, StepBudget, StepSummary } from './steps/more';
 import { App } from './results/App';
-import { Portal } from './save/Portal';
+import { CustomerPortal, PORTAL_STATES } from './save/v5portal';
 import { savePhaseFromUrl } from './save/SaveFlow';
 import './save/save.css';
+import './save/v5.css';
 
 const q = new URLSearchParams(location.search);
 const screen = q.get('screen') || '00';
@@ -61,8 +67,7 @@ function Screen() {
   if (screen === 'summary') return <StepSummary />;
   if (screen === 'qload') return <QLoading />;
   if (screen === 'loading') return <Loading />;
-  const portalStates = ['portal', 'portal-alerts', 'portal-nav', 'portal-trade', 'portal-notes', 'portal-outfitter', 'book-visit', 'book-visit-confirm', 'book-visit-success'];
-  if (screen === 'portal' || portalStates.includes(state || '')) return <Portal />;
+  if (screen === 'portal' || (PORTAL_STATES as readonly string[]).includes(state || '')) return <CustomerPortal state={state || 'portal'} />;
   if (state === 'results' || screen === 'results' || screen === 'matches' || savePhaseFromUrl()) return <App />;
   return <Landing query={q.get('q') || ''} locOpen={q.get('loc') === '1'} />;
 }
