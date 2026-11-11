@@ -5,21 +5,21 @@ import { loadAnswers } from '../answers';
 import { confirmSignInCode, submitCustomerProfile } from './submitProfile';
 import { SAVE_STORES } from './stores';
 
-export const SAVE_PHASES = ['save', 'save-error', 'save-loading', 'save-code', 'save-success'] as const;
+export const SAVE_PHASES = ['save', 'save-error', 'save-loading', 'save-code', 'save-merge', 'save-success'] as const;
 export type SavePhase = '' | (typeof SAVE_PHASES)[number];
 
 export function savePhaseFromUrl(): SavePhase {
   const q = new URLSearchParams(location.search);
-  const raw = q.get('save') || '';
-  const state = q.get('state') || '';
-  const hit = raw || ((SAVE_PHASES as readonly string[]).includes(state) ? state : '');
-  return (SAVE_PHASES as readonly string[]).includes(hit) ? (hit as SavePhase) : '';
+  const raw = q.get('state') || q.get('save') || '';
+  return (SAVE_PHASES as readonly string[]).includes(raw) ? (raw as SavePhase) : '';
 }
 
 function setSaveParam(phase: SavePhase) {
   const s = new URLSearchParams(location.search);
-  if (phase) s.set('save', phase); else s.delete('save');
-  if ((SAVE_PHASES as readonly string[]).includes(s.get('state') || '')) s.delete('state');
+  s.set('screen', s.get('screen') || 'results');
+  s.delete('save');
+  if (phase) s.set('state', phase);
+  else if ((SAVE_PHASES as readonly string[]).includes(s.get('state') || '')) s.delete('state');
   const str = s.toString();
   history.pushState(null, '', `${location.pathname}${str ? `?${str}` : ''}`);
 }
@@ -41,23 +41,29 @@ export function SaveButton({ onOpen }: { onOpen: () => void }) {
         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" /><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7" /><path d="M7 3v4a1 1 0 0 0 1 1h7" /></svg>
         <span id="sp-save-progress-t">Save Progress</span>
       </button>
+      <span className="sp-nr" data-needs-rule="button-style" data-spec-id="info-needs-rule#button-style">Placeholder · Save Progress style is outline until decided</span>
     </div>
   );
 }
 
 export function SaveFlow({ phase, pins, saved, onPhase }: { phase: SavePhase; pins: string[]; saved: string[]; onPhase: (p: SavePhase) => void }) {
   const [form, setForm] = useState<Form>(emptyForm);
-  const [errors, setErrors] = useState({ first: false, last: false, email: false, phone: false });
+  const [errors, setErrors] = useState({ first: false, last: false, email: false, phone: false, consent: false });
   const [banner, setBanner] = useState('Fix 3 things to continue.');
   const [code, setCode] = useState(['', '', '', '']);
   const [codeHint, setCodeHint] = useState('');
   const open = phase !== '';
   const pinN = pins.filter(Boolean).length;
-  const ready = form.first.trim() && form.last.trim() && form.email.trim();
+  const ready = !!(form.first.trim() && form.last.trim() && form.email.trim() && form.consent);
 
   useEffect(() => {
-    if (phase === 'save') { setForm(emptyForm()); setErrors({ first: false, last: false, email: false, phone: false }); setCode(['', '', '', '']); setCodeHint(''); }
-  }, [phase === 'save']);
+    if (phase === 'save') { setForm(emptyForm()); setErrors({ first: false, last: false, email: false, phone: false, consent: false }); setCode(['', '', '', '']); setCodeHint(''); }
+    if (phase === 'save-error' && !form.first && !form.email) {
+      setForm({ first: 'Alex', last: 'Morgan', email: 'alex.morgan@example', phone: '(208) 555-01', store: 'MID', consent: false });
+      setErrors({ first: false, last: false, email: true, phone: true, consent: true });
+      setBanner('Fix 3 things to continue.');
+    }
+  }, [phase]);
 
   useEffect(() => {
     if (!open) return;
@@ -79,9 +85,10 @@ export function SaveFlow({ phase, pins, saved, onPhase }: { phase: SavePhase; pi
       last: !form.last.trim(),
       email: !emailOk(form.email.trim()),
       phone: phone !== '' && phone.length !== 10,
+      consent: !form.consent,
     };
     if (show) setErrors(next);
-    const n = [next.first, next.last, next.email, next.phone].filter(Boolean).length;
+    const n = [next.first, next.last, next.email, next.phone, next.consent].filter(Boolean).length;
     setBanner(n === 1 ? 'Fix 1 thing to continue.' : `Fix ${n} things to continue.`);
     return n === 0;
   }
@@ -104,11 +111,11 @@ export function SaveFlow({ phase, pins, saved, onPhase }: { phase: SavePhase; pi
     e.preventDefault();
     const joined = code.join('');
     if (!confirmSignInCode(joined)) {
-      setCodeHint('Enter the code from your email.');
+      setCodeHint('Enter the 4-digit code from your email.');
       document.getElementById('sp-code-1')?.focus();
       return;
     }
-    go('save-success');
+    go('save-merge');
   }
 
   function onCode(i: number, raw: string) {
@@ -134,9 +141,7 @@ export function SaveFlow({ phase, pins, saved, onPhase }: { phase: SavePhase; pi
             <div className="sp-scroll" id="sp-form-scroll">
               <p className="sp-kicker" id="sp-overlay-kicker" data-spec-id="label-save-kicker">Save Progress</p>
               <h2 className="sp-title" id="sp-overlay-title" data-spec-id="label-save-title">Create your customer profile</h2>
-              <p className="sp-text" id="sp-overlay-text" data-spec-id="info-save-body">
-                We'll keep your Smart Shopper answers, your top three, and any RVs you saved. We'll email you a sign-in code — no password to make up. <Needs id="auth" q="Q3" text="sign-in method" />
-              </p>
+              <p className="sp-text" id="sp-overlay-text" data-spec-id="info-save-body">We'll keep your Smart Shopper answers, your top three, and any RVs you saved. We'll email you a sign-in code — no password to make up.</p>
               <div className={`sp-banner${phase === 'save-error' ? ' is-on' : ''}`} id="sp-overlay-banner" data-spec-id="info-save-error-banner" role="alert">
                 <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" x2="12" y1="8" y2="12" /><line x1="12" x2="12.01" y1="16" y2="16" /></svg>
                 <span id="sp-overlay-banner-t">{banner}</span>
@@ -147,32 +152,34 @@ export function SaveFlow({ phase, pins, saved, onPhase }: { phase: SavePhase; pi
                 <li className="sp-row" id="sp-save-row-saved"><span className="sp-row-l"><span className="sp-check" aria-hidden="true"><Check /></span> Saved RVs</span><span className="sp-row-r">{saved.length} {saved.length === 1 ? 'unit' : 'units'}</span></li>
               </ul>
               <div className="sp-fields" id="sp-fields">
-                <Needs id="fields" q="Q4" text="which fields are required" />
                 <div className="sp-name" id="sp-name-row">
                   <Field id="first" label="First name" error="Enter your first name." bad={errors.first} value={form.first} auto="given-name" onChange={(first) => setForm({ ...form, first })} />
                   <Field id="last" label="Last name" error="Enter your last name." bad={errors.last} value={form.last} auto="family-name" onChange={(last) => setForm({ ...form, last })} />
                 </div>
-                <Field id="email" label="Email" error="That email looks incomplete. Try name@example.com." hint="We'll send your sign-in details here." bad={errors.email} value={form.email} placeholder="you@email.com" auto="email" inputMode="email" onChange={(email) => setForm({ ...form, email })} />
-                <Field id="phone" label="Mobile phone" error="Enter a 10-digit mobile number." hint="Optional." bad={errors.phone} value={form.phone} placeholder="(208) 555-0123" auto="tel" inputMode="tel" onChange={(phone) => setForm({ ...form, phone })} />
+                <Field id="email" label="Email" error="That email looks incomplete. Try name@example.com." hint="We'll send a 4-digit sign-in code here." bad={errors.email} value={form.email} placeholder="you@email.com" auto="email" inputMode="email" onChange={(email) => setForm({ ...form, email })} />
+                <Field id="phone" label="Mobile phone" error="Enter a 10-digit mobile number." hint="Optional. We'll also text the code if you add a number." bad={errors.phone} value={form.phone} placeholder="(208) 555-0123" auto="tel" inputMode="tel" onChange={(phone) => setForm({ ...form, phone })} />
                 <div className="sp-field" id="sp-field-store-wrap">
                   <label className="sp-label" id="sp-field-store-l" htmlFor="sp-field-store">Preferred store <span id="sp-field-store-opt">(optional)</span></label>
                   <select className="sp-ctrl" id="sp-field-store" data-spec-id="input-save-store" data-bos-class="input" value={form.store} onChange={(e) => setForm({ ...form, store: e.target.value })}>
                     <option value="">Choose a store</option>
                     {SAVE_STORES.map((s) => <option key={s.code} id={`sp-store-opt-${s.code.toLowerCase()}`} value={s.code}>{s.label}</option>)}
                   </select>
-                  <Needs id="store" q="Q8" text="store list = staging stores.json minus Corp" />
-                </div>
-                <div className="sp-consent" id="sp-consent-wrap">
-                  <label id="sp-consent-l">
-                    <input id="sp-consent" data-spec-id="input-save-consent" data-bos-class="input" type="checkbox" checked={form.consent} onChange={(e) => setForm({ ...form, consent: e.target.checked })} />
-                    <span id="sp-consent-t">It's okay for Bish's RV to contact me by email or text about my saved RVs and this search. Message and data rates may apply. <Needs id="consent" q="Q5" text="consent wording + whether it is required" /></span>
-                  </label>
+                  <Needs id="store" q="store-list" text="store list is still open — showing every staging store except Corp" />
                 </div>
               </div>
-              <p className="sp-legal" id="sp-legal"><span id="sp-legal-t">Terms and privacy line goes here.</span> <Needs id="legal" q="Q6" text="legal copy and links" /></p>
+            </div>
+            <div className={`sp-form-pin${errors.consent ? ' is-error' : ''}`} id="sp-form-pin">
+              <div className="sp-consent" id="sp-consent-wrap">
+                <label id="sp-consent-l">
+                  <input id="sp-consent" data-spec-id="input-save-consent" data-bos-class="input" type="checkbox" checked={form.consent} onChange={(e) => setForm({ ...form, consent: e.target.checked })} />
+                  <span id="sp-consent-t">It's okay for Bish's RV to contact me by email or text about my saved RVs and this search. Message and data rates may apply.</span>
+                </label>
+                <p className="sp-err" id="sp-consent-err">Check this box so we can send your sign-in code.</p>
+              </div>
+              <p className="sp-legal" id="sp-legal">By continuing you agree to the Terms and Privacy Policy. You need to check the box so we can send your sign-in code.</p>
             </div>
             <div className="sp-actions" id="sp-form-actions">
-              <p className="sp-hint sp-reason" id="sp-submit-reason" data-spec-id="info-save-disabled-reason" role="status">Add your first name, last name and email to save.</p>
+              <p className="sp-hint sp-reason" id="sp-submit-reason" data-spec-id="info-save-disabled-reason" role="status">Add your first name, last name, and email, and check the box to save.</p>
               <button type="submit" className="sp-commit" id="sp-submit" data-spec-id="btn-commit-save-progress" data-bos-class="commit" disabled={!ready}>Save my progress</button>
               <button type="button" className="sp-ghost" id="sp-not-now" data-spec-id="btn-action-not-now" data-bos-class="action" onClick={close}>Not now</button>
             </div>
@@ -206,12 +213,28 @@ export function SaveFlow({ phase, pins, saved, onPhase }: { phase: SavePhase; pi
                   }} />
               ))}
             </div>
-            <p className="sp-hint sp-center" id="sp-code-hint" data-spec-id="info-code-hint">{codeHint || <>Code length and expiry go here. <Needs id="code" q="Q3" text="auth method, code length, expiry" /></>}</p>
+            <p className="sp-hint sp-center" id="sp-code-hint" data-spec-id="info-code-hint">{codeHint || 'Codes expire in 10 minutes.'}</p>
             <div className="sp-actions" id="sp-code-actions">
               <button type="submit" className="sp-commit" id="sp-verify" data-spec-id="btn-commit-verify-code" data-bos-class="commit">Verify and save</button>
-              <button type="button" className="sp-ghost" id="sp-resend" data-spec-id="btn-action-resend-code" data-bos-class="action" onClick={() => { setCode(['', '', '', '']); setCodeHint(''); document.getElementById('sp-code-1')?.focus(); }}>Resend code</button>
+              <button type="button" className="sp-ghost" id="sp-use-link" data-spec-id="btn-action-use-magic-link" data-bos-class="action" onClick={() => go('save-merge')}>Or use the link we emailed</button>
+              <button type="button" className="sp-ghost" id="sp-resend" data-spec-id="btn-action-resend-code" data-bos-class="action" onClick={() => { setCode(['', '', '', '']); setCodeHint('Codes expire in 10 minutes.'); document.getElementById('sp-code-1')?.focus(); }}>Resend code</button>
             </div>
           </form>
+        </div>
+
+        <div className="sp-merge" id="sp-merge-pane" data-spec-id="sec-save-merge">
+          <p className="sp-kicker" id="sp-merge-kicker" data-spec-id="label-merge-kicker">Save Progress</p>
+          <h2 className="sp-title" id="sp-merge-title" data-spec-id="label-merge-title">We found your profile</h2>
+          <p className="sp-text" id="sp-merge-text" data-spec-id="info-merge-body">We'll add this search to it. Your Smart Shopper answers, top three, and saved RVs will join the ones already in <span id="sp-merge-email">{form.email.trim() || 'your'}{form.email.trim() ? "'s" : ''}</span> portal.</p>
+          <ul className="sp-list" id="sp-merge-list" data-spec-id="list-merge-what">
+            <li className="sp-row"><span className="sp-row-l">This search's answers</span><span className="sp-row-r">Added</span></li>
+            <li className="sp-row"><span className="sp-row-l">This search's top three</span><span className="sp-row-r">Merged</span></li>
+            <li className="sp-row"><span className="sp-row-l">This search's saved RVs</span><span className="sp-row-r">{saved.length} added</span></li>
+          </ul>
+          <div className="sp-actions" id="sp-merge-actions">
+            <button type="button" className="sp-commit" id="sp-merge-confirm" data-spec-id="btn-commit-add-search" data-bos-class="commit" onClick={() => go('save-success')}>Add this search</button>
+            <button type="button" className="sp-ghost" id="sp-merge-not-me" data-spec-id="btn-action-not-my-profile" data-bos-class="action" onClick={() => go('save')}>This isn't me</button>
+          </div>
         </div>
 
         <div className="sp-success" id="sp-success-pane" data-spec-id="frame-save-progress-success" data-bos-level="frame">
@@ -219,7 +242,7 @@ export function SaveFlow({ phase, pins, saved, onPhase }: { phase: SavePhase; pi
           <h2 className="sp-title" id="sp-success-title" data-spec-id="label-save-success-title">Your progress is saved</h2>
           <p className="sp-text" id="sp-success-text" data-spec-id="info-save-success-body">Your Smart Shopper answers, top three, and saved RVs are in your customer portal. You're signed in as <span id="sp-success-name">{`${form.first.trim()} ${form.last.trim()}`.trim() || 'your profile'}</span>.</p>
           <div className="sp-actions" id="sp-success-actions">
-            <button type="button" className="sp-commit" id="sp-go-portal" data-spec-id="btn-commit-go-to-portal" data-bos-class="commit" onClick={() => { location.href = `${location.pathname}?screen=portal`; }}>Go to my portal</button>
+            <button type="button" className="sp-commit" id="sp-go-portal" data-spec-id="btn-commit-go-to-portal" data-bos-class="commit" onClick={() => { location.href = `${location.pathname}?state=portal`; }}>Go to my portal</button>
             <button type="button" className="sp-ghost" id="sp-keep-shopping" data-spec-id="btn-action-keep-shopping" data-bos-class="action" onClick={close}>Keep shopping</button>
           </div>
         </div>

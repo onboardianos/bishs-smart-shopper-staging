@@ -61,8 +61,9 @@ function Screen() {
   if (screen === 'summary') return <StepSummary />;
   if (screen === 'qload') return <QLoading />;
   if (screen === 'loading') return <Loading />;
-  if (screen === 'portal' || q.get('state') === 'portal') return <Portal />;
-  if (screen === 'results' || screen === 'matches' || savePhaseFromUrl()) return <App />;
+  const portalStates = ['portal', 'portal-alerts', 'portal-nav', 'portal-trade', 'portal-notes', 'portal-outfitter', 'book-visit', 'book-visit-confirm', 'book-visit-success'];
+  if (screen === 'portal' || portalStates.includes(state || '')) return <Portal />;
+  if (state === 'results' || screen === 'results' || screen === 'matches' || savePhaseFromUrl()) return <App />;
   return <Landing query={q.get('q') || ''} locOpen={q.get('loc') === '1'} />;
 }
 

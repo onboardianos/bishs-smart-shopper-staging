@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import logo from './assets/logo-bishs-rv-black-gold.png';
 
 // One header on every Smart Shopper screen. White bar, thin bottom border.
@@ -13,7 +13,7 @@ const SearchI = () => (
   </svg>
 );
 
-export function SiteHeader({ prefix, homeHref = WEBSITE_HOME, ssHref = './', current }: { prefix: string; homeHref?: string; ssHref?: string; current?: string }) {
+export function SiteHeader({ prefix, homeHref = WEBSITE_HOME, ssHref = './', current, end }: { prefix: string; homeHref?: string; ssHref?: string; current?: string; end?: ReactNode }) {
   const [q, setQ] = useState(() => new URLSearchParams(location.search).get('q') || '');
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -39,6 +39,7 @@ export function SiteHeader({ prefix, homeHref = WEBSITE_HOME, ssHref = './', cur
               placeholder="The easiest way to search.." aria-label="Search RVs" value={q} onChange={(e) => setQ(e.target.value)} />
           </label>
         </form>
+        {end}
       </div>
     </header>
   );

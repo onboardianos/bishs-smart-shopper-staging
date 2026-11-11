@@ -77,7 +77,9 @@ export function App() {
   const [savePhase, setSavePhase] = useState<SavePhase>(savePhaseFromUrl);
   const openSave = () => {
     const s = new URLSearchParams(location.search);
-    s.set('save', 'save');
+    s.set('screen', s.get('screen') || 'results');
+    s.delete('save');
+    s.set('state', 'save');
     history.pushState(null, '', `${location.pathname}?${s.toString()}`);
     setSavePhase('save');
   };
