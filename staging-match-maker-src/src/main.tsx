@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import '@v1/tokens/tokens.css';
 import '@v1/components/components.css';
@@ -15,7 +14,6 @@ import { Loading } from './steps/Loading';
 import { QLoading } from './steps/QLoading';
 import { StepCamping, StepTradeNow, StepTradeWhy, StepCampStyle, StepActivities, StepSleep, StepBedroom, StepTow, StepLength, StepGarage, StepMulti, StepSize, StepBuild, StepBudget, StepSummary } from './steps/more';
 import { App } from './results/App';
-import { snapshotMeta } from './liveRank';
 
 const q = new URLSearchParams(location.search);
 const screen = q.get('screen') || '00';
@@ -29,29 +27,6 @@ function StateCard({ kind, title, body }: { kind: string; title: string; body: s
         <strong className="mm-state-title">{title}</strong>
         <span className="mm-state-body">{body}</span>
       </span>
-    </div>
-  );
-}
-
-function StaleNote() {
-  const forced = q.get('state') === 'stale';
-  const onResults = screen === 'results' || screen === 'matches' || screen === 'qload';
-  const [on, setOn] = useState(false);
-  useEffect(() => {
-    if (forced) { setOn(true); return; }
-    if (onResults) return;
-    try { if (sessionStorage.getItem('mm-dismiss-stale')) return; } catch { /* ignore */ }
-    const at = Date.parse(snapshotMeta().generatedAt);
-    if (Number.isFinite(at) && Date.now() - at >= 24 * 60 * 60 * 1000) setOn(true);
-  }, [forced, onResults]);
-  if (!on) return null;
-  return (
-    <div className="mm-state" data-state="stale" data-spec-id="card-state-stale" role="status">
-      <span>
-        <strong className="mm-state-title">Inventory is a day old</strong>
-        <span className="mm-state-body">Snapshot {snapshotMeta().inventorySnapshotId} was built {snapshotMeta().generatedAt}. Counts and prices can have moved.</span>
-      </span>
-      <button type="button" data-spec-id="btn-action-dismiss-stale" data-bos-perm="discovery.navigate" onClick={() => { try { if (!forced) sessionStorage.setItem('mm-dismiss-stale', '1'); } catch { /* ignore */ } setOn(false); }}>Continue</button>
     </div>
   );
 }
@@ -89,7 +64,6 @@ function Screen() {
 
 createRoot(document.getElementById('root')!).render(
   <ToastProvider>
-    <StaleNote />
     <Screen />
   </ToastProvider>,
 );

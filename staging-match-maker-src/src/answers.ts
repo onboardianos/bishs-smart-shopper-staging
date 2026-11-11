@@ -12,7 +12,7 @@ export type Answers = {
   adults: number; children: number; pets: number; childSetup: string | null;
   bedroom: string | null;
   // Towing (90% safety margin by default)
-  tow: string | null; towRating: number | null; towMode: 'derived' | 'raw'; towLabel: string;
+  tow: string | null; towRating: number | null; towMode: 'derived' | 'raw' | null; towLabel: string;
   towYr: string; towMk: string; towMd: string; towEn: string; towIdx: number | null;
   // Length, garage (Q13)
   lengthMode: string | null; lengthFt: number; garageFt: number | null; garageAny: boolean;
@@ -22,20 +22,21 @@ export type Answers = {
   budgetMode: 'cash' | 'finance' | null; maxSpend: number; payment: number; down: number; tier: string | null; store: string;
   // legacy (results filters read it): sleepers needed
   sleepsMin: number;
+  picked: string[]; // controls the shopper has actually moved; a displayed slider position is not an answer
   done: string[]; // step ids the shopper has answered
 };
-const KEY = 'ss-case-v2';
+const KEY = 'ss-case-v3';
 export const DEFAULTS: Answers = {
-  stores: null, classes: ['TT', 'FW', 'TTTH', 'FWTH', 'TC', 'FD', 'AT', 'HTT'],
+  stores: null, classes: [],
   path: [], hitch: [], sub: [], fifthSub: [], motor: [],
   camping: null, trade: null, campStyle: [], activities: [], activitiesOther: '',
-  adults: 2, children: 0, pets: 0, childSetup: null, bedroom: null,
-  tow: null, towRating: null, towMode: 'derived', towLabel: '', towYr: '', towMk: '', towMd: '', towEn: '', towIdx: null,
-  lengthMode: null, lengthFt: 30, garageFt: null, garageAny: false,
+  adults: 0, children: 0, pets: 0, childSetup: null, bedroom: null,
+  tow: null, towRating: null, towMode: null, towLabel: '', towYr: '', towMk: '', towMd: '', towEn: '', towIdx: null,
+  lengthMode: null, lengthFt: 0, garageFt: null, garageAny: false,
   bath: [], bathMust: [], inside: [], insideMust: [], outside: [], outsideMust: [],
   size: null, build: null, buildMust: false,
-  budgetMode: null, maxSpend: 0, payment: 750, down: 5500, tier: null, store: '',
-  sleepsMin: 2, done: [],
+  budgetMode: null, maxSpend: 0, payment: 0, down: 0, tier: null, store: '',
+  sleepsMin: 0, picked: [], done: [],
 };
 export function loadAnswers(): Answers {
   try { return { ...DEFAULTS, ...JSON.parse(sessionStorage.getItem(KEY) || '{}') }; } catch { return { ...DEFAULTS }; }
@@ -43,7 +44,8 @@ export function loadAnswers(): Answers {
 export function saveAnswers(patch: Partial<Answers>) {
   const cur = loadAnswers();
   const next = { ...cur, ...patch };
-  next.sleepsMin = Math.max(1, (next.adults || 0) + (next.children || 0));
+  const chosePeople = next.picked.includes('adults') || next.picked.includes('children');
+  next.sleepsMin = chosePeople ? (next.adults || 0) + (next.children || 0) : 0;
   sessionStorage.setItem(KEY, JSON.stringify(next));
   return next;
 }

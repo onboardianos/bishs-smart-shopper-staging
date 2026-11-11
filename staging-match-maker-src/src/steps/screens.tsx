@@ -33,11 +33,11 @@ function useMulti(init: string[]) {
 }
 
 export function Step2Path({ sheet }: { sheet?: boolean }) {
-  const c = { ...S['02'], options: live(S['02'].options) }; const [sel, toggle] = useMulti(A0.path.length ? A0.path : ['towable']);
+  const c = { ...S['02'], options: live(S['02'].options) }; const [sel, toggle] = useMulti(A0.path);
   const rows: CaseRow[] = [startRow, { step: '02', label: c.caseLabel, value: names(c.options, sel), icon: c.icon, current: true }];
   return (
     <StepFrame id="s02" pos={2} overline={c.overline} title={c.title} hint={c.hint} helper={flow.multiHelper} multi rows={rows} answered={1}
-      count={sum(c.options, sel)} prev={unitsAt(SEL)} ctaOn={sel.length > 0} sheetOpen={sheet}
+      count={sel.length ? sum(c.options, sel) : unitsAt(SEL)} prev={unitsAt(SEL)} ctaOn={sel.length > 0} disabledWhy="Pick one to continue" sheetOpen={sheet}
       onBack={() => go('01')}
       onContinue={() => { markDone('02', { stores: SEL, classes: classesFor(sel), path: sel, ...(sel.includes('towable') ? {} : { hitch: [], sub: [] }) }); goNext('02'); }}>
       <div className="ct-grid g3" id="s02-grid">
@@ -67,19 +67,24 @@ export function Step3Type({ sheet }: { sheet?: boolean }) {
 
 export function Step4Bumper({ garageOpen, sheet }: { garageOpen?: boolean; sheet?: boolean }) {
   const c = { ...S['04'], options: live(S['04'].options) }; const g = S.garage;
-  const [sel, toggle] = useMulti(A0.sub.length ? A0.sub : ['regular', 'garage']);
+  const [sel, toggle] = useMulti(A0.sub);
   const [open, setOpen] = useState(!!garageOpen);
-  const [lens, setLens] = useState<string[]>(garageOpen ? g.lengths.slice(1) : [...g.lengths]);
+  const [lens, setLens] = useState<string[]>(() => {
+    if (!A0.sub.includes('garage')) return [];
+    if (A0.garageAny) return [...g.lengths];
+    if (A0.garageFt) return g.lengths.filter((l) => Number(String(l).replace('+', '')) >= A0.garageFt!);
+    return [];
+  });
   const toggleLen = (l: string) => setLens((s) => (s.includes(l) ? s.filter((x) => x !== l) : [...s, l]));
-  const trimmed = lens.length < g.lengths.length;
-  const minFt = Number((g.lengths.find((l) => lens.includes(l)) || '14').replace('+', ''));
+  const trimmed = lens.length > 0 && lens.length < g.lengths.length;
+  const shortest = lens.length ? g.lengths.find((l) => lens.includes(l)) : undefined;
+  const minFt = shortest ? Number(shortest.replace('+', '')) : 0;
   const gCount = trimmed ? garageCount(minFt, SEL) : cnt('garage', SEL);
   const count = sum(c.options, sel.filter((x) => x !== 'garage')) + (sel.includes('garage') ? gCount : 0);
-  const shortest = g.lengths.find((l) => lens.includes(l));
   const removed = shortest && shortest !== g.lengths[0] ? shortest.replace('+', '') : null;
   const rows: CaseRow[] = [startRow, { step: '02', label: 'Path', value: 'Towable', icon: 'compass' }, { step: '03', label: 'Towable type', value: 'Bumper pull', icon: 'truck' },
     { step: '04', label: c.caseLabel, value: names(c.options, sel), icon: c.icon, current: !sel.includes('garage') }];
-  if (sel.includes('garage')) rows.push({ step: '04g', label: g.caseLabel, value: trimmed ? `${lens[0]} ft and longer` : 'Any length', icon: g.icon, current: true });
+  if (sel.includes('garage')) rows.push({ step: '04g', label: g.caseLabel, value: !lens.length ? '—' : trimmed ? `${shortest} ft and longer` : 'Any length', icon: g.icon, current: true });
   const overlay = (
     <Modal id="s04-garage-sheet" open={open} onDismiss={() => setOpen(false)} labelledBy="s04-garage-title">
       <div className="gl" id="s04-garage-body" data-spec-id="sec-overlay-garage-lengths" data-bos-level="section" data-bos-type="overlay" data-layer="overlay">
@@ -100,14 +105,14 @@ export function Step4Bumper({ garageOpen, sheet }: { garageOpen?: boolean; sheet
           : <p className="gl-note gl-note-n" id="s04-garage-note" data-spec-id="info-garage-keeps-all" role="status"><Icon name="info" size={16} /> <span id="s04-garage-note-t">{g.allKept}</span></p>}
         <p className="gl-count" id="s04-garage-count" data-spec-id="metric-garage-campers-fit" aria-live="polite"><strong id="s04-garage-count-n">{gCount.toLocaleString('en-US')}</strong> toy haulers keep</p>
         <div className="gl-actions" id="s04-garage-actions">
-          <Button kind="commit" id="s04-garage-continue" data-spec-id="btn-commit-continue#garage-overlay" perm="discovery.navigate" size="lg" block trailingIcon="arrow-right" className="btn-pulse" onClick={() => setOpen(false)}>{flow.cta}</Button>
+          <Button kind="commit" id="s04-garage-continue" data-spec-id="btn-commit-continue#garage-overlay" perm="discovery.navigate" size="lg" block trailingIcon="arrow-right" className="btn-pulse" disabled={lens.length === 0} onClick={() => setOpen(false)}>{flow.cta}</Button>
         </div>
       </div>
     </Modal>
   );
   return (
     <StepFrame id="s04" pos={4} overline={c.overline} title={c.title} helper={flow.multiHelper} multi rows={rows} answered={3}
-      count={count} prev={cnt('bumper', SEL)} ctaOn={sel.length > 0} sheetOpen={sheet} overlay={overlay}
+      count={sel.length ? count : cnt('bumper', SEL)} prev={cnt('bumper', SEL)} ctaOn={sel.length > 0 && (!sel.includes('garage') || lens.length > 0)} disabledWhy={sel.includes('garage') && lens.length === 0 ? 'Choose a garage length' : 'Pick one to continue'} sheetOpen={sheet} overlay={overlay}
       onBack={() => go('03')}
       onContinue={() => { markDone('04', { stores: SEL, classes: withOther(classesFor(sel.length ? sel : ['bumper']), [...A0.hitch.filter((x) => x !== 'bumper'), ...A0.path.filter((x) => x !== 'towable')]), sub: sel, garageFt: sel.includes('garage') && trimmed ? minFt : null, garageAny: sel.includes('garage') && !trimmed }); goNext('04'); }}>
       <div className="ct-grid g5" id="s04-grid">
@@ -162,7 +167,7 @@ export function StepMotorhome({ sheet }: { sheet?: boolean }) {
   const rows: CaseRow[] = [startRow, { step: '02', label: 'Path', value: 'Motorhome', icon: 'compass' }, { step: '03', label: 'Motorhome class', value: names(opts, sel), icon: 'truck', current: true }];
   return (
     <StepFrame id="smh" pos={3} overline="Step 3 · Class" title="Which kind of motorhome?" hint="Pick a class, or keep every motorhome in the running." helper={flow.multiHelper} multi rows={rows} answered={2}
-      count={opts.filter((o) => sel.includes(o.id) && o.id !== 'any').reduce((a, o) => a + o.count, 0) || (sel.includes('any') ? opts.filter((o) => o.id !== 'any').reduce((a, o) => a + o.count, 0) : 0)} prev={cnt('motorhome', SEL)} ctaOn={sel.length > 0} sheetOpen={sheet}
+      count={sel.length ? (opts.filter((o) => sel.includes(o.id) && o.id !== 'any').reduce((a, o) => a + o.count, 0) || (sel.includes('any') ? opts.filter((o) => o.id !== 'any').reduce((a, o) => a + o.count, 0) : 0)) : cnt('motorhome', SEL)} prev={cnt('motorhome', SEL)} ctaOn={sel.length > 0} disabledWhy="Pick one to continue" sheetOpen={sheet}
       onBack={() => go('02')}
       onContinue={() => {
         const picked = sel.includes('any') ? opts.filter((o) => o.id !== 'any') : opts.filter((o) => sel.includes(o.id));

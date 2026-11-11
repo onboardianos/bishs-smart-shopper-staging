@@ -201,7 +201,7 @@ function PageHead({ id, title, sub, onAnswers, extra, budget }: { id: string; ti
       <button type="button" className="answers-btn" id={`${id}-answers`} data-spec-id="btn-action-open-your-answers" data-bos-class="action" aria-haspopup="dialog" onClick={onAnswers}>
         <Svg id={`${id}-answers-icon`} d={I.user} size={18} />
         <span id={`${id}-answers-t`}>Your answers</span>
-        <span className="answers-sum" id={`${id}-answers-sum`}>{budget ? `${budgetText(budget)} · sleeps ${budget.adults + budget.children}` : ''}</span>
+        <span className="answers-sum" id={`${id}-answers-sum`}>{budget ? `${budgetText(budget)} · sleeps ${budget.picked.includes('adults') || budget.picked.includes('children') ? budget.adults + budget.children : '—'}` : ''}</span>
       </button>
       </div>
     </header>
@@ -627,9 +627,9 @@ function AnswersDrawer({ onClose, answers, onTow }: { onClose: () => void; answe
           <section className="dr-sec" id="mm-dr-people" data-spec-id="sec-your-answers-people">
             <h3 className="dr-sh" id="mm-dr-people-h">Who's coming</h3>
             <dl className="dr-dl" id="mm-dr-people-dl">
-              <Row id="mm-dr-adults" k="Adults" v={String(answers.adults)} />
-              <Row id="mm-dr-kids" k="Kids or guests" v={String(answers.children)} />
-              <Row id="mm-dr-pets" k="Pets" v={String(answers.pets)} />
+              <Row id="mm-dr-adults" k="Adults" v={answers.picked.includes('adults') ? String(answers.adults) : '—'} />
+              <Row id="mm-dr-kids" k="Kids or guests" v={answers.picked.includes('children') ? String(answers.children) : '—'} />
+              <Row id="mm-dr-pets" k="Pets" v={answers.picked.includes('pets') ? String(answers.pets) : '—'} />
             </dl>
           </section>
           <section className="dr-sec" id="mm-dr-need" data-spec-id="sec-your-answers-need">

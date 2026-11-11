@@ -103,7 +103,7 @@ export function ceilingOf(a: Answers): number | null {
   const f = financeOf(a); return f && f.valid ? f.ceiling : null;
 }
 export function gvwrOf(a: Answers) {
-  if (!anyTowable(a) || a.tow !== 'yes' || !(Number(a.towRating) > 0)) return null;
+  if (!anyTowable(a) || a.tow !== 'yes' || !(Number(a.towRating) > 0) || !a.towMode) return null;
   return Math.round(a.towMode === 'raw' ? Number(a.towRating) : Number(a.towRating) * 0.9);
 }
 export function buildSession(a: Answers): Sess {
@@ -113,9 +113,10 @@ export function buildSession(a: Answers): Sess {
   if (ceil) { s.gates.priceMax = ceil; s.budget.priceCeiling = ceil; s.budget.mode = a.budgetMode; }
   const g = gvwrOf(a);
   if (g) { s.tow = { applies: true, rating: Number(a.towRating), mode: a.towMode }; s.gates.gvwrMax = g; }
-  s.sleepers = { adults: a.adults, children: a.children };
-  const total = a.adults + a.children; if (total > 0) s.gates.sleepsMin = total;
-  if (a.children > 0) s.lifestylePaths.push('family'); else if (a.adults <= 2) s.lifestylePaths.push('couple');
+  s.sleepers = { adults: a.picked.includes('adults') ? a.adults : 0, children: a.picked.includes('children') ? a.children : 0 };
+  const total = s.sleepers.adults + s.sleepers.children; if (total > 0) s.gates.sleepsMin = total;
+  if (a.picked.includes('children') && a.children > 0) s.lifestylePaths.push('family');
+  else if (a.picked.includes('adults') && a.adults <= 2 && a.adults > 0) s.lifestylePaths.push('couple');
   const push = (o: Opt | undefined, qid: string) => {
     if (!o) return;
     if (o.kind === 'gate') applyPatch(s, o.patch);

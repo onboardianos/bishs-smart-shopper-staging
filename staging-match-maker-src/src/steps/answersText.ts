@@ -34,7 +34,12 @@ export const tradeLabel = (a: Answers) => { const t = a.trade; if (!t) return ''
 export function budgetText(a: Answers) {
   const c = ceilingOf(a);
   if (a.budgetMode === 'cash') return a.maxSpend > 0 ? `Cash · up to ${money(c || a.maxSpend)}` : 'Cash · no amount yet';
-  if (a.budgetMode === 'finance') return a.tier ? `${money(a.payment)}/mo · ${money(a.down)} down${c ? ` · up to ${money(c)}` : ''}` : 'Monthly payment · credit not picked';
+  if (a.budgetMode === 'finance') {
+    if (!a.tier) return 'Monthly payment · credit not picked';
+    if (!a.picked.includes('payment')) return 'Monthly payment · not set yet';
+    const down = a.picked.includes('down') ? `${money(a.down)} down` : 'down not set';
+    return `${money(a.payment)}/mo · ${down}${c ? ` · up to ${money(c)}` : ''}`;
+  }
   return 'No budget set';
 }
 export function towText(a: Answers) {
@@ -56,12 +61,12 @@ export function answerText(id: string, a: Answers): string {
     case 'trade-why': { const t = a.trade; const k = t ? t.changes.length : 0; return k ? lab(TRADE_CHANGES, t!.changes) : t?.text ? 'Note added' : 'Nothing picked'; }
     case 'camp-style': return lab(CAMP_STYLE, a.campStyle) || 'None picked';
     case 'activities': return [lab(ACTIVITIES, a.activities), a.activitiesOther].filter(Boolean).join(', ') || 'None picked';
-    case 'sleep': return `${people(a)}${a.children > 0 && a.childSetup ? ` · ${childOpts(a).find((o) => o.id === a.childSetup)?.title || ''}` : ''}`;
+    case 'sleep': return a.picked.includes('adults') ? `${people(a)}${a.picked.includes('children') && a.children > 0 && a.childSetup ? ` · ${childOpts(a).find((o) => o.id === a.childSetup)?.title || ''}` : ''}` : '';
     case 'bedroom': return bedroomOpts(a).find((o) => o.id === a.bedroom)?.title || '—';
     case 'tow': return towText(a) || '—';
-    case 'length': return a.lengthMode === 'hard' ? (a.lengthFt >= 41 ? '40+ ft · no limit' : `Up to ${a.lengthFt} ft`) : lab(LENGTH_OPTS, a.lengthMode ? [a.lengthMode] : []) || '—';
+    case 'length': return a.lengthMode === 'hard' ? (a.picked.includes('lengthFt') ? (a.lengthFt >= 41 ? '40+ ft · no limit' : `Up to ${a.lengthFt} ft`) : 'Hard limit') : lab(LENGTH_OPTS, a.lengthMode ? [a.lengthMode] : []) || '—';
     case 'garage': return a.garageAny ? 'Any garage is fine' : a.garageFt ? `${a.garageFt} ft and longer` : '—';
-    case 'bath': case 'inside': case 'outside': { const t = titles(id, a, a[id]); const must = a[`${id}Must` as 'bathMust']; return t.length ? t.map((x, i) => (must.includes(a[id][i]) ? `${x} (must)` : x)).join(', ') : 'Open / no preference'; }
+    case 'bath': case 'inside': case 'outside': { const t = titles(id, a, a[id]); const must = a[`${id}Must` as 'bathMust']; return t.length ? t.map((x, i) => (must.includes(a[id][i]) ? `${x} (must)` : x)).join(', ') : '—'; }
     case 'size': return [O.space, O.balanced, O.simple].find((o) => o.id === a.size)?.title || '—';
     case 'build': return `${[O.laminate, O.value, O.either].find((o) => o.id === a.build)?.title || '—'}${a.buildMust ? ' · only this' : ''}`;
     case 'budget': return budgetText(a);
@@ -71,7 +76,7 @@ export function answerText(id: string, a: Answers): string {
 export function budgetRows(a: Answers): [string, string][] {
   if (a.budgetMode === 'finance') {
     const f = financeOf(a); const store = a.store ? SNAP().lookups.rooftops[a.store]?.storeName || a.store : 'Not picked · 6% tax estimate';
-    return [['Paying with', 'Monthly payment'], ['Credit', TIERS.find((t) => t.id === a.tier)?.label || 'Not picked'], ['Payment', `${money(a.payment)} a month${a.tier ? ` · ${APR[a.tier]} APR estimate` : ''}`], ['Down payment', money(a.down)], ['Closest store', store], ['Reaches campers up to', f && f.valid ? money(f.ceiling) : '—']];
+    return [['Paying with', 'Monthly payment'], ['Credit', TIERS.find((t) => t.id === a.tier)?.label || 'Not picked'], ['Payment', a.picked.includes('payment') ? `${money(a.payment)} a month${a.tier ? ` · ${APR[a.tier]} APR estimate` : ''}` : 'Not set'], ['Down payment', a.picked.includes('down') ? money(a.down) : 'Not set'], ['Closest store', store], ['Reaches campers up to', f && f.valid ? money(f.ceiling) : '—']];
   }
   if (a.budgetMode === 'cash') return [['Paying with', 'Cash'], ['Maximum', a.maxSpend > 0 ? money(ceilingOf(a) || a.maxSpend) : 'Not set']];
   return [['Budget', 'Not set']];

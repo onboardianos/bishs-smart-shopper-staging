@@ -21,7 +21,13 @@ const TOW_SRC = { modelYear: 2026, source: 'RV LIFE 2026 Trailer Towing Guide' }
 function useDraft(stepId: string) {
   const saved = useMemo(loadAnswers, []);
   const [a, setA] = useState<Answers>(saved);
-  const set = (p: Partial<Answers>) => setA((x) => ({ ...x, ...p, sleepsMin: Math.max(1, (p.adults ?? x.adults) + (p.children ?? x.children)) }));
+  const set = (p: Partial<Answers>) => setA((x) => {
+    const next = { ...x, ...p, picked: p.picked || x.picked };
+    const adults = next.picked.includes('adults') ? next.adults : 0;
+    const children = next.picked.includes('children') ? next.children : 0;
+    next.sleepsMin = adults + children;
+    return next;
+  });
   const P = useMemo(() => poolOf(a), [a]);
   const P0 = useMemo(() => poolOf(saved), [saved]);
   const rows = caseRows(a, stepId);
@@ -74,15 +80,15 @@ function Chips({ sid, opts, sel, multi, onPick, dim }: { sid: string; opts: { id
     </div>
   );
 }
-function Stepper({ sid, k, label, value, min, max, onChange }: { sid: string; k: string; label: string; value: number; min: number; max: number; onChange: (v: number) => void }) {
+function Stepper({ sid, k, label, value, min, max, blank, onChange }: { sid: string; k: string; label: string; value: number; min: number; max: number; blank?: boolean; onChange: (v: number) => void }) {
   const id = `s-${sid}-${k}`;
   return (
     <div className="mq-stepper" id={id} data-spec-id={`input-stepper-${k}#${sid}`} data-bos-class="input">
       <span className="mq-stepper-l" id={`${id}-l`}>{label}</span>
       <div className="mq-stepper-c" id={`${id}-c`} role="group" aria-labelledby={`${id}-l`}>
-        <button type="button" id={`${id}-dec`} data-spec-id={`btn-action-${k}-minus#${sid}`} data-bos-class="action" aria-label={`Fewer ${label.toLowerCase()}`} disabled={value <= min} onClick={() => onChange(Math.max(min, value - 1))}><Icon name="minus" size={18} /></button>
-        <output id={`${id}-v`} aria-live="polite">{value}</output>
-        <button type="button" id={`${id}-inc`} data-spec-id={`btn-action-${k}-plus#${sid}`} data-bos-class="action" aria-label={`More ${label.toLowerCase()}`} disabled={value >= max} onClick={() => onChange(Math.min(max, value + 1))}><Icon name="plus" size={18} /></button>
+        <button type="button" id={`${id}-dec`} data-spec-id={`btn-action-${k}-minus#${sid}`} data-bos-class="action" aria-label={`Fewer ${label.toLowerCase()}`} disabled={!blank && value <= min} onClick={() => onChange(blank ? min : Math.max(min, value - 1))}><Icon name="minus" size={18} /></button>
+        <output id={`${id}-v`} aria-live="polite">{blank ? '—' : value}</output>
+        <button type="button" id={`${id}-inc`} data-spec-id={`btn-action-${k}-plus#${sid}`} data-bos-class="action" aria-label={`More ${label.toLowerCase()}`} disabled={!blank && value >= max} onClick={() => onChange(blank ? Math.min(max, Math.max(min, 1)) : Math.min(max, value + 1))}><Icon name="plus" size={18} /></button>
       </div>
     </div>
   );
@@ -94,7 +100,7 @@ function Range({ sid, k, label, value, min, max, step, fmt, ends, onChange, extr
       <div className="mq-range-h" id={`${id}-h`}><label className="mq-group-l" id={`${id}-l`} htmlFor={`${id}-in`}>{label}</label><strong className="mq-range-v" id={`${id}-v`}>{fmt(value)}</strong></div>
       {extra}
       <input type="range" id={`${id}-in`} data-spec-id={`input-range-${k}#${sid}`} data-bos-class="input" data-bos-perm="discovery.navigate" data-bos-access="act" min={min} max={max} step={step} value={value} disabled={disabled}
-        style={{ ['--p' as string]: `${((value - min) / (max - min)) * 100}%` }} onChange={(e) => onChange(Number(e.target.value))} aria-valuetext={fmt(value)} />
+        style={{ ['--p' as string]: `${((value - min) / (max - min)) * 100}%` }} onChange={(e) => onChange(Number(e.target.value))} onPointerUp={(e) => { if (!disabled) onChange(Number((e.target as HTMLInputElement).value)); }} aria-valuetext={fmt(value)} />
       <div className="mq-range-ends" id={`${id}-ends`}><span id={`${id}-min`}>{ends[0]}</span><span id={`${id}-max`}>{ends[1]}</span></div>
     </div>
   );
@@ -111,6 +117,7 @@ function Check({ id, spec, label, on, onChange }: { id: string; spec: string; la
   );
 }
 const toggle = (list: string[], id: string) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
+const mark = (a: Answers, key: string) => (a.picked.includes(key) ? a.picked : [...a.picked, key]);
 const fit = (P: ReturnType<typeof poolOf>) => P.pool.length;
 const optHint = (a: Answers, P: ReturnType<typeof poolOf>) => (o: Opt) => liveText(o, a, P);
 
@@ -147,7 +154,8 @@ export function StepTradeNow() {
     </Field>
   );
   return (
-    <StepFrame id="s-trade-now" stepId="trade-now" overline="Step 6 · Your camper" title="What are you camping in now?" hint="Year, manufacturer, brand and model — pick from today’s lot or type it in." rows={rows} count={fit(P)} prev={prev} onContinue={next}>
+    <StepFrame id="s-trade-now" stepId="trade-now" overline="Step 6 · Your camper" title="What are you camping in now?" hint="Year, manufacturer, brand and model — pick from today’s lot or type it in." rows={rows} count={fit(P)} prev={prev}
+      ctaOn={!!(t.year.trim() || t.mfr.trim() || t.make.trim() || t.model.trim())} disabledWhy="Enter the year, manufacturer, brand, or model" onContinue={next}>
       <Group id="s-trade-now-fields" label="Your current camper">
         <div className="mq-form4" id="s-trade-now-form">
           {combo('year', 'Year', years, 'e.g. 2018', 'numeric')}
@@ -167,7 +175,8 @@ export function StepTradeWhy() {
   const t = a.trade || emptyTrade();
   const put = (p: Partial<Trade>) => set({ trade: { ...t, ...p } });
   return (
-    <StepFrame id="s-trade-why" stepId="trade-why" overline="Step 7 · What to change" title="What would you change about your current camper?" hint="Pick anything that fits, or add a note." helper="Select all that apply." multi rows={rows} count={fit(P)} prev={prev} onContinue={next}>
+    <StepFrame id="s-trade-why" stepId="trade-why" overline="Step 7 · What to change" title="What would you change about your current camper?" hint="Pick anything that fits, or add a note." helper="Select all that apply." multi rows={rows} count={fit(P)} prev={prev}
+      ctaOn={t.changes.length > 0 || !!t.text.trim()} disabledWhy="Pick one, or add a note" onContinue={next}>
       <Chips sid="trade-why" opts={TRADE_CHANGES} sel={t.changes} multi onPick={(id) => put({ changes: toggle(t.changes, id) })} />
       <Field id="s-trade-why-text" label="In your own words (optional)">
         <textarea className="mq-textarea" id="s-trade-why-text-in" data-spec-id="input-trade-notes#trade-why" data-bos-class="input" data-bos-perm="case.write" data-bos-access="act" maxLength={600} rows={3}
@@ -181,7 +190,8 @@ export function StepTradeWhy() {
 export function StepCampStyle() {
   const { a, set, P, prev, rows, next } = useDraft('camp-style');
   return (
-    <StepFrame id="s-camp-style" stepId="camp-style" overline="Step 8 · Camping style" title="What type of camping do you see yourself doing?" helper="Select all that apply." multi rows={rows} count={fit(P)} prev={prev} onContinue={next}>
+    <StepFrame id="s-camp-style" stepId="camp-style" overline="Step 8 · Camping style" title="What type of camping do you see yourself doing?" helper="Select all that apply." multi rows={rows} count={fit(P)} prev={prev}
+      ctaOn={a.campStyle.length > 0} disabledWhy="Pick at least one" onContinue={next}>
       <Tiles sid="camp-style" cols={2} opts={CAMP_STYLE} sel={a.campStyle} multi onPick={(id) => set({ campStyle: toggle(a.campStyle, id) })} />
     </StepFrame>
   );
@@ -191,7 +201,8 @@ export function StepCampStyle() {
 export function StepActivities() {
   const { a, set, P, prev, rows, next } = useDraft('activities');
   return (
-    <StepFrame id="s-activities" stepId="activities" overline="Step 9 · Activities" title="What activities do you see yourself doing with your RV?" helper="Select all that apply." multi rows={rows} count={fit(P)} prev={prev} onContinue={next}>
+    <StepFrame id="s-activities" stepId="activities" overline="Step 9 · Activities" title="What activities do you see yourself doing with your RV?" helper="Select all that apply." multi rows={rows} count={fit(P)} prev={prev}
+      ctaOn={a.activities.length > 0 || !!a.activitiesOther.trim()} disabledWhy="Pick at least one, or add your own" onContinue={next}>
       <Chips sid="activities" opts={ACTIVITIES} sel={a.activities} multi onPick={(id) => set({ activities: toggle(a.activities, id) })} />
       <Field id="s-activities-other" label="Other">
         <input className="mq-input" id="s-activities-other-in" data-spec-id="input-other-activity#activities" data-bos-class="input" data-bos-perm="case.write" data-bos-access="act" type="text" placeholder="Other…" value={a.activitiesOther} onChange={(e) => set({ activitiesOther: e.target.value })} />
@@ -204,17 +215,22 @@ export function StepActivities() {
 export function StepSleep() {
   const { a, set, P, prev, rows, next } = useDraft('sleep');
   const opts = childOpts(a).filter((o) => o.kind === 'gate' || splits(P.pool, o));
-  const needKids = a.children > 0 && opts.length > 0;
+  const adultsOn = a.picked.includes('adults');
+  const kidsOn = a.picked.includes('children');
+  const petsOn = a.picked.includes('pets');
+  const needKids = kidsOn && a.children > 0 && opts.length > 0;
+  const heads = adultsOn && kidsOn && petsOn;
+  const sleepN = (adultsOn ? a.adults : 0) + (kidsOn ? a.children : 0);
   const miss = P.pool.filter((u) => u.sleeps == null).length;
   return (
     <StepFrame id="s-sleep" stepId="sleep" overline="Step 10 · Sleeping" title="How many people will you regularly be camping with?" hint="Everyone who needs a bed on a normal trip." rows={rows} count={fit(P)} prev={prev}
-      ctaOn={!needKids || !!a.childSetup} disabledWhy="Pick a sleeping setup for the children or guests" onContinue={next}>
+      ctaOn={heads && (!needKids || !!a.childSetup)} disabledWhy={heads ? 'Pick a sleeping setup for the children or guests' : 'Set adults, children or guests, and pets'} onContinue={next}>
       <div className="mq-steppers" id="s-sleep-steppers">
-        <Stepper sid="sleep" k="adults" label="Adults" value={a.adults} min={0} max={8} onChange={(v) => set({ adults: v })} />
-        <Stepper sid="sleep" k="children" label="Children or guests" value={a.children} min={0} max={8} onChange={(v) => set({ children: v, ...(v === 0 ? { childSetup: null } : {}) })} />
-        <Stepper sid="sleep" k="pets" label="Pets" value={a.pets} min={0} max={8} onChange={(v) => set({ pets: v })} />
+        <Stepper sid="sleep" k="adults" label="Adults" value={a.adults} min={0} max={8} blank={!adultsOn} onChange={(v) => set({ adults: v, picked: mark(a, 'adults') })} />
+        <Stepper sid="sleep" k="children" label="Children or guests" value={a.children} min={0} max={8} blank={!kidsOn} onChange={(v) => set({ children: v, picked: mark(a, 'children'), ...(v === 0 ? { childSetup: null } : {}) })} />
+        <Stepper sid="sleep" k="pets" label="Pets" value={a.pets} min={0} max={8} blank={!petsOn} onChange={(v) => set({ pets: v, picked: mark(a, 'pets') })} />
       </div>
-      <p className="mq-line" id="s-sleep-line" data-spec-id="metric-sleeps-fit" aria-live="polite">Sleeps <b id="s-sleep-line-n">{a.adults + a.children}</b> · {n(P.verified.length)} campers fit, {n(P.probable.length)} need a quick check</p>
+      <p className="mq-line" id="s-sleep-line" data-spec-id="metric-sleeps-fit" aria-live="polite">Sleeps <b id="s-sleep-line-n">{heads ? sleepN : '—'}</b> · {n(P.verified.length)} campers fit, {n(P.probable.length)} need a quick check</p>
       {needKids && (
         <Group id="s-sleep-kids" label={isMotorOnly(a) ? 'Where do the kids sleep?' : 'For the children or guests, what sleeping setup works?'}>
           <Tiles sid="sleep" opts={opts.map((o) => ({ id: o.id, label: o.title, img: o.img, icon: o.icon }))} sel={a.childSetup ? [a.childSetup] : []} onPick={(id) => set({ childSetup: id })} hint={(id) => optHint(a, P)(opts.find((o) => o.id === id)!)} />
@@ -269,7 +285,7 @@ export function StepTow() {
   const opts = TOW_OPTS.map((o) => ({ ...o, img: TOW_IMG[o.id as 'yes' | 'delivery'], icon: 'circle-help' }));
   return (
     <StepFrame id="s-tow" stepId="tow" overline="Step 12 · Towing" title="How will you get your new RV home?" hint="If you’re towing it, we’ll keep you inside what your vehicle can pull." rows={rows} count={fit(P)} prev={prev}
-      ctaOn={!!a.tow} disabledWhy="Pick one to continue" onContinue={next}>
+      ctaOn={!!a.tow && (!(Number(a.towRating) > 0) || !!a.towMode)} disabledWhy={a.tow ? 'Choose a safety margin' : 'Pick one to continue'} onContinue={next}>
       <Tiles sid="tow" opts={opts} sel={a.tow ? [a.tow] : []} onPick={(id) => set({ tow: id })}
         hint={(id) => (id === 'yes' ? 'Heavier campers drop out' : id === 'no' ? 'No weight limit yet' : 'No tow vehicle needed')} />
       {a.tow === 'yes' && (
@@ -288,16 +304,16 @@ export function StepTow() {
           {(ready || manual) ? (
             <>
               <Range sid="tow" k="rating" label={manual && !ready ? 'Set it yourself' : 'Adjust the number if you need to'} value={Number(a.towRating) || 7500} min={1000} max={30000} step={100} fmt={(v) => `${n(v)} lbs`} ends={['1,000 lbs', '30,000 lbs']}
-                onChange={(v) => set({ towRating: v, towIdx: null })} />
-              <Group id="s-tow-margin" label="Safety margin">
-                <Chips sid="tow-margin" opts={[{ id: 'derived', label: 'Leave 10% headroom' }, { id: 'raw', label: 'Use the exact number' }]} sel={[a.towMode]} onPick={(id) => set({ towMode: id as 'derived' | 'raw' })} />
-              </Group>
+                onChange={(v) => { const same = a.towIdx != null && matches[a.towIdx] && matches[a.towIdx][3] === v; set({ towRating: v, towIdx: same ? a.towIdx : null, picked: mark(a, 'towRating') }); }} />
+              {Number(a.towRating) > 0 && <Group id="s-tow-margin" label="Safety margin">
+                <Chips sid="tow-margin" opts={[{ id: 'derived', label: 'Leave 10% headroom' }, { id: 'raw', label: 'Use the exact number' }]} sel={a.towMode ? [a.towMode] : []} onPick={(id) => set({ towMode: id as 'derived' | 'raw' })} />
+              </Group>}
               {g && <Note id="s-tow-limit" spec="info-tow-limit">We’ll show campers up to <b>{n(g)} lbs</b>{a.towMode === 'derived' ? ' — 90% of your rating as a safety margin' : ''}. Heavier ones drop out; unknown weights get a quick check.</Note>}
             </>
           ) : (
             <>
               <Note id="s-tow-none" spec="info-tow-no-limit-yet">No weight limit yet — pick your year, make, model and engine above and we’ll set it from the published rating.</Note>
-              <button type="button" className="mq-link" id="s-tow-manual" data-spec-id="btn-action-set-tow-rating-myself" data-bos-class="action" onClick={() => { setManual(true); if (!a.towRating) set({ towRating: 7500 }); }}>My vehicle isn’t listed — set the number myself</button>
+              <button type="button" className="mq-link" id="s-tow-manual" data-spec-id="btn-action-set-tow-rating-myself" data-bos-class="action" onClick={() => setManual(true)}>My vehicle isn’t listed — set the number myself</button>
             </>
           )}
           <p className="mq-src" id="s-tow-src" data-spec-id="info-data-source#tow">Source: {TOW_SRC.source} · {TOW_SRC.modelYear} model year.</p>
@@ -310,16 +326,17 @@ export function StepTow() {
 /* ───────── Length ───────── */
 export function StepLength() {
   const { a, set, P, prev, rows, next } = useDraft('length');
-  const mode = a.lengthMode || 'none';
+  const mode = a.lengthMode;
   const base = useMemo(() => { const c = E().candidates(unitsFor(a) as never, { ...P.session.gates, lengthMaxFt: null }); return c.verified.concat(c.probable); }, [P]);
   const atLen = (ft: number) => { const cap = ft >= 41 ? Infinity : ft * 12; let fitN = 0, unk = 0; base.forEach((u) => { if (u.lengthIn == null) unk++; else if (u.lengthIn <= cap) fitN++; }); return `${n(fitN + unk)} campers fit at this length${unk ? ` · ${n(unk)} don’t list a length` : ''}`; };
   const r = P.pool.map((u) => u.lengthIn).filter((v): v is number => v != null);
   return (
-    <StepFrame id="s-length" stepId="length" overline="Step 13 · Length" title="Do you have a hard length limit?" hint="Storage spot, driveway or favorite campsite — anything with a limit." rows={rows} count={fit(P)} prev={prev} onContinue={next}>
-      <Tiles sid="length" opts={LENGTH_OPTS} sel={[mode]} onPick={(id) => set({ lengthMode: id, ...(id === 'hard' && !(a.lengthFt > 0) ? { lengthFt: 30 } : {}) })}
+    <StepFrame id="s-length" stepId="length" overline="Step 13 · Length" title="Do you have a hard length limit?" hint="Storage spot, driveway or favorite campsite — anything with a limit." rows={rows} count={fit(P)} prev={prev}
+      ctaOn={mode === 'soft' || mode === 'none' || (mode === 'hard' && a.picked.includes('lengthFt'))} disabledWhy={mode === 'hard' ? 'Set the maximum length' : 'Pick one to continue'} onContinue={next}>
+      <Tiles sid="length" opts={LENGTH_OPTS} sel={mode ? [mode] : []} onPick={(id) => set({ lengthMode: id })}
         hint={(id) => (id === 'hard' ? 'Longer units drop out' : id === 'soft' ? 'Shorter units rank higher' : 'Every length stays in')} />
-      {mode === 'hard' && <Range sid="length" k="max" label="Maximum length" value={a.lengthFt || 30} min={16} max={41} step={1} fmt={(v) => (v >= 41 ? '40+ ft · no limit' : `${v} ft`)} ends={['16 ft', '40+ ft']} onChange={(v) => set({ lengthFt: v })}
-        extra={<span className="mq-live" id="s-length-live" data-spec-id="metric-length-fit" aria-live="polite">{atLen(a.lengthFt || 30)}</span>} />}
+      {mode === 'hard' && <Range sid="length" k="max" label="Maximum length" value={a.picked.includes('lengthFt') ? a.lengthFt : 30} min={16} max={41} step={1} fmt={(v) => (v >= 41 ? '40+ ft · no limit' : `${v} ft`)} ends={['16 ft', '40+ ft']} onChange={(v) => set({ lengthFt: v, picked: mark(a, 'lengthFt') })}
+        extra={<span className="mq-live" id="s-length-live" data-spec-id="metric-length-fit" aria-live="polite">{a.picked.includes('lengthFt') ? atLen(a.lengthFt) : 'Move the slider to set a maximum. It starts at 30 ft and does not count until you set it.'}</span>} />}
       {r.length > 0 && <Note id="s-length-range" spec="info-length-range">Campers in the running right now run {Math.round(Math.min(...r) / 12)}–{Math.round(Math.max(...r) / 12)} ft{P.pool.length - r.length > 0 ? `, and ${n(P.pool.length - r.length)} don’t list a length` : ''}.</Note>}
     </StepFrame>
   );
@@ -333,7 +350,7 @@ export function StepGarage() {
     <StepFrame id="s-garage" stepId="garage" overline="Step 14 · Garage" title="How long does the garage need to be?" hint="Measure your longest toy — we’ll skip garages that are shorter." rows={rows} count={fit(P)} prev={prev}
       ctaOn={!!mode && (mode === 'any' || !!a.garageFt)} disabledWhy="Pick one, or enter your length" onContinue={next}>
       <Tiles sid="garage" cols={2} opts={[{ id: 'need', label: 'I know my length', icon: 'ruler' }, { id: 'any', label: 'Any garage is fine', icon: 'warehouse' }]} sel={mode ? [mode] : []}
-        onPick={(id) => set(id === 'any' ? { garageAny: true, garageFt: null } : { garageAny: false, garageFt: a.garageFt || 12 })} hint={(id) => (id === 'need' ? 'Shorter garages drop out' : 'Garage length shows on every result')} />
+        onPick={(id) => set(id === 'any' ? { garageAny: true, garageFt: null } : { garageAny: false, garageFt: null })} hint={(id) => (id === 'need' ? 'Shorter garages drop out' : 'Garage length shows on every result')} />
       {mode === 'need' && (
         <Field id="s-garage-ft" label="Garage length needed">
           <span className="mq-input-row" id="s-garage-ft-row">
@@ -365,10 +382,11 @@ export function StepMulti({ k }: { k: 'bath' | 'inside' | 'outside' }) {
     if (id === 'open') return set({ [k]: [], [mustKey]: [] } as Partial<Answers>);
     const nx = toggle(sel, id); set({ [k]: nx, [mustKey]: a[mustKey].filter((x) => nx.includes(x)) } as Partial<Answers>);
   };
-  const shown = sel.length ? sel : ['open'];
+  const shown = sel;
   const mustable = opts.filter((o) => o.must && sel.includes(o.id));
   return (
-    <StepFrame id={`s-${k}`} stepId={k} overline={`Step ${cfg.pos} · ${cfg.nav}`} title={cfg.title} helper="Select all that apply." multi rows={rows} count={fit(P)} prev={prev} onContinue={next}>
+    <StepFrame id={`s-${k}`} stepId={k} overline={`Step ${cfg.pos} · ${cfg.nav}`} title={cfg.title} helper="Select all that apply." multi rows={rows} count={fit(P)} prev={prev}
+      ctaOn={sel.length > 0} disabledWhy="Pick at least one" onContinue={next}>
       <Tiles sid={k} cols={Math.min(opts.length, 4)} opts={opts.map((o) => ({ id: o.id, label: o.title, img: o.img, icon: o.icon }))} sel={shown} multi onPick={pickOne} hint={(id) => optHint(a, P)(opts.find((o) => o.id === id)!)} />
       {mustable.map((o) => (
         <Check key={o.id} id={`s-${k}-must-${o.id}`} spec={`input-must-have-${o.id}#${k}`} label={`Must have: ${o.title.toLowerCase()} (campers without it drop out)`} on={a[mustKey].includes(o.id)}
@@ -411,9 +429,9 @@ export function StepBudget() {
   const stores = Object.values(SNAP().lookups.rooftops || {}).filter((r) => r.storeName && !['CRD', 'MSV', 'LIN'].includes(r.location)).sort((x, y) => (x.storeName || '').localeCompare(y.storeName || ''));
   return (
     <StepFrame id="s-budget" stepId="budget" overline="Step 20 · Budget" title="How do you want to set your budget?" hint="Tell us a cash ceiling or a monthly payment and we’ll stay inside it." rows={rows} count={fit(P)} prev={prev}
-      ctaOn={!!a.budgetMode} disabledWhy="Pick cash or monthly payment to continue" onContinue={next}>
+      ctaOn={a.budgetMode === 'cash' ? a.maxSpend > 0 : a.budgetMode === 'finance' ? !!a.tier && a.picked.includes('payment') && a.picked.includes('down') : false} disabledWhy={a.budgetMode === 'cash' ? 'Enter a maximum' : a.budgetMode === 'finance' ? 'Pick your credit, then set the payment and the down payment' : 'Pick cash or monthly payment to continue'} onContinue={next}>
       <Tiles sid="budget" cols={2} opts={[{ id: 'cash', label: 'Paying cash', icon: 'banknote' }, { id: 'finance', label: 'Monthly payment', icon: 'credit-card' }]} sel={a.budgetMode ? [a.budgetMode] : []}
-        onPick={(id) => set({ budgetMode: id as 'cash' | 'finance', ...(id === 'finance' ? { payment: a.payment > 0 ? a.payment : 750, down: a.down > 0 ? a.down : 5500 } : {}) })} hint={(id) => (id === 'cash' ? 'Your maximum becomes the price ceiling' : 'Payment, down and credit solve to a price')} />
+        onPick={(id) => set({ budgetMode: id as 'cash' | 'finance' })} hint={(id) => (id === 'cash' ? 'Your maximum becomes the price ceiling' : 'Payment, down and credit solve to a price')} />
       {a.budgetMode === 'cash' && (
         <>
           <Field id="s-budget-cash" label="Maximum you would spend">
@@ -434,16 +452,16 @@ export function StepBudget() {
             <Chips sid="budget-tier" opts={TIERS} sel={a.tier ? [a.tier] : []} onPick={(id) => set({ tier: id })} />
           </Group>
           <Note id="s-budget-apr" spec="info-apr-estimate">{a.tier ? `We estimate with ${APR[a.tier]} APR for that tier.` : 'Pick a tier to unlock the payment and down-payment sliders.'}</Note>
-          <Range sid="budget" k="payment" label="Monthly payment" value={a.payment || 750} min={150} max={1350} step={25} fmt={(v) => `${money(v)}${v >= 1350 ? '+' : ''} a month`} ends={['$150', '$1,350+']} disabled={!a.tier} onChange={(v) => set({ payment: v })}
-            extra={<span className="mq-live" id="s-budget-payment-avg" data-spec-id="info-average-payment">The average camper payment is about $436 a month.</span>} />
-          <Range sid="budget" k="down" label="Down payment" value={a.down} min={1000} max={10000} step={500} fmt={(v) => `${money(v)}${v >= 10000 ? '+' : ''}`} ends={['$1,000', '$10,000+']} disabled={!a.tier} onChange={(v) => set({ down: v })} />
+          <Range sid="budget" k="payment" label="Monthly payment" value={a.picked.includes('payment') ? a.payment : 750} min={150} max={1350} step={25} fmt={(v) => `${money(v)}${v >= 1350 ? '+' : ''} a month`} ends={['$150', '$1,350+']} disabled={!a.tier} onChange={(v) => set({ payment: v, picked: mark(a, 'payment') })}
+            extra={<span className="mq-live" id="s-budget-payment-avg" data-spec-id="info-average-payment">{a.picked.includes('payment') ? 'The average camper payment is about $436 a month.' : 'Starts at $750 so the slider has a position. It does not count until you set it. The average camper payment is about $436 a month.'}</span>} />
+          <Range sid="budget" k="down" label="Down payment" value={a.picked.includes('down') ? a.down : 5500} min={1000} max={10000} step={500} fmt={(v) => `${money(v)}${v >= 10000 ? '+' : ''}`} ends={['$1,000', '$10,000+']} disabled={!a.tier} onChange={(v) => set({ down: v, picked: mark(a, 'down') })} />
           <Field id="s-budget-store" label="Closest Bish’s store">
             <select className="mq-select" id="s-budget-store-in" data-spec-id="input-closest-store#budget" data-bos-class="input" data-bos-perm="discovery.navigate" data-bos-access="act" value={a.store} onChange={(e) => set({ store: e.target.value })}>
               <option value="">Not sure yet · 6% tax estimate</option>
               {stores.map((r) => <option key={r.location} value={r.location}>{r.storeName}</option>)}
             </select>
           </Field>
-          {a.tier && <Note id="s-budget-reach" spec="info-payment-reaches">{f ? (f.valid ? <>That payment reaches campers up to <b>{money(f.ceiling)}</b> (sale price). Your closest store sets the tax rate.</> : f.message) : 'Slide to a monthly payment to see the price range it supports.'}</Note>}
+          {a.tier && a.picked.includes('payment') && a.picked.includes('down') && <Note id="s-budget-reach" spec="info-payment-reaches">{f ? (f.valid ? <>That payment reaches campers up to <b>{money(f.ceiling)}</b> (sale price). Your closest store sets the tax rate.</> : f.message) : 'Slide to a monthly payment to see the price range it supports.'}</Note>}
         </>
       )}
     </StepFrame>
