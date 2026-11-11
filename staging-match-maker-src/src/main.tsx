@@ -10,7 +10,7 @@ import './results/bishify-fixes.css';
 import { ToastProvider } from '@v1/components/Toast';
 import { Landing } from './steps/Landing';
 import { Step1Start } from './steps/start';
-import { Step2Path, Step3Type, Step4Bumper, StepMotorhome } from './steps/screens';
+import { Step2Path, Step3Type, Step4Bumper, StepFifth, StepMotorhome } from './steps/screens';
 import { Loading } from './steps/Loading';
 import { QLoading } from './steps/QLoading';
 import { StepCamping, StepTradeNow, StepTradeWhy, StepCampStyle, StepActivities, StepSleep, StepBedroom, StepTow, StepLength, StepGarage, StepMulti, StepSize, StepBuild, StepBudget, StepSummary } from './steps/more';
@@ -64,6 +64,7 @@ function Screen() {
   if (screen === '02') return <Step2Path sheet={sheet} />;
   if (screen === '03') return <Step3Type sheet={sheet} />;
   if (screen === '04') return <Step4Bumper garageOpen={q.get('garage') === '1'} sheet={sheet} />;
+  if (screen === 'fw') return <StepFifth sheet={sheet} />;
   if (screen === 'mh') return <StepMotorhome sheet={sheet} />;
   if (screen === 'camping') return <StepCamping />;
   if (screen === 'trade-now') return <StepTradeNow />;

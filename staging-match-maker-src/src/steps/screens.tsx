@@ -48,14 +48,15 @@ export function Step2Path({ sheet }: { sheet?: boolean }) {
 }
 
 export function Step3Type({ sheet }: { sheet?: boolean }) {
-  const c = { ...S['03'], options: live(S['03'].options as Opt[]) }; const [sel, toggle] = useMulti(A0.hitch.length ? A0.hitch : ['bumper']);
+  const c = { ...S['03'], options: live(S['03'].options as Opt[]) }; const [sel, toggle] = useMulti(A0.hitch);
   const art = (a?: string) => a === 'bumper' ? <BumperHitchArt id="s03-bumper-art" /> : a === 'fifth' ? <FifthWheelHitchArt id="s03-fifth-art" /> : undefined;
   const rows: CaseRow[] = [startRow, { step: '02', label: S['02'].caseLabel, value: 'Towable', icon: 'compass' }, { step: '03', label: c.caseLabel, value: names(c.options, sel), icon: c.icon, current: true }];
+  const towableCount = cnt('towable', SEL);
   return (
     <StepFrame id="s03" pos={3} overline={c.overline} title={c.title} hint={c.hint} helper={flow.multiHelper} multi rows={rows} answered={2}
-      count={sum(c.options as Opt[], sel)} prev={cnt('towable', SEL)} ctaOn={sel.length > 0} sheetOpen={sheet}
+      count={sel.length ? sum(c.options as Opt[], sel) : towableCount} prev={cnt('towable', SEL)} ctaOn={sel.length > 0} sheetOpen={sheet}
       onBack={() => go('02')}
-      onContinue={() => { markDone('03', { stores: SEL, classes: withOther(classesFor(sel), A0.path.filter((x) => x !== 'towable')), hitch: sel, ...(sel.includes('bumper') ? {} : { sub: [] }) }); goNext('03'); }}>
+      onContinue={() => { markDone('03', { stores: SEL, classes: withOther(classesFor(sel), A0.path.filter((x) => x !== 'towable')), hitch: sel, ...(sel.includes('bumper') ? {} : { sub: [] }), ...(sel.includes('fifth') ? {} : { fifthSub: [] }) }); goNext('03'); }}>
       <div className="ct-grid g3 hitch" id="s03-grid">
         {(c.options as Opt[]).map((o) => <ChoiceTile key={o.id} id={`s03-${o.id}`} specId={`input-choice-tile-${o.id}#03`} label={o.label} hint={fmt(o.count)}
           image={o.img ? img(o.img) : undefined} art={art(o.art)} multi selected={sel.includes(o.id)} onClick={() => toggle(o.id)} />)}
@@ -112,6 +113,31 @@ export function Step4Bumper({ garageOpen, sheet }: { garageOpen?: boolean; sheet
       <div className="ct-grid g5" id="s04-grid">
         {c.options.map((o) => <ChoiceTile key={o.id} id={`s04-${o.id}`} specId={`input-choice-tile-${o.id}#04`} label={o.label} hint={fmt(o.count)} image={img(o.img)} multi
           selected={sel.includes(o.id)} onClick={() => { toggle(o.id); if (o.id === 'garage' && !sel.includes('garage')) setOpen(true); }} />)}
+      </div>
+    </StepFrame>
+  );
+}
+
+export function StepFifth({ sheet }: { sheet?: boolean }) {
+  const c = { ...S.fw, options: live(S.fw.options as Opt[]) };
+  const [sel, toggle] = useMulti(A0.fifthSub || []);
+  const art = (a?: string) => a === 'fifth' ? <FifthWheelHitchArt id="sfw-standard-art" /> : undefined;
+  const rows: CaseRow[] = [startRow, { step: '02', label: 'Path', value: 'Towable', icon: 'compass' }, { step: '03', label: 'Towable type', value: 'Fifth wheel', icon: 'truck' },
+    { step: 'fw', label: c.caseLabel, value: names(c.options, sel), icon: c.icon, current: true }];
+  const all = cnt('fifth', SEL);
+  return (
+    <StepFrame id="sfw" stepId="fw" overline={c.overline} title={c.title} hint={c.hint} helper={flow.multiHelper} multi rows={rows} answered={3}
+      count={sel.length ? sum(c.options, sel) : all} prev={all} ctaOn={sel.length > 0} sheetOpen={sheet}
+      onBack={() => go('03')}
+      onContinue={() => {
+        const fifthClasses = classesFor(sel);
+        const keep = A0.classes.filter((code) => code !== 'FW' && code !== 'FWTH');
+        markDone('fw', { stores: SEL, fifthSub: sel, classes: [...new Set([...keep, ...fifthClasses])] });
+        goNext('fw');
+      }}>
+      <div className="ct-grid hitch" id="sfw-grid">
+        {c.options.map((o) => <ChoiceTile key={o.id} id={`sfw-${o.id}`} specId={`input-choice-tile-${o.id}#fw`} label={o.label} hint={fmt(o.count)}
+          image={o.img ? img(o.img) : undefined} art={art(o.art)} multi selected={sel.includes(o.id)} onClick={() => toggle(o.id)} />)}
       </div>
     </StepFrame>
   );

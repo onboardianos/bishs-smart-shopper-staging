@@ -13,7 +13,7 @@ export async function loadZips(): Promise<ZipTable> { if (!zcta) zcta = (await i
 export const NO_RADIUS = STORES.filter((s) => s.lat == null).map((s) => s.code);
 export const BUCKETS: Record<string, string[]> = {
   towable: ['TT', 'FW', 'FWTH', 'TTTH', 'TC', 'FD', 'AT', 'HTT'], motorhome: ['AG', 'AD', 'C', 'CD', 'B'], destination: ['DT'],
-  bumper: ['TT', 'TTTH', 'FD', 'AT', 'HTT'], fifth: ['FW', 'FWTH'], 'truck-bed': ['TC'],
+  bumper: ['TT', 'TTTH', 'FD', 'AT', 'HTT'], fifth: ['FW', 'FWTH'], standard: ['FW'], 'fw-garage': ['FWTH'], 'truck-bed': ['TC'],
   'pop-up': ['FD'], teardrop: ['AT'], hybrid: ['HTT'], regular: ['TT'], garage: ['TTTH'],
 };
 // selected: null = all locations (no filter)

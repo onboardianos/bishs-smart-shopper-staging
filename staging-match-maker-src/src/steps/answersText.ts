@@ -50,6 +50,7 @@ export function answerText(id: string, a: Answers): string {
     case '03': return lab(S['03'].options, a.hitch) || '—';
     case 'mh': return a.motor.map((m) => MH[m]).join(', ') || '—';
     case '04': return [lab(S['04'].options, a.sub), a.sub.includes('garage') ? (a.garageFt ? `garage ${a.garageFt} ft+` : 'any garage') : ''].filter(Boolean).join(' · ') || '—';
+    case 'fw': return lab(S.fw.options, a.fifthSub || []) || '—';
     case 'camping': return lab(CAMPING, a.camping ? [a.camping] : []) || '—';
     case 'trade-now': return tradeLabel(a) || 'Not filled in';
     case 'trade-why': { const t = a.trade; const k = t ? t.changes.length : 0; return k ? lab(TRADE_CHANGES, t!.changes) : t?.text ? 'Note added' : 'Nothing picked'; }
@@ -76,7 +77,7 @@ export function budgetRows(a: Answers): [string, string][] {
   return [['Budget', 'Not set']];
 }
 export const STEP_ICON: Record<string, string> = {
-  '01': 'map-pin', '02': 'compass', '03': 'truck', mh: 'truck', '04': 'list-ordered', camping: 'tent', 'trade-now': 'caravan', 'trade-why': 'pencil', 'camp-style': 'mountain', activities: 'bike',
+  '01': 'map-pin', '02': 'compass', '03': 'truck', mh: 'truck', '04': 'list-ordered', fw: 'truck', camping: 'tent', 'trade-now': 'caravan', 'trade-why': 'pencil', 'camp-style': 'mountain', activities: 'bike',
   sleep: 'bed-double', bedroom: 'door-closed', tow: 'truck', length: 'ruler', garage: 'warehouse', bath: 'shower-head', inside: 'sofa', outside: 'sun', size: 'layers', build: 'brick-wall', budget: 'wallet', summary: 'list-checks',
 };
 export const INERT = ['camping', 'trade-now', 'trade-why', 'camp-style', 'activities'];

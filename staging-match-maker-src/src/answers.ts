@@ -5,7 +5,7 @@ export type Answers = {
   stores: string[] | null;
   classes: string[];
   // Steps 2–4 (Bishified path / hitch / bumper-pull type); kept so the summary and case rail can show them
-  path: string[]; hitch: string[]; sub: string[]; motor: string[];
+  path: string[]; hitch: string[]; sub: string[]; fifthSub: string[]; motor: string[];
   // Camping today, trade-in (Q5 / Q6), camping style, activities: recorded for the outfitter, no effect on matching (live rule)
   camping: string | null; trade: Trade | null; campStyle: string[]; activities: string[]; activitiesOther: string;
   // Sleeping
@@ -27,7 +27,7 @@ export type Answers = {
 const KEY = 'ss-case-v2';
 export const DEFAULTS: Answers = {
   stores: null, classes: ['TT', 'FW', 'TTTH', 'FWTH', 'TC', 'FD', 'AT', 'HTT'],
-  path: [], hitch: [], sub: [], motor: [],
+  path: [], hitch: [], sub: [], fifthSub: [], motor: [],
   camping: null, trade: null, campStyle: [], activities: [], activitiesOther: '',
   adults: 2, children: 0, pets: 0, childSetup: null, bedroom: null,
   tow: null, towRating: null, towMode: 'derived', towLabel: '', towYr: '', towMk: '', towMd: '', towEn: '', towIdx: null,

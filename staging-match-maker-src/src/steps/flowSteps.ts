@@ -10,6 +10,7 @@ export const STEPS: StepDef[] = [
   { id: '03', nav: 'Towable type', skip: (a) => (a.path.length && !a.path.includes('towable') ? 'Not towable' : null) },
   { id: 'mh', nav: 'Motorhome class', skip: (a) => (a.path.includes('motorhome') ? null : 'Not a motorhome') },
   { id: '04', nav: 'Bumper pull', skip: (a) => ((a.path.length && !a.path.includes('towable')) || (a.hitch.length && !a.hitch.includes('bumper')) ? 'Not bumper pull' : null) },
+  { id: 'fw', nav: 'Fifth wheel', skip: (a) => ((a.path.length && !a.path.includes('towable')) || (a.hitch.length && !a.hitch.includes('fifth')) ? 'Not a fifth wheel' : null) },
   { id: 'camping', nav: 'Camping today' },
   { id: 'trade-now', nav: 'Your camper', skip: (a) => (a.camping !== 'current' ? 'No current camper' : null) },
   { id: 'trade-why', nav: 'What to change', skip: (a) => (a.camping !== 'current' ? 'No current camper' : null) },

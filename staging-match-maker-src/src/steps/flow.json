@@ -27,6 +27,10 @@
         { "id": "hybrid", "label": "Hybrid trailer", "count": 6, "img": "rv-hybrid-trailer.png" },
         { "id": "regular", "label": "Travel trailer", "count": 4159, "img": "rv-travel-trailer.png" },
         { "id": "garage", "label": "With garage", "count": 358, "img": "rv-toy-hauler.png" } ] },
+    "fw": { "overline": "Step 4 · Fifth wheel", "title": "What type of fifth wheel?", "hint": "A standard fifth wheel, or one with a garage for toys.", "caseLabel": "Fifth wheel", "icon": "truck",
+      "options": [
+        { "id": "standard", "label": "Standard fifth wheel", "art": "fifth" },
+        { "id": "fw-garage", "label": "With garage (toy hauler)", "img": "rv-toy-hauler.png" } ] },
     "garage": { "context": "With garage", "title": "Garage lengths", "hint": "Measure your longest toy. We’ll skip garages that are shorter.", "caseLabel": "Garage", "icon": "sliders-horizontal",
       "lengths": ["10", "11", "12", "13", "14+"], "keptExample": 291,
       "allKept": "Every garage length is in. Tap a length to take it out.", "noteTemplate": "This will eliminate toy haulers that are less than {len} feet." }
