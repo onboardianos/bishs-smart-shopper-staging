@@ -5,7 +5,7 @@ import { loadZips } from '../steps/inventory';
 import { confirmSignInCode, submitCustomerProfile } from './submitProfile';
 import { loadProfile } from './profile';
 import {
-  SAVE_STORES, STORE_STATES, loadStepZip, pickerModeFor, storesInState, type NearStore,
+  SAVE_STORES, SHORT_LIST_HINT, SHORT_STORES, STORE_STATES, loadStepZip, pickerModeFor, storesInState, type NearStore,
 } from './stores';
 import { Action, Banner, CheckField, Commit, Dialog, Field, SelectField, Tag, VIcon } from './v5ui';
 import type { SavePhase } from './SaveFlow';
@@ -77,8 +77,8 @@ function useStorePick(phase: SavePhase) {
       if (mode.kind === 'invalid') { applyState(mode.zip, `We couldn't find ZIP ${mode.zip}.`); setShow('invalid'); return; }
       if (mode.kind === 'ip-fallback') {
         setShow('ip'); setStateNeeded(false); setDisabled(false); setGroup(''); setTie(false); setWarn(false);
-        setOptions([{ code: 'MID', label: 'Meridian' }, { code: 'TWF', label: 'Twin Falls' }, { code: 'IDF', label: 'Idaho Falls' }, { code: 'SUT', label: 'Salt Lake' }]);
-        setHint('No ZIP yet, so this is the fixed short list: Meridian, Twin Falls, Idaho Falls, Salt Lake.');
+        setOptions(SHORT_STORES);
+        setHint(SHORT_LIST_HINT);
         return;
       }
       if (mode.kind === 'zip') {

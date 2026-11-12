@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Action, Banner, Commit, Dialog, Field, Section, SelectField, Tag, VIcon, ds, slug } from './v5ui';
 import { loadZips } from '../steps/inventory';
-import { SAVE_STORES, SHORT_STORES, STORE_STATES, loadStepZip, pickerModeFor, storesInState } from './stores';
+import { SAVE_STORES, SHORT_LIST_HINT, SHORT_STORES, STORE_STATES, loadStepZip, pickerModeFor, storesInState } from './stores';
 
 const CUSTOMER = { first: 'Robert', last: 'Jackson', email: 'robert.jackson@example.com' };
 const UNITS = [
@@ -287,7 +287,7 @@ function Book() {
       if (mode.kind === 'ip-fallback') {
         setStateNeeded(false); setDisabled(false); setWarn(false); setGroup('');
         setOptions(SHORT_STORES);
-        setHint('No ZIP yet, so this is the fixed short list: Meridian, Twin Falls, Idaho Falls, Salt Lake.');
+        setHint(SHORT_LIST_HINT);
         return;
       }
       if (mode.kind === 'invalid') {

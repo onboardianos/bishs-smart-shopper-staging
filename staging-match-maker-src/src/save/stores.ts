@@ -1,14 +1,14 @@
 import { STORES, miles } from '../steps/inventory';
 import { getApproxLocation, type ApproxLocation } from './approxLocation';
 
-// Fixed short list when there is no ZIP and getApproxLocation() returns null.
-// Meridian, Twin Falls, Idaho Falls, Salt Lake.
+// Default list when there is no ZIP and getApproxLocation() returns null.
+// Same three stores as the save-ip frame: Meridian, Twin Falls, Idaho Falls.
 export const SHORT_STORES: { code: string; label: string }[] = [
   { code: 'MID', label: 'Meridian' },
   { code: 'TWF', label: 'Twin Falls' },
   { code: 'IDF', label: 'Idaho Falls' },
-  { code: 'SUT', label: 'Salt Lake' },
 ];
+export const SHORT_LIST_HINT = 'No ZIP yet, so this is the default list: Meridian, Twin Falls, and Idaho Falls.';
 
 /** Step-1 ZIP, kept apart from the answer case so a later reset does not drop it. */
 export const STEP_ZIP_KEY = 'ss-step1-zip';
