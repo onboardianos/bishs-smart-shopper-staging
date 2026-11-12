@@ -231,9 +231,9 @@ function PhoneSummary({ total, answers, filtN, filtOpen, towOn, onAnswers, onFil
     <div className="rs-phone" id="mm-phone-sum">
       <p className="rs-line" id="mm-phone-line">{total.toLocaleString('en-US')} matches · {budget} · {sleeps}</p>
       <div className="rs-chips" id="mm-phone-chips">
-        <button type="button" className="rs-chip" id="mm-chip-answers" data-spec-id="btn-action-open-your-answers-phone" data-bos-class="action" onClick={onAnswers}>Your answers</button>
-        <button type="button" className="rs-chip" id="mm-chip-filters" data-spec-id="btn-action-toggle-filters-phone" data-bos-class="action" aria-expanded={filtOpen} onClick={onFilters}>Filters{filtN ? ` · ${filtN}` : ''}</button>
-        <button type="button" className="rs-chip" id="mm-chip-tow" data-spec-id="btn-action-add-vehicle-phone" data-bos-class="action" data-bos-perm="discovery.navigate" onClick={onTow}>{towOn ? 'Tow set' : 'Tow'}</button>
+        <button type="button" className="rs-chip" id="mm-chip-answers" data-spec-id="btn-action-open-your-answers-phone" data-bos-class="action" onClick={onAnswers}><Svg id="mm-chip-answers-i" d={I.user} size={14} /><span>Your answers</span></button>
+        <button type="button" className="rs-chip" id="mm-chip-filters" data-spec-id="btn-action-toggle-filters-phone" data-bos-class="action" aria-expanded={filtOpen} onClick={onFilters}><Svg id="mm-chip-filters-i" d={I.sliders} size={14} /><span>Filters{filtN ? ` · ${filtN}` : ''}</span></button>
+        <button type="button" className="rs-chip" id="mm-chip-tow" data-spec-id="btn-action-add-vehicle-phone" data-bos-class="action" data-bos-perm="discovery.navigate" onClick={onTow}><Svg id="mm-chip-tow-i" d={I.truck} size={14} /><span>{towOn ? 'Tow set' : 'Tow'}</span></button>
       </div>
     </div>
   );
@@ -477,9 +477,9 @@ function PinSlot({ i, m, over, drag, onRemove }: { i: number; m: Match | null; o
       onDragOver={(e) => { e.preventDefault(); drag.onDragOver(i); }} onDragLeave={() => drag.onDragOver(null)} onDrop={(e) => drag.onDrop(i, e)}>
       {m ? (
         <article className="card slot-card" id={`${id}-card`} aria-labelledby={`${id}-name`} draggable onDragStart={(e) => drag.onDragStart(m.unit.stock, e)}>
+          <span className="num" id={`${id}-num`} data-spec-id={`badge-top3-number#${n}`}>{n}</span>
           <div className="ph-media" id={`${id}-media`} data-spec-id={`media-top3-slot#${n}`}>
             <img className="ph-img" id={`${id}-img`} src={unitImg(m.unit)} alt="" />
-            <span className="num" id={`${id}-num`} data-spec-id={`badge-top3-number#${n}`}>{n}</span>
             {m.picked && <span className="badge-pick" id={`${id}-pick`} data-spec-id={`badge-your-pick-slot#${n}`}>Your pick</span>}
             <span className="slot-tools" id={`${id}-tools`}>
               <button type="button" className="tool-b" id={`${id}-remove`} data-spec-id={`btn-action-remove-slot#${n}`} data-bos-class="action" aria-label={`Remove from slot ${n}`} title="Remove" onClick={() => onRemove(i)}><Svg id={`${id}-remove-i`} d={I.x} size={14} stroke={2} /></button>
@@ -520,14 +520,14 @@ function Tile({ m, pins, saved, onPin, onSave, drag, prefix = 'mm-tile' }: {
           {m.picked
             ? <span className="badge-pick" id={`${id}-pick`} data-spec-id={`badge-your-pick#${u.stock}${sfx}`}>Your pick</span>
             : (u.isLStock ? <span className="badge-fp" id={`${id}-fp`} data-spec-id={`badge-floorplan-example#${u.stock}${sfx}`}>Floor plan example</span> : null)}
-          {slot >= 0
-            ? <span className="pin-on" id={`${id}-pinned`} data-spec-id={`info-pinned#${u.stock}${sfx}`}>#{slot + 1}</span>
-            : (
-              <button type="button" className="pin-b" id={`${id}-pin`} data-spec-id={`btn-action-pin#${u.stock}${sfx}`} data-bos-class="action" disabled={full} aria-label={full ? 'Top three is full' : 'Pin to your top three'} title={full ? 'Top three is full' : 'Pin to your top three'} onClick={() => onPin(u.stock)}>
-                <Svg id={`${id}-pin-i`} d={I.pin} size={16} />
-              </button>
-            )}
         </div>
+        {slot >= 0
+          ? <span className="pin-on" id={`${id}-pinned`} data-spec-id={`info-pinned#${u.stock}${sfx}`}>#{slot + 1}</span>
+          : (
+            <button type="button" className="pin-b" id={`${id}-pin`} data-spec-id={`btn-action-pin#${u.stock}${sfx}`} data-bos-class="action" disabled={full} aria-label={full ? 'Top three is full' : 'Pin to your top three'} title={full ? 'Top three is full' : 'Pin to your top three'} onClick={() => onPin(u.stock)}>
+              <Svg id={`${id}-pin-i`} d={I.pin} size={16} />
+            </button>
+          )}
         <div className="card-b" id={`${id}-body`}>
           <h3 className="c-name" id={`${id}-name`} data-spec-id={`label-inventory-title#${u.stock}${sfx}`}>{unitTitle(u)}</h3>
           <p className="c-price" id={`${id}-price`}>{m.priceText}</p>
@@ -535,6 +535,7 @@ function Tile({ m, pins, saved, onPin, onSave, drag, prefix = 'mm-tile' }: {
             <span id={`${id}-sleeps`}><Svg id={`${id}-sleeps-i`} d={I.bed} size={14} />Sleeps {u.sleeps ?? '—'}</span>
             <span id={`${id}-len`}><Svg id={`${id}-len-i`} d={I.ruler} size={14} />{lengthFt(u)} ft</span>
           </p>
+          <p className="c-meta c-meta-line c-meta-phone" id={`${id}-meta-phone`}>Sleeps {u.sleeps ?? '—'} · {lengthFt(u)} ft · {storeCity(u.location)}</p>
           <p className="chips" id={`${id}-chips`}>
             <span className="chip" id={`${id}-chip-0`}>Fifth wheel</span>
             <span className="chip" id={`${id}-chip-1`}>Fiberglass</span>

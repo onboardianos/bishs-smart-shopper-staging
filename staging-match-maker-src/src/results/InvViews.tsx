@@ -26,6 +26,7 @@ export function InvTools({ view, onView, search, onSearch, location, onLocation,
       </div>
       <div className="sel sel-sm" id="mm-loc-wrap">
         <Svg id="mm-loc-pin" d={I.mapPin} size={16} className="sel-lead" />
+        <span className="loc-face" id="mm-loc-face"><Svg id="mm-loc-face-pin" d={I.mapPin} size={14} /><span>{location ? (stores.find((s) => s.code === location)?.name || 'Store') : 'All stores'}</span></span>
         <select className="sel-in" id="mm-loc" data-spec-id="input-location" data-bos-class="input" value={location} aria-label="Location" onChange={(e) => onLocation(e.target.value)}>
           <option id="mm-loc-all" value="">All locations ({total.toLocaleString('en-US')})</option>
           {stores.map((s) => <option key={s.code} id={`mm-loc-${s.code}`} value={s.code}>{s.name} ({s.units.toLocaleString('en-US')})</option>)}
@@ -98,10 +99,10 @@ function CarTile({ m, pins, saved, onPin, onSave, drag }: Common & { m: Match })
           {m.picked
             ? <span className="badge-pick" id={`${id}-pick`} data-spec-id={`badge-your-pick#${u.stock}`}>Your pick</span>
             : (u.isLStock ? <span className="badge-fp" id={`${id}-fp`} data-spec-id={`badge-floorplan-example#${u.stock}`}>Floor plan example</span> : null)}
-          {slot >= 0
-            ? <span className="pin-on" id={`${id}-pinned`} data-spec-id={`info-pinned#${u.stock}`}>#{slot + 1}</span>
-            : <button type="button" className="pin-b" id={`${id}-pin`} data-spec-id={`btn-action-pin#${u.stock}`} data-bos-class="action" disabled={full} aria-label={full ? 'Top three is full' : 'Pin to your top three'} title={full ? 'Top three is full' : 'Pin to your top three'} onClick={() => onPin(u.stock)}><Svg id={`${id}-pin-i`} d={I.pin} size={16} /></button>}
         </div>
+        {slot >= 0
+          ? <span className="pin-on" id={`${id}-pinned`} data-spec-id={`info-pinned#${u.stock}`}>#{slot + 1}</span>
+          : <button type="button" className="pin-b" id={`${id}-pin`} data-spec-id={`btn-action-pin#${u.stock}`} data-bos-class="action" disabled={full} aria-label={full ? 'Top three is full' : 'Pin to your top three'} title={full ? 'Top three is full' : 'Pin to your top three'} onClick={() => onPin(u.stock)}><Svg id={`${id}-pin-i`} d={I.pin} size={16} /></button>}
         <div className="card-b" id={`${id}-body`}>
           <a className="c-name c-name-a" id={`${id}-name`} href={`#unit-${u.stock}`} data-spec-id={`btn-action-view-details#${u.stock}`} data-bos-class="action">{unitTitle(u)}</a>
           <div className="c-prow" id={`${id}-prow`}>
@@ -109,6 +110,7 @@ function CarTile({ m, pins, saved, onPin, onSave, drag }: Common & { m: Match })
             <button type="button" className={`save-b${isSaved ? ' is-on' : ''}`} id={`${id}-save`} aria-pressed={isSaved} data-spec-id={`btn-action-save#${u.stock}`} data-bos-class="action" onClick={() => onSave(u.stock)}>{isSaved ? 'Saved' : 'Save'}</button>
           </div>
           <p className="c-meta c-meta-line" id={`${id}-meta`}>{storeCity(u.location)} · Sleeps {u.sleeps ?? '—'}</p>
+          <p className="c-meta c-meta-line c-meta-phone" id={`${id}-meta-phone`}>Sleeps {u.sleeps ?? '—'} · {lengthFt(u)} ft · {storeCity(u.location)}</p>
         </div>
       </article>
     </li>
