@@ -318,6 +318,7 @@ function TRow({ m, i, pfx = 'mm-tr', pins, saved, onPin, onSave, drag, why, onWh
         <button type="button" className="t-name" id={`${id}-name`} data-spec-id={`btn-action-open-quick-view-row#${u.stock}${sfx}`} data-bos-class="action" aria-haspopup="dialog" onClick={() => onOpen(u.stock)}>{unitTitle(u)}</button>
         <span className="t-sub" id={`${id}-sub`}>
           {mm.picked && <span className="t-pick" id={`${id}-pick`}>Your pick</span>}
+          {u.isLStock && <span className="badge-fp" id={`${id}-fp`} data-spec-id={`badge-floorplan-example-row#${u.stock}${sfx}`}>Floor plan example</span>}
           <button type="button" className="why-l" id={`${id}-why`} aria-expanded={open} data-spec-id={`btn-action-why-it-ranks#${u.stock}${sfx}`} data-bos-class="action" onClick={() => onWhy(open ? null : id)}>
             <Svg id={`${id}-why-i`} d={I.info} size={14} /> Why it ranks
           </button>

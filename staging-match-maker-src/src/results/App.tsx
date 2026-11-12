@@ -3,7 +3,7 @@ import { GridGlyph, Grip, I, ListGlyph, Svg } from './icons';
 import logo from './assets/logo-bishs-rv-black-gold.png';
 import { Carousel, InvTable, InvTools, type View } from './InvViews';
 import {
-  matchOf, money, storeCity,
+  matchOf, money, storeCity, titleCase,
   unitImg, unitTitle, lengthFt, type Match,
 } from './inventory';
 import { loadAnswers, saveAnswers, onPurchase, type Answers } from '../answers';
@@ -567,6 +567,7 @@ function TopThreeBoard({ slots, over, drag, onRemove, onBrowse }: { slots: (Matc
             <>
               <div className="tt-media" id="mm-ttpick-media" data-spec-id="media-your-top-pick">
                 <img className="ph-img" id="mm-ttpick-img" src={unitImg(top.unit)} alt="" />
+                {top.unit.isLStock && <span className="badge-fp" id="mm-ttpick-fp" data-spec-id="badge-floorplan-example-top">Floor plan example</span>}
               </div>
               <div className="tt-body" id="mm-ttpick-body">
                 <span className="tt-kick" id="mm-ttpick-kick" data-spec-id="label-your-top-pick">1 · Your top pick</span>
@@ -609,11 +610,12 @@ function RailCard({ i, m, over, drag, onRemove }: { i: number; m: Match | null; 
         <article className="rail-in" id={`${id}-in`} aria-labelledby={`${id}-name`} draggable onDragStart={(e) => drag.onDragStart(m.unit.stock, e)}>
           <div className="rail-media" id={`${id}-media`} data-spec-id={`media-top3-rail#${n}`}>
             <img className="ph-img" id={`${id}-img`} src={unitImg(m.unit)} alt="" />
+            {m.unit.isLStock && <span className="badge-fp" id={`${id}-fp`} data-spec-id={`badge-floorplan-example-rail#${n}`}>Floor plan example</span>}
           </div>
           <div className="rail-body" id={`${id}-body`}>
             <div className="rail-top" id={`${id}-top`}>
               <button type="button" className="grip grip-inline" id={`${id}-grip`} data-spec-id={`btn-action-drag-rail#${n}`} data-bos-class="action" aria-label={`Drag slot ${n}`}><Grip id={`${id}-grip-i`} size={18} /></button>
-              <h3 className="rail-name" id={`${id}-name`} data-spec-id={`label-top3-rail-title#${n}`}><span className="rail-n" id={`${id}-n`}>{n} ·</span> {`${m.unit.make.charAt(0)}${m.unit.make.slice(1).toLowerCase()} ${m.unit.model}`}</h3>
+              <h3 className="rail-name" id={`${id}-name`} data-spec-id={`label-top3-rail-title#${n}`}><span className="rail-n" id={`${id}-n`}>{n} ·</span> {`${titleCase(m.unit.make)} ${m.unit.model}`}</h3>
             </div>
             <p className="rail-full" id={`${id}-full`}>{unitTitle(m.unit)}</p>
             <p className="rail-price" id={`${id}-price`}>{m.priceText}</p>

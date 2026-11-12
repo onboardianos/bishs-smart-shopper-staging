@@ -185,7 +185,7 @@
 .st-opt-ic { width: 18px; display: inline-grid; place-items: center; }
 .st-opt-n { flex: 1; }
 .st-opt-c { font-size: var(--fs-body-sm); color: var(--text-light-tertiary); }
-.st-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: var(--sp-5); align-items: stretch; }
+.st-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 420px)); justify-content: center; gap: var(--sp-5); align-items: stretch; width: 100%; max-width: 880px; margin-left: auto; margin-right: auto; }
 .st-right .mb { margin-bottom: var(--sp-5); }
 
 /* ── Tablet posture (641–1023 container): one centered column, case collapses into the dock ── */
@@ -203,7 +203,7 @@
   .cb-sep { width: 1px; align-self: stretch; margin: 10px 0; background: var(--border-light-mid); }
   .cb-case { flex: 1; display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-ui); font-size: var(--fs-label-lg); font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
   .cb-up { width: 44px; height: 44px; display: grid; place-items: center; transform: rotate(180deg); }
-  .st-grid { grid-template-columns: minmax(0, 1fr); }
+  .st-grid { grid-template-columns: minmax(0, min(420px, 100%)); justify-content: center; }
   .ct-grid.g5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ct-grid.g5 > .ct { max-width: none; }
   .ssw-wide { padding-bottom: var(--sp-8); }

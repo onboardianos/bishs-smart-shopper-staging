@@ -37,7 +37,9 @@ import fwArt from './assets/rv-fifth-wheel-art.png';
 /** Class art: the snapshot has no per-unit photos. Fifth wheels use the 519px wayfinder fifth-wheel art. */
 export function unitImg(u: Unit) { return u.class === 'FW' ? fwArt : (CLASS_IMG[u.class] || CLASS_IMG.TT); }
 export function titleCase(s: string) {
-  return s.toLowerCase().replace(/(^|[\s/-])(\w)/g, (_m, a: string, b: string) => a + b.toUpperCase());
+  return s.toLowerCase()
+    .replace(/(^|[\s/-])(\w)/g, (_m, a: string, b: string) => a + b.toUpperCase())
+    .replace(/\bRv\b/g, 'RV');
 }
 export function unitTitle(u: Unit) { return `${u.year} ${titleCase(u.manufacturer)} ${titleCase(u.make)} ${u.model}`; }
 export function prettyClass(s: string) { return s.toLowerCase().replace(/^\w/, (c) => c.toUpperCase()); }

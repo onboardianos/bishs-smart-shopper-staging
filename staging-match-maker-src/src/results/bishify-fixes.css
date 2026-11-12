@@ -25,6 +25,7 @@ body.kb-open .ssw-act, body.kb-open .sh { position: static; }
   color: #fff !important;
 }
 .badge-fp { position: absolute; top: 8px; left: 8px; z-index: 2; font-size: 11px; font-weight: 700; letter-spacing: .2px; padding: 4px 8px; border-radius: 999px; }
+.t-sub .badge-fp { position: static; display: inline-flex; align-items: center; margin-right: 6px; }
 .slot .badge-fp, .slot .badge-pick { left: 8px; top: 8px; display: inline-flex !important; }
 
 /* Ink selection, not gold, except real CTAs. */
@@ -271,8 +272,9 @@ body.kb-open .ssw-act, body.kb-open .sh { position: static; }
   .ss .car { margin: 8px 0 0; width: 100%; }
   .ss .car-track { padding: 0; scroll-padding: 0; gap: 6px; }
   .ss .car-track > li { width: 100%; max-width: 100%; margin: 0; }
+  .ss .t3-grid, .ss .slot, .ss .tile, .ss .car-tile { max-width: 100%; min-width: 0; }
   .ss .slot .slot-card, .ss .tile .card, .ss .car-tile .card, .ss .tt-pick.is-filled {
-    display: flex; flex-direction: row; align-items: center; min-height: 75px; width: 100%; position: relative;
+    display: flex; flex-direction: row; align-items: center; min-height: 75px; width: 100%; max-width: 100%; position: relative; overflow: hidden;
   }
   .ss .slot .ph-media, .ss .tile .ph-media, .ss .car-tile .ph-media, .ss .tt-media {
     position: relative; width: 120px !important; flex: 0 0 120px !important; height: 75px !important;
@@ -285,7 +287,7 @@ body.kb-open .ssw-act, body.kb-open .sh { position: static; }
   .ss .slot .num {
     top: 8px; left: 128px; width: 20px; height: 20px; font-size: 11px; z-index: 2;
   }
-  .ss .slot .card-b { padding: 4px 8px 4px 32px; }
+  .ss .slot .card-b { padding: 4px 8px 4px 32px; overflow: hidden; min-width: 0; }
   .ss .tile .pin-b, .ss .car-tile .pin-b, .ss .tile .pin-on, .ss .car-tile .pin-on {
     position: static; align-self: flex-start; order: 2; margin: 8px 8px 0 0; width: 28px; height: 28px;
   }

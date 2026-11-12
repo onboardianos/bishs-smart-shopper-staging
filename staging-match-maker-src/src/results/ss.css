@@ -189,7 +189,7 @@ html, body, #root { margin: 0; background: var(--surface-light-card); }
 .tt-body .btn-gold { margin-top: auto; }
 .tt-tow { margin-bottom: 12px; }
 .tt-pick.is-over, .rail.is-over { outline: 2px solid var(--ink); outline-offset: 3px; }
-.tt-media { height: 252px; background: var(--bed); display: grid; place-items: center; }
+.tt-media { position: relative; height: 252px; background: var(--bed); display: grid; place-items: center; }
 .tt-media .ph-img { width: 72%; height: 86%; }
 .tt-body { position: relative; padding: 18px 24px 22px; display: flex; flex-direction: column; gap: 5px; }
 .tt-kick { align-self: flex-start; background: var(--cream-note); font-size: 12px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; padding: 4px 10px; border-radius: var(--radius-full); margin-bottom: 4px; }
@@ -207,7 +207,7 @@ html, body, #root { margin: 0; background: var(--surface-light-card); }
 .rail { min-height: 0; display: flex; }
 .rail > * { flex: 1; }
 .rail-in { display: grid; grid-template-columns: 40% 1fr; border: 1px solid var(--hair); border-radius: 14px; overflow: hidden; background: var(--canvas); }
-.rail-media { background: var(--bed); display: grid; place-items: center; }
+.rail-media { position: relative; background: var(--bed); display: grid; place-items: center; }
 .rail-media .ph-img { width: 92%; height: 70%; }
 .rail-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; justify-content: center; }
 .rail-top { display: flex; align-items: center; gap: 4px; margin-left: -4px; }
