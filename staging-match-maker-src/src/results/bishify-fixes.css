@@ -210,7 +210,7 @@ body.kb-open .ssw-act, body.kb-open .sh { position: static; }
   .ct-check { top: 50%; right: 8px; bottom: auto; margin: 0; transform: translateY(-50%); }
   .v1-modal-back { z-index: 450; }
   .ss .pg { padding-bottom: 24px; }
-  .ss-dialog-body { gap: 8px; padding: 12px 16px 88px; }
+  .ss-dialog-body { gap: var(--sp-3); padding: var(--sp-3) var(--sp-4) var(--sp-6); }
   .ss-dialog-head { padding: 10px 8px 8px 14px; }
   .mq-stepper { padding: 6px 10px; }
   .mq-stepper-c output { font-size: 24px; }

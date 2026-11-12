@@ -64,8 +64,7 @@ export function reviewMode() {
 }
 
 export function Tag({ kind = 'rule', q, id, children }: { kind?: keyof typeof TAG; q?: string; id: string; children?: ReactNode }) {
-  const draft = kind === 'rule' || kind === 'pdb' || kind === 'interp';
-  if (draft && !reviewMode()) return null;
+  if (!reviewMode()) return null;
   const [type, lead] = TAG[kind];
   const attr = kind === 'rule' ? { 'data-needs-rule': q } : kind === 'pdb' ? { 'data-per-designbot': q } : kind === 'interp' ? { 'data-interpretation': q } : {};
   const pre = kind === 'rule' ? 'info-needs-rule' : kind === 'pdb' ? 'info-per-designbot' : kind === 'interp' ? 'info-interpretation' : kind === 'zach' ? 'info-zach-ruling' : 'info-sample';
