@@ -8,7 +8,7 @@ import { ChoiceTile } from './ChoiceTile';
 import { StepFrame } from './Step';
 import type { CaseRow } from './Case';
 import { SiteHeader } from './SiteHeader';
-import { posOf, goNext, goEdit, visibleSteps, navOf } from './flowSteps';
+import { STEPS, posOf, goNext, goEdit, visibleSteps, navOf } from './flowSteps';
 import { loadAnswers, markDone, go, type Answers, type Trade } from '../answers';
 import { unitsFor, poolOf, liveText, childOpts, bedroomOpts, multiOpts, catalogue, gvwrOf, ceilingOf, financeOf, splits, CAMPING_IMG, TOW_IMG, n, APR, SNAP, E, isMotorOnly, type Opt } from '../session';
 import { answerText, budgetRows, CAMPING, CAMP_STYLE, ACTIVITIES, TRADE_CHANGES, TOW_OPTS, LENGTH_OPTS, TIERS, STEP_ICON, INERT, money, tradeLabel } from './answersText';
@@ -58,7 +58,7 @@ function Tiles({ sid, opts, sel, multi, onPick, hint, cols = 3 }: { sid: string;
     <div className={`ct-grid mq-grid c${cols}`} id={`s-${sid}-grid`}>
       {opts.map((o) => (
         <ChoiceTile key={o.id} id={`s-${sid}-${o.id}`} specId={`input-choice-tile-${o.id}#${sid}`} label={o.label} hint={hint?.(o.id)} multi={multi}
-          image={o.img} art={o.img ? undefined : <Art id={`s-${sid}-${o.id}-art`} icon={o.icon || 'circle-help'} />} selected={sel.includes(o.id)} onClick={() => onPick(o.id)} />
+          image={o.img} art={o.img ? undefined : <Art id={`s-${sid}-${o.id}-art`} icon={o.icon || 'circle-help'} />} selected={sel.includes(o.id)} disabled={!!hint?.(o.id)?.match(/^0(\s|$)/)} onClick={() => onPick(o.id)} />
       ))}
     </div>
   );
@@ -483,9 +483,9 @@ export function StepSummary() {
       <div className="ssw" id="s-summary-root" data-layer="canvas" data-bos-level="screen" data-bos-screen="summary">
         <div className="ssw-in mq-sum-in" id="s-summary-in">
           <div className="ssw-main" id="s-summary-main">
-            <nav className="ssq-prog" id="s-summary-progress" data-spec-id="nav-progress" data-bos-level="section" data-bos-type="nav" aria-label={`Step ${pos.pos} of ${pos.total}`}>
+            <nav className="ssq-prog" id="s-summary-progress" data-spec-id="nav-progress" data-bos-level="section" data-bos-type="nav" aria-label={`Step ${pos.pos} of ${STEPS.length}`}>
               <div className="ssq-track" id="s-summary-track"><span id="s-summary-track-fill" style={{ width: `${pct}%` }} /></div>
-              <span className="ssq-prog-t" id="s-summary-progress-label" data-spec-id="label-step-counter">Step {pos.pos} of {pos.total}</span>
+              <span className="ssq-prog-t" id="s-summary-progress-label" data-spec-id="label-step-counter">Step {pos.pos} of {STEPS.length}</span>
             </nav>
             <section className="tone-card ssw-card" id="s-summary-question" data-spec-id="sec-summary" data-bos-level="section" data-bos-type="question" aria-labelledby="s-summary-title">
               <div className="overline" id="s-summary-overline" data-spec-id="label-step">Step {pos.pos} · Summary</div>

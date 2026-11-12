@@ -7,7 +7,7 @@ import { CasePanel, CaseBar, CaseList, MatchBox, type CaseRow } from './Case';
 import flow from './flow.json';
 import { storesFromUrl } from './inventory';
 import { locLabel } from './LocationPicker';
-import { posOf, goEdit, goNext } from './flowSteps';
+import { STEPS, posOf, goEdit, goNext } from './flowSteps';
 import { go, saveAnswers } from '../answers';
 
 // ONE question frame for every Smart Shopper step. Screens only pass data (title, options, case rows, count).
@@ -24,7 +24,9 @@ export function StepFrame({ id, stepId, overline, title, hint, helper, multi, ro
   const [sheet, setSheet] = useState(sheetOpen);
   const sid = stepId || STEP_OF[id] || id;
   const P = posOf(sid);
-  const pos = P.pos, total = P.total, answered = Math.max(0, pos - 1);
+  const pos = P.pos > 0 ? P.pos : Math.max(1, STEPS.findIndex((s) => s.id === sid) + 1);
+  const total = STEPS.length;
+  const answered = Math.max(0, pos - 1);
   const pct = total > 1 ? ((pos - 1) / (total - 1)) * 100 : 0;
   const ret = new URLSearchParams(location.search).get('ret');
   const onEdit = (step: string) => goEdit(step, sid);

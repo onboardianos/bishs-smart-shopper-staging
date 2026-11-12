@@ -41,7 +41,7 @@ export function Step2Path({ sheet }: { sheet?: boolean }) {
       onBack={() => go('01')}
       onContinue={() => { markDone('02', { stores: SEL, classes: classesFor(sel), path: sel, ...(sel.includes('towable') ? {} : { hitch: [], sub: [] }) }); goNext('02'); }}>
       <div className="ct-grid g3" id="s02-grid">
-        {c.options.map((o) => <ChoiceTile key={o.id} id={`s02-${o.id}`} specId={`input-choice-tile-${o.id}#02`} label={o.label} hint={fmt(o.count)} image={img(o.img)} multi selected={sel.includes(o.id)} onClick={() => toggle(o.id)} />)}
+        {c.options.map((o) => <ChoiceTile key={o.id} id={`s02-${o.id}`} specId={`input-choice-tile-${o.id}#02`} label={o.label} hint={fmt(o.count)} image={img(o.img)} multi selected={sel.includes(o.id)} disabled={o.count === 0} onClick={() => toggle(o.id)} />)}
       </div>
     </StepFrame>
   );
@@ -59,7 +59,7 @@ export function Step3Type({ sheet }: { sheet?: boolean }) {
       onContinue={() => { markDone('03', { stores: SEL, classes: withOther(classesFor(sel), A0.path.filter((x) => x !== 'towable')), hitch: sel, ...(sel.includes('bumper') ? {} : { sub: [] }), ...(sel.includes('fifth') ? {} : { fifthSub: [] }) }); goNext('03'); }}>
       <div className="ct-grid g3 hitch" id="s03-grid">
         {(c.options as Opt[]).map((o) => <ChoiceTile key={o.id} id={`s03-${o.id}`} specId={`input-choice-tile-${o.id}#03`} label={o.label} hint={fmt(o.count)}
-          image={o.img ? img(o.img) : undefined} art={art(o.art)} multi selected={sel.includes(o.id)} onClick={() => toggle(o.id)} />)}
+          image={o.img ? img(o.img) : undefined} art={art(o.art)} multi selected={sel.includes(o.id)} disabled={o.count === 0} onClick={() => toggle(o.id)} />)}
       </div>
     </StepFrame>
   );
@@ -117,7 +117,7 @@ export function Step4Bumper({ garageOpen, sheet }: { garageOpen?: boolean; sheet
       onContinue={() => { markDone('04', { stores: SEL, classes: withOther(classesFor(sel.length ? sel : ['bumper']), [...A0.hitch.filter((x) => x !== 'bumper'), ...A0.path.filter((x) => x !== 'towable')]), sub: sel, garageFt: sel.includes('garage') && trimmed ? minFt : null, garageAny: sel.includes('garage') && !trimmed }); goNext('04'); }}>
       <div className="ct-grid g5" id="s04-grid">
         {c.options.map((o) => <ChoiceTile key={o.id} id={`s04-${o.id}`} specId={`input-choice-tile-${o.id}#04`} label={o.label} hint={fmt(o.count)} image={img(o.img)} multi
-          selected={sel.includes(o.id)} onClick={() => { toggle(o.id); if (o.id === 'garage' && !sel.includes('garage')) setOpen(true); }} />)}
+          selected={sel.includes(o.id)} disabled={o.count === 0} onClick={() => { toggle(o.id); if (o.id === 'garage' && !sel.includes('garage')) setOpen(true); }} />)}
       </div>
     </StepFrame>
   );
@@ -142,7 +142,7 @@ export function StepFifth({ sheet }: { sheet?: boolean }) {
       }}>
       <div className="ct-grid hitch" id="sfw-grid">
         {c.options.map((o) => <ChoiceTile key={o.id} id={`sfw-${o.id}`} specId={`input-choice-tile-${o.id}#fw`} label={o.label} hint={fmt(o.count)}
-          image={o.img ? img(o.img) : undefined} art={art(o.art)} multi selected={sel.includes(o.id)} onClick={() => toggle(o.id)} />)}
+          image={o.img ? img(o.img) : undefined} art={art(o.art)} multi selected={sel.includes(o.id)} disabled={o.count === 0} onClick={() => toggle(o.id)} />)}
       </div>
     </StepFrame>
   );
@@ -177,7 +177,7 @@ export function StepMotorhome({ sheet }: { sheet?: boolean }) {
         goNext('mh');
       }}>
       <div className="ct-grid g3" id="smh-grid">
-        {opts.map((o) => <ChoiceTile key={o.id} id={`smh-${o.id}`} specId={`input-choice-tile-${o.id}#mh`} label={o.label} hint={fmt(o.count)} image={img(o.img)} multi selected={sel.includes(o.id)} onClick={() => toggle(o.id)} />)}
+        {opts.map((o) => <ChoiceTile key={o.id} id={`smh-${o.id}`} specId={`input-choice-tile-${o.id}#mh`} label={o.label} hint={fmt(o.count)} image={img(o.img)} multi selected={sel.includes(o.id)} disabled={o.count === 0} onClick={() => toggle(o.id)} />)}
       </div>
     </StepFrame>
   );

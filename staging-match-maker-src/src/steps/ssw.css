@@ -1,7 +1,7 @@
 /* Smart Shopper redesign preview (Wayfinder-inspired). DS tokens only (bishs-os-v1/src/tokens/tokens.css = DS colors_and_type.css @63d64d5).
    Gold only on true CTAs (Continue commit + its pulse ring; DS-legal ACTION outline on Previous). Selection, progress, count = ink/neutral.
    Container-driven (DS RF05): .ssw is the container; postures at 641 and 1024 via @container. */
-.ssw { container: ssw / inline-size; width: 100%; max-width: 100%; min-width: 0; min-height: calc(100vh - 64px); background: var(--surface-light-page); }
+.ssw { container: ssw / inline-size; width: 100%; max-width: 100%; min-width: 0; min-height: calc(100svh - 64px); background: var(--surface-light-page); }
 .ssw-in { width: 100%; max-width: 1180px; margin: 0 auto; padding: var(--sp-6) var(--sp-8) var(--sp-10); display: grid; gap: var(--sp-6); align-items: start; }
 .ssw-rail { grid-template-columns: minmax(0, 1fr) 320px; }
 .ssw-wide { display: flex; flex-direction: column; align-items: stretch; gap: var(--sp-5); max-width: 1080px; }
@@ -28,7 +28,7 @@
 
 /* ChoiceTile grid. Hitch cards always use the owner PNGs, square media, object-fit contain. */
 .ct-grid { display: grid; gap: var(--sp-4); grid-template-columns: repeat(3, minmax(0, 1fr)); justify-content: stretch; width: 100%; }
-.ct-grid.g5 { gap: 16px; display: grid; grid-template-columns: repeat(3, minmax(180px, 1fr)); }
+.ct-grid.g5 { gap: 16px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .ct-grid.g5 > .ct { max-width: none; width: auto; }
 .ct-grid.hitch { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .ct { position: relative; display: flex; flex-direction: column; min-width: 0; background: var(--surface-light-card); border: 1.5px solid var(--border-light-mid); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-xs); transition: box-shadow var(--duration-fast) var(--ease-standard), border-color var(--duration-fast); }
@@ -193,7 +193,7 @@
   .ssw-in { max-width: 760px; padding: var(--sp-5) var(--sp-6) 0; }
   .ct-grid .ct-contain { padding: 6px 10px; }
   .ssw-rail { grid-template-columns: minmax(0, 1fr); }
-  .ssw-main { min-height: calc(100vh - 64px - var(--sp-5)); }
+  .ssw-main { min-height: calc(100svh - 64px - var(--sp-5)); }
   .cs { display: none; }
   .ssw-act { position: sticky; bottom: 0; z-index: var(--z-sticky); margin: 0; padding: var(--sp-3) 0 var(--sp-4); width: 100%; background: var(--surface-light-card); border-top: 1px solid var(--border-light); box-shadow: var(--shadow-lg); gap: var(--sp-3); }
   .cb { display: flex; align-items: center; gap: var(--sp-3); width: 100%; min-height: 52px; padding: 0 var(--sp-2) 0 var(--sp-4); border: 1px solid var(--border-light-mid); border-radius: var(--radius-lg); background: var(--surface-light-raised); font: inherit; color: var(--text-light-primary); cursor: pointer; text-align: left; }
@@ -204,7 +204,7 @@
   .cb-case { flex: 1; display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-ui); font-size: var(--fs-label-lg); font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
   .cb-up { width: 44px; height: 44px; display: grid; place-items: center; transform: rotate(180deg); }
   .st-grid { grid-template-columns: minmax(0, 1fr); }
-  .ct-grid.g5 { grid-template-columns: repeat(2, minmax(160px, 1fr)); }
+  .ct-grid.g5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ct-grid.g5 > .ct { max-width: none; }
   .ssw-wide { padding-bottom: var(--sp-8); }
 }
@@ -276,7 +276,7 @@
 .st-nostore { display: flex; gap: var(--sp-2); align-items: flex-start; margin: calc(var(--sp-3) * -1) 0 var(--sp-4); padding: var(--sp-2) var(--sp-3); border-radius: var(--radius-md); background: var(--semantic-warning-light); font-size: var(--fs-body-md); font-weight: 600; color: var(--text-light-primary); }
 .st-nostore svg { flex: 0 0 auto; margin-top: 2px; }
 .lp-scrim { display: none; }
-.lp { position: absolute; right: 0; top: calc(100% + 6px); width: 480px; max-height: 70vh; z-index: var(--z-dropdown); display: flex; flex-direction: column; overflow: hidden;
+.lp { position: absolute; right: 0; top: calc(100% + 6px); width: min(480px, 100%); max-width: 100%; max-height: 70svh; z-index: var(--z-dropdown); display: flex; flex-direction: column; overflow: hidden;
   background: var(--surface-light-card); border: 1px solid var(--border-light-mid); border-radius: var(--radius-lg); box-shadow: var(--shadow-xl); text-align: left; }
 .lp-head { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); padding: var(--sp-3) var(--sp-4); border-bottom: 1px solid var(--border-light); }
 .lp-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); }
@@ -329,7 +329,7 @@
 
 /* ── Screen 00 · public landing (Zach ref 1:32 AM MST). Website chrome, no AppShell. DS tokens only.
    Gold: FIND MY FIT fill + the card-hover hairline. Everything else ink / neutral. ── */
-.ld { min-height: 100vh; background: var(--surface-light-card); color: var(--text-light-primary); }
+.ld { min-height: 100svh; background: var(--surface-light-card); color: var(--text-light-primary); width: 100%; max-width: 100%; overflow-x: clip; }
 .ld-bar, .ld-main { width: 100%; max-width: 1332px; margin: 0 auto; padding-left: var(--sp-6); padding-right: var(--sp-6); }
 .ld-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); height: 76px; border-bottom: 1px solid var(--border-light-mid); background-clip: content-box; }
 .ld-bar { box-shadow: none; position: relative; }
@@ -374,7 +374,7 @@
 @container ssw (max-width: 1023px) {
   .ld-title { font-size: 56px; }
   .ld-sub { font-size: 20px; }
-  .ld-trailer { width: 480px; }
+  .ld-trailer { width: min(480px, 100%); max-width: 100%; }
   .ld-cards { gap: var(--sp-5); }
   .ld-card { padding: var(--sp-6); }
   .ld-card-t { font-size: 26px; letter-spacing: -.5px; }

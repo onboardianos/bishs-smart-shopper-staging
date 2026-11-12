@@ -1,6 +1,6 @@
 /* Bishified question controls for Steps 5+ (more.tsx). DS tokens only; light surfaces; selection = 2px ink border + ink check;
    no gold (gold stays on the single Continue / Submit COMMIT). Container-driven postures on .ssw (641 / 1024), mobile tiles inherit ssw.css. */
-.ss-frame { min-height: 100vh; background: var(--surface-light-page); }
+.ss-frame { min-height: 100svh; width: 100%; max-width: 100%; background: var(--surface-light-page); }
 .ct-grid.mq-grid,
 .ct-grid.mq-grid.c2,
 .ct-grid.mq-grid.c3,

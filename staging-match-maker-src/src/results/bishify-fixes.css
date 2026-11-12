@@ -44,7 +44,7 @@ body.kb-open .ssw-act, body.kb-open .sh { position: static; }
     font-size: 16px;
   }
   .ld-cta, #s-summary-submit, #s04-garage-continue, .gl-actions .v1-commit { width: 100%; max-width: 100%; }
-  .ssw-prev-t { position: static; width: auto; height: auto; overflow: visible; clip: auto; }
+  .ssw-prev-t { position: static; width: auto; height: auto; overflow: visible; clip: auto; white-space: nowrap; font-size: 13px; letter-spacing: .3px; }
   .ld-cta.btn-lg, .ssw-cta.btn-lg, .btn-lg { font-size: 16px; letter-spacing: 1px; }
   input, select, textarea { font-size: 16px; }
   .ld-foot { white-space: normal; text-align: center; letter-spacing: 2px; flex-wrap: wrap; justify-content: center; }
@@ -80,7 +80,71 @@ body.kb-open .ssw-act, body.kb-open .sh { position: static; }
   .car-track > li { flex: none !important; width: 100% !important; max-width: 100%; }
   .pg, .bar-in, .pg-foot { padding-left: 16px; padding-right: 16px; }
   .search, .slider, .f-cell, .tbl, .slot, .tile { min-width: 0 !important; }
-  .tbl { display: block; width: 100%; overflow-x: auto; }
+  .tbl { display: block; width: 100%; max-width: 100%; overflow-x: auto; }
   .ph { flex-direction: column; align-items: stretch; }
   .sm-grid { grid-template-columns: minmax(0, 1fr) !important; }
 }
+
+/* Phone and tablet: the action dock stays on screen, the last option scrolls clear of it,
+   and every label fits inside its button. Heights use svh so Safari's toolbar does not cover the dock. */
+@media (max-width: 1023px) {
+  html, body, #root, .ss-frame, .ssw, .ld, .ss { max-width: 100%; }
+  .ssw { --dock: calc(176px + env(safe-area-inset-bottom, 0px)); }
+  .ssw-answers { padding-bottom: var(--dock); }
+  .ssw-act {
+    position: sticky;
+    bottom: 0;
+    z-index: 40;
+    margin-top: calc(var(--dock) * -1);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    background: var(--surface-light-card, #fff);
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+  .ssw-btns { flex-wrap: wrap; align-items: stretch; gap: 8px; width: 100%; min-width: 0; }
+  .ssw-prev { order: 1; width: auto; flex: 0 0 auto; min-width: 0; max-width: none; padding: 0 10px; min-height: 48px; }
+  .ssw-prev > span { min-width: 0; }
+  .ssw-trade {
+    order: 2;
+    flex: 1 1 0;
+    min-width: 0;
+    margin-left: 0;
+    padding: 4px 6px;
+    font-size: 12px;
+    letter-spacing: .2px;
+    line-height: 1.15;
+    white-space: normal;
+  }
+  .ssw-go { display: contents; }
+  .ssw-cta { order: 3; width: auto; flex: 1 1 120px; min-width: 108px; max-width: 100%; padding: 0 10px; font-size: 15px; letter-spacing: .4px; overflow: hidden; }
+  .ssw-cta svg { flex: 0 0 auto; }
+  .ssw-why { order: 4; flex: 1 0 100%; max-width: 100%; margin: 0; font-size: 12px; text-align: right; overflow-wrap: anywhere; }
+  .ct-grid .ct-media, .ct-grid.hitch .ct-media {
+    width: 42%;
+    flex: 0 0 42%;
+    max-width: 148px;
+    min-width: 108px;
+    aspect-ratio: 4 / 3;
+    height: auto;
+    background: var(--surface-light-inset, #efece4);
+  }
+  .ct-grid .ct-media img, .ct-grid .ha-img, .ct-grid.hitch .ct-media img {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    object-position: center;
+    transform: scale(1.18);
+  }
+  .ct-check { top: 50%; right: 8px; bottom: auto; margin: 0; transform: translateY(-50%); }
+  .ct-grid.g5 .ct-check { top: auto; right: 8px; bottom: 8px; transform: none; }
+}
+.ct-off { opacity: .48; }
+.ct-off .ct-btn { cursor: not-allowed; }
+.ct-off .ct-hint { text-decoration: line-through; }
+.ph-media, .slot .ph-media, .tthumb { aspect-ratio: 16 / 10; overflow: hidden; display: grid; place-items: center; }
+.ph-img, .tthumb img { width: 100%; height: 100%; max-width: 100%; object-fit: contain; object-position: center; }
+.ld-hero, .ld-trailer, .ld-cards, .ld-card { max-width: 100%; }
+.ld-trailer { width: min(480px, 100%); margin-left: auto; margin-right: auto; }

@@ -16,7 +16,7 @@
   --gap: 16px;
   --tray-pad: 12px;
   font-family: var(--font-body); color: var(--ink); background: var(--canvas);
-  min-height: 100vh; font-size: 15px; line-height: 1.35;
+  min-height: 100svh; font-size: 15px; line-height: 1.35;
 }
 html, body, #root { margin: 0; background: var(--surface-light-card); }
 .ss *, .ss *::before, .ss *::after { box-sizing: border-box; }
@@ -105,8 +105,8 @@ html, body, #root { margin: 0; background: var(--surface-light-card); }
 /* ── shared card / tile ── */
 .card { background: var(--canvas); border: 1px solid var(--hair); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; height: 100%; transition: box-shadow var(--duration-fast) var(--ease-standard), border-color var(--duration-fast); }
 .tile .card:hover { box-shadow: var(--shadow-md); border-color: var(--border-light-mid); }
-.ph-media { position: relative; aspect-ratio: 1.6; background: var(--bed); display: grid; place-items: center; overflow: hidden; }
-.ph-img { width: 88%; height: 80%; object-fit: contain; object-position: center 62%; display: block; }
+.ph-media { position: relative; aspect-ratio: 16 / 10; background: var(--bed); display: grid; place-items: center; overflow: hidden; }
+.ph-img { width: 100%; height: 100%; object-fit: contain; object-position: center; display: block; }
 .badge-lot, .badge-pick { position: absolute; top: 8px; left: 8px; font-size: 11px; font-weight: 700; letter-spacing: .2px; padding: 3px 8px; border-radius: var(--radius-full); }
 .badge-lot { background: var(--gold); color: var(--brand-white); }
 .badge-pick { background: var(--ink); color: var(--brand-white); }
@@ -473,7 +473,7 @@ html, body, #root { margin: 0; background: var(--surface-light-card); }
   .inv-tools { width: 100%; display: grid; grid-template-columns: 1fr auto; gap: 8px; }
   .inv-tools .cond { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; }
   .inv-tools .sel-sm { grid-column: 1 / -1; }
-  .car-track > li { flex-basis: calc((100vw - 16px) / 1.6 - 10px); }
+  .car-track > li { flex-basis: min(78%, 260px); }
   .car-h { padding-right: 16px; }
   .car .inv-t { font-size: 18px; }
   .car-h-l { flex-direction: column; gap: 0; }

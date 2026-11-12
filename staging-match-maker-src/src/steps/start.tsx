@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { CustomerShell } from './Shell';
-import { posOf } from './flowSteps';
+import { STEPS, posOf } from './flowSteps';
 import { navigate, saveAnswers } from '../answers';
 import { rememberStepZip } from '../save/stores';
 import { MatchBox } from './Case';
@@ -39,9 +39,9 @@ export function Step1Start({ query = '', locMode = '' }: { query?: string; locMo
     <CustomerShell store={label}>
       <div className="ssw st" id="s01-root" data-layer="canvas" data-bos-level="screen" data-bos-screen="s01">
       <div className="ssw-in ssw-wide" id="s01-in">
-        <nav className="ssq-prog" id="s01-progress" data-spec-id="nav-progress" data-bos-level="section" data-bos-type="nav" aria-label={`Step 1 of ${posOf('01').total}`}>
+        <nav className="ssq-prog" id="s01-progress" data-spec-id="nav-progress" data-bos-level="section" data-bos-type="nav" aria-label={`Step 1 of ${STEPS.length}`}>
           <div className="ssq-track" id="s01-track"><span id="s01-track-fill" style={{ width: '0%' }} /></div>
-          <span className="ssq-prog-t" id="s01-progress-label" data-spec-id="label-step-counter">Step 1 of {posOf('01').total}</span>
+          <span className="ssq-prog-t" id="s01-progress-label" data-spec-id="label-step-counter">Step 1 of {STEPS.length}</span>
         </nav>
         <div className="st-grid" id="s01-grid">
           {/* LEFT: welcome + unit search */}
