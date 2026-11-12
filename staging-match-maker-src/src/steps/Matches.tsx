@@ -96,7 +96,7 @@ function Tile({ m }: { m: Match }) {
           <img className="sm-tile-img" id={`${id}-img`} src={unitImg(u)} alt="" width={320} height={160} />
           {picked && <span className="sm-badge" id={`${id}-badge`} data-spec-id={`badge-your-pick#${u.stock}`}>Your pick</span>}
           {picked && <span className="sm-check" id={`${id}-check`} aria-hidden="true"><Icon name="check" size={14} stroke={3} /></span>}
-          {u.isLStock && !picked && <span className="sm-badge sm-badge-alt" id={`${id}-badge`} data-spec-id={`badge-floorplan#${u.stock}`}>Floor plan example</span>}
+          {u.isLStock && !picked && <span className="sm-badge sm-badge-alt" id={`${id}-badge`} data-spec-id={`badge-floorplan#${u.stock}`}>Floor plan</span>}
         </div>
         <div className="sm-tile-body" id={`${id}-body`}>
           <h2 className="sm-tile-name" id={`${id}-name`} data-spec-id={`label-match-title#${u.stock}`}>{unitTitle(u)}</h2>

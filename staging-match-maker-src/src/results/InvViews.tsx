@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type DragEvent } from 'react';
 import { GridGlyph, Grip, I, ListGlyph, Svg } from './icons';
-import { BUDGET, lengthFt, money, storeCity, unitImg, unitTitle, type Match } from './inventory';
+import { BUDGET, countNoun, lengthFt, money, storeCity, titleCase, unitImg, unitTitle, type Match } from './inventory';
 import { QuickView } from './QuickView';
 
 // DESIGN PREVIEW ONLY (t149u). Grid view = one-row carousel that bleeds off the right edge; List view = inventory table
@@ -39,7 +39,7 @@ export function InvTools({ view, onView, search, onSearch, location, onLocation,
 
 /* ───────── Grid view: carousel ───────── */
 
-export function Carousel({ others, total, onList, ...c }: Common & { others: Match[]; total: number; onList: () => void }) {
+export function Carousel({ others, total, onList, alsoShown = 0, ...c }: Common & { others: Match[]; total: number; onList: () => void; alsoShown?: number }) {
   const ref = useRef<HTMLUListElement>(null);
   const [edge, setEdge] = useState({ start: true, end: false });
   const sync = () => {
@@ -60,13 +60,13 @@ export function Carousel({ others, total, onList, ...c }: Common & { others: Mat
     const t = el.querySelector('li'); const w = t ? t.getBoundingClientRect().width + 16 : 220;
     el.scrollBy({ left: dir * w * Math.max(1, Math.floor((el.clientWidth - 40) / w) - 1), behavior: 'smooth' });
   };
-  const left = total - others.length;
+  const left = Math.max(0, total - others.length - alsoShown);
   return (
     <section className="car" id="mm-inv" data-spec-id="sec-all-other-inventory" data-bos-level="section" data-bos-type="carousel" aria-roledescription="carousel" aria-label="All other inventory">
       <div className="car-h" id="mm-car-h">
         <div className="car-h-l" id="mm-car-h-l">
           <h2 className="inv-t" id="mm-inv-t" data-spec-id="label-all-other-inventory">All other inventory</h2>
-          <span className="inv-s" id="mm-inv-s" data-spec-id="info-illustrative">{total.toLocaleString('en-US')} matches · class art, not unit photos</span>
+          <span className="inv-s" id="mm-inv-s" data-spec-id="info-illustrative">{countNoun(total, 'match', 'matches')} · class art, not unit photos</span>
         </div>
         <div className="car-arrows" id="mm-car-arrows">
           <button type="button" className="arrow-b" id="mm-car-prev" data-spec-id="btn-action-carousel-prev" data-bos-class="action" aria-label="Previous RVs" aria-controls="mm-grid" disabled={edge.start} onClick={() => page(-1)}><Svg id="mm-car-prev-i" d={I.chevronLeft} size={20} stroke={2} /></button>
@@ -76,7 +76,7 @@ export function Carousel({ others, total, onList, ...c }: Common & { others: Mat
       <ul className="car-track" id="mm-grid" ref={ref} data-spec-id="list-inventory-carousel" tabIndex={0} aria-label="Inventory, scroll sideways">
         {others.map((m) => <CarTile key={m.unit.stock} m={m} {...c} />)}
         <li className="car-end" id="mm-car-end" data-spec-id="card-carousel-end">
-          <p className="car-end-n" id="mm-car-end-n">{left.toLocaleString('en-US')} more</p>
+          {left > 0 && <p className="car-end-n" id="mm-car-end-n">{countNoun(left, 'more match', 'more matches')}</p>}
           <p className="car-end-t" id="mm-car-end-t">See every match in a sortable table.</p>
           <button type="button" className="btn-line" id="mm-car-end-b" data-spec-id="btn-action-open-list-view" data-bos-class="action" onClick={onList}>Open list view</button>
         </li>
@@ -98,7 +98,7 @@ function CarTile({ m, pins, saved, onPin, onSave, drag }: Common & { m: Match })
           <img className="ph-img" id={`${id}-img`} src={unitImg(u)} alt="" loading="lazy" draggable={false} />
           {m.picked
             ? <span className="badge-pick" id={`${id}-pick`} data-spec-id={`badge-your-pick#${u.stock}`}>Your pick</span>
-            : (u.isLStock ? <span className="badge-fp" id={`${id}-fp`} data-spec-id={`badge-floorplan-example#${u.stock}`}>Floor plan example</span> : null)}
+            : (u.isLStock ? <span className="badge-fp" id={`${id}-fp`} data-spec-id={`badge-floorplan-example#${u.stock}`}>Floor plan</span> : null)}
         </div>
         {slot >= 0
           ? <span className="pin-on" id={`${id}-pinned`} data-spec-id={`info-pinned#${u.stock}`}>#{slot + 1}</span>
@@ -140,7 +140,7 @@ function Cols({ p }: { p: string }) {
   );
 }
 
-function shortName(m: Match) { return `${m.unit.make.charAt(0)}${m.unit.make.slice(1).toLowerCase()} ${m.unit.model}`; }
+function shortName(m: Match) { return `${titleCase(m.unit.make)} ${m.unit.model}`; }
 
 export function InvTable({ slots, others, total, onRemove, ...c }: Common & { slots: (Match | null)[]; others: Match[]; total: number; onRemove: (i: number) => void }) {
   const wrap = useRef<HTMLDivElement>(null);
@@ -205,11 +205,28 @@ export function InvTable({ slots, others, total, onRemove, ...c }: Common & { sl
   const qvMatch = qv ? filledSlots.find((m) => m.unit.stock === qv) || others.find((m) => m.unit.stock === qv) || null : null;
   const qvList = qvMatch && filledSlots.includes(qvMatch) ? filledSlots : others;
   const qvSlot = qvMatch ? slots.indexOf(qvMatch) : -1;
-  const left = total - others.length - slots.filter(Boolean).length;
+  const pinsInResults = Math.min(slots.filter(Boolean).length, Math.max(0, total - others.length));
+  const left = Math.max(0, total - others.length - pinsInResults);
   const filled = slots.filter(Boolean).length;
   const collapsed = mode !== 'inline';
+  const [phone, setPhone] = useState(() => typeof matchMedia === 'function' && matchMedia('(max-width: 719px)').matches);
+  useEffect(() => {
+    const mq = matchMedia('(max-width: 719px)');
+    const apply = () => setPhone(mq.matches);
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, []);
+  const moreLabel = `Show ${Math.min(24, left).toLocaleString('en-US')} more · ${left.toLocaleString('en-US')} left`;
   return (
-    <section className={`tblsec is-${mode}`} id="mm-inv" data-spec-id="sec-inventory-table" data-bos-level="section" data-bos-type="table" data-t3-mode={mode} data-t3-steps={steps}>
+    <section className={`tblsec is-${mode}${phone ? ' is-phone' : ''}`} id="mm-inv" data-spec-id="sec-inventory-table" data-bos-level="section" data-bos-type="table" data-t3-mode={mode} data-t3-steps={steps}>
+      {phone ? (
+        <ul className="phone-rows" id="mm-phone-rows">
+          {slots.filter((m): m is Match => !!m).map((m) => <CarTile key={`pin-${m.unit.stock}`} m={m} {...c} />)}
+          {others.map((m) => <CarTile key={m.unit.stock} m={m} {...c} />)}
+          {left > 0 && <li className="phone-more" id="mm-phone-more"><button type="button" className="btn-line" id="mm-more-btn" data-spec-id="btn-action-show-more" data-bos-class="action">{moreLabel}</button></li>}
+        </ul>
+      ) : (<>
       <div className="t3bar" id="mm-t3bar" data-spec-id="bar-top3-collapsed" aria-hidden={!collapsed} role="region" aria-label="Your top three, collapsed" onClick={toggle}>
         <button type="button" className="t3bar-tg" id="mm-t3bar-toggle" data-spec-id="btn-action-toggle-top3-bar" data-bos-class="action" aria-expanded={mode === 'open'} aria-controls="mm-t3drop" tabIndex={collapsed ? 0 : -1} onClick={(e) => { e.stopPropagation(); toggle(); }}>
           <Svg id="mm-t3bar-pin" d={I.pin} size={14} /><b id="mm-t3bar-tb">Your top three</b>
@@ -263,12 +280,15 @@ export function InvTable({ slots, others, total, onRemove, ...c }: Common & { sl
               <TRow key={`p${i}`} m={m} i={i} why={why} onWhy={setWhy} onRemove={onRemove} onOpen={setQv} {...c} />
             ))}
             {others.map((m) => <TRow key={m.unit.stock} m={m} why={why} onWhy={setWhy} onRemove={onRemove} onOpen={setQv} {...c} />)}
-            <tr className="tr-more" id="mm-tbl-more-r">
-              <td colSpan={7} id="mm-tbl-more-td"><button type="button" className="btn-line" id="mm-more-btn" data-spec-id="btn-action-show-more" data-bos-class="action">Show 24 more · {left.toLocaleString('en-US')} left</button></td>
-            </tr>
+            {left > 0 && (
+              <tr className="tr-more" id="mm-tbl-more-r">
+                <td colSpan={7} id="mm-tbl-more-td"><button type="button" className="btn-line" id="mm-more-btn" data-spec-id="btn-action-show-more" data-bos-class="action">{moreLabel}</button></td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
+      </>)}
       {qvMatch && (
         <QuickView m={qvMatch} slot={qvSlot} list={qvList} pins={c.pins} saved={c.saved} onClose={() => setQv(null)} onNav={setQv}
           onPin={c.onPin} onSave={c.onSave} onUnpin={() => onRemove(qvSlot)} />
@@ -318,7 +338,7 @@ function TRow({ m, i, pfx = 'mm-tr', pins, saved, onPin, onSave, drag, why, onWh
         <button type="button" className="t-name" id={`${id}-name`} data-spec-id={`btn-action-open-quick-view-row#${u.stock}${sfx}`} data-bos-class="action" aria-haspopup="dialog" onClick={() => onOpen(u.stock)}>{unitTitle(u)}</button>
         <span className="t-sub" id={`${id}-sub`}>
           {mm.picked && <span className="t-pick" id={`${id}-pick`}>Your pick</span>}
-          {u.isLStock && <span className="badge-fp" id={`${id}-fp`} data-spec-id={`badge-floorplan-example-row#${u.stock}${sfx}`}>Floor plan example</span>}
+          {u.isLStock && <span className="badge-fp" id={`${id}-fp`} data-spec-id={`badge-floorplan-example-row#${u.stock}${sfx}`}>Floor plan</span>}
           <button type="button" className="why-l" id={`${id}-why`} aria-expanded={open} data-spec-id={`btn-action-why-it-ranks#${u.stock}${sfx}`} data-bos-class="action" onClick={() => onWhy(open ? null : id)}>
             <Svg id={`${id}-why-i`} d={I.info} size={14} /> Why it ranks
           </button>

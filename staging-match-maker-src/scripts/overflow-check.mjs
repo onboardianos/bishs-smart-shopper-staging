@@ -25,6 +25,33 @@ const pages = [
 
 const browser = await chromium.launch({ executablePath: process.env.CHROME || '/usr/bin/google-chrome', args: ['--no-sandbox'] });
 const page = await browser.newPage();
+const clipWidths = new Set([320, 375, 390]);
+const clipPages = [
+  ['results-grid', '?state=results'],
+  ['results-list', '?state=results&view=list'],
+  ['results-top3', '?state=results&tab=top3'],
+];
+
+function clippedText() {
+  const bad = [];
+  for (const el of document.querySelectorAll('body *')) {
+    if (!(el instanceof HTMLElement)) continue;
+    const style = getComputedStyle(el);
+    if (style.display === 'none' || style.visibility === 'hidden' || el.clientWidth === 0) continue;
+    const hasText = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim().length > 0);
+    if (!hasText) continue;
+    let box = el;
+    let clips = false;
+    while (box && box !== document.documentElement) {
+      const ox = getComputedStyle(box).overflowX;
+      if (ox === 'hidden' || ox === 'clip') { clips = true; break; }
+      box = box.parentElement;
+    }
+    if (clips && el.scrollWidth > el.clientWidth + 1) bad.push((el.id || String(el.className) || el.tagName) + ': ' + el.textContent.trim().slice(0, 48));
+  }
+  return bad.slice(0, 8);
+}
+
 const summary = [];
 const fails = [];
 for (const w of widths) {
@@ -36,7 +63,16 @@ for (const w of widths) {
     if (r == null) pass++;
     else fails.push({ w, name, scrollWidth: r });
   }
-  summary.push({ width: w, checked: pages.length, pass, fail: pages.length - pass });
+  if (clipWidths.has(w)) {
+    for (const [name, q] of clipPages) {
+      await page.goto(base + q, { waitUntil: 'domcontentloaded' });
+      await page.waitForTimeout(200);
+      const clipped = await page.evaluate(clippedText);
+      if (clipped.length) fails.push({ w, name, clipped });
+      else pass++;
+    }
+  }
+  summary.push({ width: w, checked: pages.length + (clipWidths.has(w) ? clipPages.length : 0), pass, fail: pages.length + (clipWidths.has(w) ? clipPages.length : 0) - pass });
 }
 console.log(JSON.stringify({ summary, fails }, null, 2));
 await browser.close();

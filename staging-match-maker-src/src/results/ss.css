@@ -47,7 +47,8 @@ html, body, #root { margin: 0; background: var(--surface-light-card); }
 .ph { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 18px 0 12px; }
 .ph-t { font-weight: 700; font-size: 48px; line-height: 1.04; letter-spacing: -1.2px; }
 .ph-s { font-size: 18px; color: var(--ink-2); margin-top: 4px; }
-.answers-btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border: 1px solid var(--hair) !important; border-radius: var(--radius-full); background: var(--canvas); font-size: 14px; white-space: nowrap; }
+.answers-btn { display: inline-flex; align-items: center; gap: 8px; flex: 0 0 auto; height: auto; min-height: 40px; padding: 0 16px; border: 1px solid var(--hair) !important; border-radius: var(--radius-full); background: var(--canvas); font-size: 14px; white-space: nowrap; max-width: 100%; }
+.ph-r { flex-wrap: wrap; justify-content: flex-end; }
 .answers-btn:hover { background: var(--cream-tray); }
 .answers-btn span:first-of-type { font-weight: 700; }
 .answers-sum { color: var(--ink-3); }

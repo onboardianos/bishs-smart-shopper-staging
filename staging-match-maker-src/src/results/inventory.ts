@@ -36,6 +36,9 @@ export type Match = {
 import fwArt from './assets/rv-fifth-wheel-art.png';
 /** Class art: the snapshot has no per-unit photos. Fifth wheels use the 519px wayfinder fifth-wheel art. */
 export function unitImg(u: Unit) { return u.class === 'FW' ? fwArt : (CLASS_IMG[u.class] || CLASS_IMG.TT); }
+export function countNoun(n: number, one: string, many?: string) {
+  return `${n.toLocaleString('en-US')} ${n === 1 ? one : (many ?? `${one}s`)}`;
+}
 export function titleCase(s: string) {
   return s.toLowerCase()
     .replace(/(^|[\s/-])(\w)/g, (_m, a: string, b: string) => a + b.toUpperCase())

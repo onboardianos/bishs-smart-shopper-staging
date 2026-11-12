@@ -3,7 +3,7 @@ import { GridGlyph, Grip, I, ListGlyph, Svg } from './icons';
 import logo from './assets/logo-bishs-rv-black-gold.png';
 import { Carousel, InvTable, InvTools, type View } from './InvViews';
 import {
-  matchOf, money, storeCity, titleCase,
+  countNoun, matchOf, money, storeCity, titleCase,
   unitImg, unitTitle, lengthFt, type Match,
 } from './inventory';
 import { loadAnswers, saveAnswers, onPurchase, type Answers } from '../answers';
@@ -161,7 +161,7 @@ export function App() {
       <main className="pg" id="mm-main" inert={savePhase ? true : undefined}>
         {tab === 'inventory' && (
           <>
-            <PageHead id="mm-inv-head" title="Find your next getaway." sub={`${live.total.toLocaleString('en-US')} matching units`} onAnswers={() => setDrawer(true)} extra={<Notice label={desk.towMax < desk.R.towMax ? `${desk.towMax.toLocaleString('en-US')} lbs` : ''} onAdd={() => setTowOpen(true)} />} budget={answers} save={<SaveButton onOpen={openSave} backup={bookBackup} />} />
+            <PageHead id="mm-inv-head" title="Find your next getaway." sub={countNoun(live.total, 'matching unit', 'matching units')} onAnswers={() => setDrawer(true)} extra={<Notice label={desk.towMax < desk.R.towMax ? `${desk.towMax.toLocaleString('en-US')} lbs` : ''} onAdd={() => setTowOpen(true)} />} budget={answers} save={<SaveButton onOpen={openSave} backup={bookBackup} />} />
             <PhoneSummary total={live.total} answers={answers} filtN={activeFilters(desk)} filtOpen={filtOpen} towOn={desk.towMax < desk.R.towMax} onAnswers={() => setDrawer(true)} onFilters={() => setFiltOpen((v) => !v)} onTow={() => setTowOpen(true)} />
             <button type="button" className="filt-toggle" id="mm-filt-toggle" data-spec-id="btn-action-toggle-filters" data-bos-class="action" aria-expanded={filtOpen} aria-controls="mm-filt" onClick={() => setFiltOpen((v) => !v)}>
               <Svg id="mm-filt-toggle-icon" d={I.sliders} size={18} />
@@ -174,7 +174,7 @@ export function App() {
             {view === 'grid' ? (
               <>
                 <TopStrip slots={slots} over={over} drag={drag} onRemove={unpin} onOpen={() => setTab('top3')} />
-                <Carousel others={others} total={live.total} onList={() => setView('list')} {...tileProps} />
+                <Carousel others={others} total={live.total} alsoShown={rows.filter((m) => pins.includes(m.unit.stock)).length} onList={() => setView('list')} {...tileProps} />
               </>
             ) : (
               <InvTable slots={slots} others={rows.filter((m) => !pins.includes(m.unit.stock))} total={live.total} onRemove={unpin} {...tileProps} />
@@ -192,7 +192,7 @@ export function App() {
         )}
         {tab === 'saved' && (
           <>
-            <PageHead id="mm-sv-head" title="Saved." sub={`${savedSet.length} RVs you saved. Pin any of them into your top three.`} onAnswers={() => setDrawer(true)} save={<SaveButton onOpen={openSave} backup={bookBackup} />} />
+            <PageHead id="mm-sv-head" title="Saved." sub={`${countNoun(savedSet.length, 'RV')} you saved. Pin any of them into your top three.`} onAnswers={() => setDrawer(true)} save={<SaveButton onOpen={openSave} backup={bookBackup} />} />
             <PhoneSummary total={live.total} answers={answers} filtN={activeFilters(desk)} filtOpen={filtOpen} towOn={desk.towMax < desk.R.towMax} onAnswers={() => setDrawer(true)} onFilters={() => setFiltOpen((v) => !v)} onTow={() => setTowOpen(true)} />
             <Filters open={filtOpen} desk={desk} onChange={setDesk} />
             <TabsRow tab={tab} onTab={setTab} savedN={savedSet.length} />
@@ -229,7 +229,7 @@ function PhoneSummary({ total, answers, filtN, filtOpen, towOn, onAnswers, onFil
   const budget = answers.budgetMode ? budgetText(answers) : 'No budget set';
   return (
     <div className="rs-phone" id="mm-phone-sum">
-      <p className="rs-line" id="mm-phone-line">{total.toLocaleString('en-US')} matches · {budget} · {sleeps}</p>
+      <p className="rs-line" id="mm-phone-line">{countNoun(total, 'match', 'matches')} · {budget} · {sleeps}</p>
       <div className="rs-chips" id="mm-phone-chips">
         <button type="button" className="rs-chip" id="mm-chip-answers" data-spec-id="btn-action-open-your-answers-phone" data-bos-class="action" onClick={onAnswers}><Svg id="mm-chip-answers-i" d={I.user} size={14} /><span>Your answers</span></button>
         <button type="button" className="rs-chip" id="mm-chip-filters" data-spec-id="btn-action-toggle-filters-phone" data-bos-class="action" aria-expanded={filtOpen} onClick={onFilters}><Svg id="mm-chip-filters-i" d={I.sliders} size={14} /><span>Filters{filtN ? ` · ${filtN}` : ''}</span></button>
@@ -240,6 +240,7 @@ function PhoneSummary({ total, answers, filtN, filtOpen, towOn, onAnswers, onFil
 }
 
 function PageHead({ id, title, sub, onAnswers, extra, budget, save }: { id: string; title: string; sub: string; onAnswers: () => void; extra?: ReactNode; budget?: Answers; save?: ReactNode }) {
+  const sum = budget ? `${budget.budgetMode ? budgetText(budget) : 'No budget set'} · ${budget.picked.includes('adults') || budget.picked.includes('children') ? `sleeps ${budget.adults + budget.children}` : 'sleeps any'}` : '';
   return (
     <header className="ph" id={id} data-spec-id="sec-page-heading">
       <div className="ph-txt" id={`${id}-txt`}>
@@ -248,10 +249,10 @@ function PageHead({ id, title, sub, onAnswers, extra, budget, save }: { id: stri
       </div>
       <div className="ph-r" id={`${id}-r`}>
       {extra}
-      <button type="button" className="answers-btn" id={`${id}-answers`} data-spec-id="btn-action-open-your-answers" data-bos-class="action" aria-haspopup="dialog" onClick={onAnswers}>
+      <button type="button" className="answers-btn" id={`${id}-answers`} data-spec-id="btn-action-open-your-answers" data-bos-class="action" aria-haspopup="dialog" title={sum || 'Your answers'} onClick={onAnswers}>
         <Svg id={`${id}-answers-icon`} d={I.user} size={18} />
         <span id={`${id}-answers-t`}>Your answers</span>
-        <span className="answers-sum" id={`${id}-answers-sum`}>{budget ? `${budget.budgetMode ? budgetText(budget) : 'No budget set'} · ${budget.picked.includes('adults') || budget.picked.includes('children') ? `sleeps ${budget.adults + budget.children}` : 'sleeps any'}` : ''}</span>
+        <span className="answers-sum" id={`${id}-answers-sum`}>{sum}</span>
         </button>
         {save}
       </div>
@@ -519,7 +520,7 @@ function Tile({ m, pins, saved, onPin, onSave, drag, prefix = 'mm-tile' }: {
           <img className="ph-img" id={`${id}-img`} src={unitImg(u)} alt="" loading="lazy" />
           {m.picked
             ? <span className="badge-pick" id={`${id}-pick`} data-spec-id={`badge-your-pick#${u.stock}${sfx}`}>Your pick</span>
-            : (u.isLStock ? <span className="badge-fp" id={`${id}-fp`} data-spec-id={`badge-floorplan-example#${u.stock}${sfx}`}>Floor plan example</span> : null)}
+            : (u.isLStock ? <span className="badge-fp" id={`${id}-fp`} data-spec-id={`badge-floorplan-example#${u.stock}${sfx}`}>Floor plan</span> : null)}
         </div>
         {slot >= 0
           ? <span className="pin-on" id={`${id}-pinned`} data-spec-id={`info-pinned#${u.stock}${sfx}`}>#{slot + 1}</span>
@@ -567,7 +568,7 @@ function TopThreeBoard({ slots, over, drag, onRemove, onBrowse }: { slots: (Matc
             <>
               <div className="tt-media" id="mm-ttpick-media" data-spec-id="media-your-top-pick">
                 <img className="ph-img" id="mm-ttpick-img" src={unitImg(top.unit)} alt="" />
-                {top.unit.isLStock && <span className="badge-fp" id="mm-ttpick-fp" data-spec-id="badge-floorplan-example-top">Floor plan example</span>}
+                {top.unit.isLStock && <span className="badge-fp" id="mm-ttpick-fp" data-spec-id="badge-floorplan-example-top">Floor plan</span>}
               </div>
               <div className="tt-body" id="mm-ttpick-body">
                 <span className="tt-kick" id="mm-ttpick-kick" data-spec-id="label-your-top-pick">1 · Your top pick</span>
@@ -610,7 +611,7 @@ function RailCard({ i, m, over, drag, onRemove }: { i: number; m: Match | null; 
         <article className="rail-in" id={`${id}-in`} aria-labelledby={`${id}-name`} draggable onDragStart={(e) => drag.onDragStart(m.unit.stock, e)}>
           <div className="rail-media" id={`${id}-media`} data-spec-id={`media-top3-rail#${n}`}>
             <img className="ph-img" id={`${id}-img`} src={unitImg(m.unit)} alt="" />
-            {m.unit.isLStock && <span className="badge-fp" id={`${id}-fp`} data-spec-id={`badge-floorplan-example-rail#${n}`}>Floor plan example</span>}
+            {m.unit.isLStock && <span className="badge-fp" id={`${id}-fp`} data-spec-id={`badge-floorplan-example-rail#${n}`}>Floor plan</span>}
           </div>
           <div className="rail-body" id={`${id}-body`}>
             <div className="rail-top" id={`${id}-top`}>
