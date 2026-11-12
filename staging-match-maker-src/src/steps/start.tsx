@@ -41,7 +41,7 @@ export function Step1Start({ query = '', locMode = '' }: { query?: string; locMo
       <div className="ssw-in ssw-wide" id="s01-in">
         <nav className="ssq-prog" id="s01-progress" data-spec-id="nav-progress" data-bos-level="section" data-bos-type="nav" aria-label={counterLabel('01', loadAnswers())}>
           <div className="ssq-track" id="s01-track"><span id="s01-track-fill" style={{ width: '0%' }} /></div>
-          <span className="ssq-prog-t" id="s01-progress-label" data-spec-id="label-step-counter">{counterLabel('01', loadAnswers())}</span>
+          <span className="ssq-prog-t" id="s01-progress-label" data-spec-id="label-step-counter" hidden>{counterLabel('01', loadAnswers())}</span>
         </nav>
         <div className="st-grid" id="s01-grid">
           {/* LEFT: welcome + unit search */}

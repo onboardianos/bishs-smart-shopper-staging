@@ -34,25 +34,24 @@ export function StepFrame({ id, stepId, overline, title, hint, helper, multi, ro
   const onEdit = (step: string) => goEdit(step, sid);
   // "Have a trade in" → the trade-in questions (Q5 · Your camper, Q6 · What to change), then back to this step
   const onTrade = () => { saveAnswers({ camping: 'current' }); go('trade-now', sid === 'trade-now' || sid === 'trade-why' ? '' : `&ret=${sid}`); };
-  const overlineText = overline.replace(/^Step \d+/, `Step ${pos}`);
   return (
     <CustomerShell store={locLabel(storesFromUrl())}>
       <div className="ssw" id={`${id}-root`} data-layer="canvas" data-bos-level="screen" data-bos-screen={id}>
         <div className="ssw-in ssw-rail" id={`${id}-in`}>
           <div className="ssw-main" id={`${id}-main`}>
-            <nav className="ssq-prog" id={`${id}-progress`} data-spec-id="nav-progress" data-bos-level="section" data-bos-type="nav" aria-label={stepLabel}>
-              <div className="ssq-track" id={`${id}-track`}><span id={`${id}-track-fill`} style={{ width: `${pct}%` }} /></div>
-              <span className="ssq-prog-t" id={`${id}-progress-label`} data-spec-id="label-step-counter">{stepLabel}</span>
-            </nav>
+            <div className="ssw-top" id={`${id}-top`}>
+              <nav className="ssq-prog" id={`${id}-progress`} data-spec-id="nav-progress" data-bos-level="section" data-bos-type="nav" aria-label={stepLabel}>
+                <div className="ssq-track" id={`${id}-track`}><span id={`${id}-track-fill`} style={{ width: `${pct}%` }} /></div>
+              </nav>
+              <CaseBar rows={rows} count={count} example={example} open={sheet} onOpen={() => setSheet(true)} />
+            </div>
             <section className="tone-card ssw-card" id={`${id}-question`} data-spec-id="sec-question" data-bos-level="section" data-bos-type="question" aria-labelledby={`${id}-title`}>
-              <div className="overline" id={`${id}-overline`} data-spec-id="label-step">{overlineText}</div>
               <h1 className="t-title ssw-title" id={`${id}-title`} data-spec-id="label-question">{title}</h1>
               {hint && <p className="t-subtitle ssw-hint" id={`${id}-hint`} data-spec-id="info-question-hint">{hint}</p>}
               {helper && <p className="ssw-helper" id={`${id}-helper`} data-spec-id="info-multi-select-helper"><Icon name="info" size={16} /> <span id={`${id}-helper-t`}>{helper}</span></p>}
               <div className="ssw-answers" id={`${id}-answers`} data-spec-id="sec-answers" role={multi ? 'group' : 'radiogroup'} aria-labelledby={`${id}-title`}>{children}</div>
             </section>
             <div className="ssw-act" id={`${id}-act`} data-spec-id="sec-step-footer" data-bos-level="section" data-bos-type="footer">
-              <CaseBar rows={rows} count={count} example={example} open={sheet} onOpen={() => setSheet(true)} />
               <div className="ssw-btns" id={`${id}-btns`}>
                 <Button kind="action" id={`${id}-prev`} data-spec-id="btn-action-previous" aria-label="Previous" className="ssw-prev" onClick={onBack || (() => go(P.prev))}>
                   <Icon name="chevrons-left" size={18} /><span className="ssw-prev-t">Previous</span>

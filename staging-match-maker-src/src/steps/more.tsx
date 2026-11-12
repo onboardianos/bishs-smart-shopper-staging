@@ -485,10 +485,10 @@ export function StepSummary() {
           <div className="ssw-main" id="s-summary-main">
             <nav className="ssq-prog" id="s-summary-progress" data-spec-id="nav-progress" data-bos-level="section" data-bos-type="nav" aria-label={counterLabel('summary', a)}>
               <div className="ssq-track" id="s-summary-track"><span id="s-summary-track-fill" style={{ width: `${pct}%` }} /></div>
-              <span className="ssq-prog-t" id="s-summary-progress-label" data-spec-id="label-step-counter">{counterLabel('summary', a)}</span>
+              <span className="ssq-prog-t" id="s-summary-progress-label" data-spec-id="label-step-counter" hidden>{counterLabel('summary', a)}</span>
             </nav>
             <section className="tone-card ssw-card" id="s-summary-question" data-spec-id="sec-summary" data-bos-level="section" data-bos-type="question" aria-labelledby="s-summary-title">
-              <div className="overline" id="s-summary-overline" data-spec-id="label-step">Step {pos.pos} · Summary</div>
+              <div className="overline" id="s-summary-overline" data-spec-id="label-step">Summary</div>
               <h1 className="t-title ssw-title" id="s-summary-title" data-spec-id="label-question">Everything you told us</h1>
               <p className="t-subtitle ssw-hint" id="s-summary-hint" data-spec-id="info-question-hint">Check it over and edit anything that isn’t right. Then submit, and we’ll match you against the <b id="s-summary-fit">{n(P.pool.length)}</b> campers that fit today.</p>
               <ol className="mq-sum" id="s-summary-list" data-spec-id="list-summary-answers">

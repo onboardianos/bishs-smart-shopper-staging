@@ -85,12 +85,57 @@ body.kb-open .ssw-act, body.kb-open .sh { position: static; }
   .sm-grid { grid-template-columns: minmax(0, 1fr) !important; }
 }
 
-/* Phone and tablet: the action dock stays on screen, the last option scrolls clear of it,
-   and every label fits inside its button. Heights use svh so Safari's toolbar does not cover the dock. */
+/* Question steps: no step numbers. On a phone the match count sits under the header,
+   and the dock is only Continue plus a backup. Spacing follows the 4px DS scale. */
+.ssq-prog-t, .ssw .overline, .st .overline { display: none; }
+.ssw-top, .ssw-top .ssq-prog { width: 100%; }
+.ssq-track { height: 4px; }
+.cs-foot > span:first-child { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 @media (max-width: 1023px) {
   html, body, #root, .ss-frame, .ssw, .ld, .ss { max-width: 100%; }
-  .ssw { --dock: calc(176px + env(safe-area-inset-bottom, 0px)); }
-  .ssw-answers { padding-bottom: var(--dock); }
+  body:has(.ss-frame) { padding-top: 52px; }
+  body:has(.ssw-top) { padding-top: 88px; }
+  body:has(.ss-frame) #root { min-height: calc(100svh - 52px); }
+  .ss-frame .sh-in { flex-direction: row; align-items: center; height: 52px; padding: 4px 12px; gap: 8px; }
+  .ss-frame .sh-search { display: none; }
+  .ss-frame .sh-logo img { height: 28px; }
+  .ss-frame .sh-word { font-size: 20px; min-height: 36px; padding-left: 8px; gap: 4px; }
+  .ssw-top {
+    position: fixed;
+    top: 52px;
+    left: 0;
+    right: 0;
+    z-index: 35;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface-light-card, #fff);
+    border-bottom: 1px solid var(--border-light, #e3e2de);
+  }
+  .ssw-top .ssq-prog { order: 2; padding: 0; }
+  .ssw-top .cb {
+    display: flex;
+    order: 1;
+    min-height: 32px;
+    height: 32px;
+    margin: 0;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: var(--surface-light-card, #fff);
+    gap: 8px;
+  }
+  .ssw-top .cb-n strong { font-size: 16px; }
+  .ssw-top .cb-n span, .ssw-top .cb-case { font-size: 12px; letter-spacing: .4px; }
+  .ssw-top .cb-up { width: 28px; height: 28px; }
+  .ssw { --dock: calc(96px + env(safe-area-inset-bottom, 0px)); }
+  .ssw-in { padding: 8px 12px 0; gap: 8px; }
+  .ssw-main { gap: 8px; min-height: 0; }
+  .ssw-card { padding: 8px 12px 10px; }
+  .ssw-title { font-size: 22px; line-height: 1.15; }
+  .ssw-hint { font-size: 13px; margin-top: 2px; }
+  .ssw-helper { display: none; }
+  .ssw-answers { margin-top: 8px; padding-bottom: var(--dock); }
   .ssw-act {
     position: sticky;
     bottom: 0;
@@ -99,47 +144,55 @@ body.kb-open .ssw-act, body.kb-open .sh { position: static; }
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    gap: 4px;
     background: var(--surface-light-card, #fff);
-    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 0px));
   }
-  .ssw-btns { flex-wrap: wrap; align-items: stretch; gap: 8px; width: 100%; min-width: 0; }
-  .ssw-prev { order: 1; width: auto; flex: 0 0 auto; min-width: 0; max-width: none; padding: 0 10px; min-height: 48px; }
-  .ssw-prev > span { min-width: 0; }
+  .ssw-btns { flex-wrap: wrap; align-items: center; gap: 8px; width: 100%; min-width: 0; }
+  .ssw-prev { order: 1; width: 44px; flex: 0 0 44px; min-width: 44px; padding: 0; min-height: 44px; }
+  .ssw-prev-t { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .ssw-trade {
-    order: 2;
-    flex: 1 1 0;
-    min-width: 0;
-    margin-left: 0;
-    padding: 4px 6px;
-    font-size: 12px;
+    order: 3;
+    flex: 1 0 100%;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    font-size: 13px;
     letter-spacing: .2px;
-    line-height: 1.15;
-    white-space: normal;
+    text-align: center;
   }
-  .ssw-go { display: contents; }
-  .ssw-cta { order: 3; width: auto; flex: 1 1 120px; min-width: 108px; max-width: 100%; padding: 0 10px; font-size: 15px; letter-spacing: .4px; overflow: hidden; }
-  .ssw-cta svg { flex: 0 0 auto; }
-  .ssw-why { order: 4; flex: 1 0 100%; max-width: 100%; margin: 0; font-size: 12px; text-align: right; overflow-wrap: anywhere; }
-  .ct-grid .ct-media, .ct-grid.hitch .ct-media {
-    width: 42%;
-    flex: 0 0 42%;
-    max-width: 148px;
-    min-width: 108px;
-    aspect-ratio: 4 / 3;
-    height: auto;
+  .ssw-go { order: 2; display: flex; flex: 1 1 auto; min-width: 0; }
+  .ssw-cta { width: 100%; min-width: 0; min-height: 48px; padding: 0 12px; font-size: 16px; letter-spacing: .4px; }
+  .ssw-why { margin: 0; font-size: 12px; text-align: center; }
+  .ct-grid, .ct-grid.hitch, .ct-grid.g5 { gap: 4px; }
+  .ct-grid .ct-btn, .ct-grid.hitch .ct-btn { min-height: 52px; flex-direction: row; align-items: center; text-align: left; }
+  .ct-grid .ct-media, .ct-grid.hitch .ct-media, .ct-grid.g5 .ct-media {
+    width: 68px;
+    flex: 0 0 68px;
+    min-width: 68px;
+    max-width: 68px;
+    height: 52px;
+    aspect-ratio: auto;
     background: var(--surface-light-inset, #efece4);
   }
+  .ct-grid.g5 .ct-btn { flex-direction: row; text-align: left; }
   .ct-grid .ct-media img, .ct-grid .ha-img, .ct-grid.hitch .ct-media img {
     width: 100%;
     height: 100%;
-    max-width: 100%;
-    max-height: 100%;
     object-fit: contain;
     object-position: center;
-    transform: scale(1.18);
+    transform: scale(1.15);
   }
+  .ct-label { font-size: 15px; padding: 0 8px 0; }
+  .ct-hint { font-size: 12px; padding: 0 8px 0 0; }
   .ct-check { top: 50%; right: 8px; bottom: auto; margin: 0; transform: translateY(-50%); }
-  .ct-grid.g5 .ct-check { top: auto; right: 8px; bottom: 8px; transform: none; }
+  .v1-modal-back { z-index: 450; }
+  .ss .pg { padding-bottom: 24px; }
+  .ss-dialog-body { gap: 8px; padding: 12px 16px 16px; }
+  .ss-dialog-head { padding: 10px 8px 8px 14px; }
+  .mq-stepper { padding: 6px 10px; }
+  .mq-stepper-c output { font-size: 24px; }
+  .mq-stepper-c button { width: 40px; height: 40px; }
 }
 .ct-off { opacity: .48; }
 .ct-off .ct-btn { cursor: not-allowed; }
