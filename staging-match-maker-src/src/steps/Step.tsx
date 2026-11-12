@@ -7,8 +7,8 @@ import { CasePanel, CaseBar, CaseList, MatchBox, type CaseRow } from './Case';
 import flow from './flow.json';
 import { storesFromUrl } from './inventory';
 import { locLabel } from './LocationPicker';
-import { STEPS, posOf, goEdit, goNext } from './flowSteps';
-import { go, saveAnswers } from '../answers';
+import { counterOf, posOf, goEdit, goNext } from './flowSteps';
+import { go, saveAnswers, type Answers } from '../answers';
 
 // ONE question frame for every Smart Shopper step. Screens only pass data (title, options, case rows, count).
 // Centered auto layout: a max-width container, centered in the AppShell main area at every width.
@@ -16,18 +16,20 @@ import { go, saveAnswers } from '../answers';
 //   641–1023: one centered 720px column; case collapses into a bar in the sticky action dock; tap = bottom sheet.
 //   ≤640: same as tablet, phone padding, single thumb zone.
 const STEP_OF: Record<string, string> = { s02: '02', s03: '03', s04: '04', smh: 'mh' };
-export function StepFrame({ id, stepId, overline, title, hint, helper, multi, rows, count, prev, example, ctaOn = true, ctaLabel, disabledWhy, sheetOpen = false, children, overlay, onContinue, onBack }: {
+export function StepFrame({ id, stepId, overline, title, hint, helper, multi, rows, count, prev, example, ctaOn = true, ctaLabel, disabledWhy, sheetOpen = false, children, overlay, onContinue, onBack, answersForCounter }: {
   id: string; stepId?: string; pos?: number; overline: string; title: string; hint?: string; helper?: string; multi?: boolean; rows: CaseRow[]; answered?: number;
   count: number; prev?: number; example?: boolean; ctaOn?: boolean; ctaLabel?: string; disabledWhy?: string; sheetOpen?: boolean; children: ReactNode; overlay?: ReactNode;
-  onContinue?: () => void; onBack?: () => void;
+  onContinue?: () => void; onBack?: () => void; answersForCounter?: Answers;
 }) {
   const [sheet, setSheet] = useState(sheetOpen);
   const sid = stepId || STEP_OF[id] || id;
   const P = posOf(sid);
-  const pos = P.pos > 0 ? P.pos : Math.max(1, STEPS.findIndex((s) => s.id === sid) + 1);
-  const total = STEPS.length;
+  const counted = counterOf(sid, answersForCounter);
+  const pos = counted.pos;
+  const total = counted.total;
   const answered = Math.max(0, pos - 1);
-  const pct = total > 1 ? ((pos - 1) / (total - 1)) * 100 : 0;
+  const pct = total && total > 1 ? ((pos - 1) / (total - 1)) * 100 : 0;
+  const stepLabel = total == null ? `Step ${pos}` : `Step ${pos} of ${total}`;
   const ret = new URLSearchParams(location.search).get('ret');
   const onEdit = (step: string) => goEdit(step, sid);
   // "Have a trade in" → the trade-in questions (Q5 · Your camper, Q6 · What to change), then back to this step
@@ -38,9 +40,9 @@ export function StepFrame({ id, stepId, overline, title, hint, helper, multi, ro
       <div className="ssw" id={`${id}-root`} data-layer="canvas" data-bos-level="screen" data-bos-screen={id}>
         <div className="ssw-in ssw-rail" id={`${id}-in`}>
           <div className="ssw-main" id={`${id}-main`}>
-            <nav className="ssq-prog" id={`${id}-progress`} data-spec-id="nav-progress" data-bos-level="section" data-bos-type="nav" aria-label={`Step ${pos} of ${total}`}>
+            <nav className="ssq-prog" id={`${id}-progress`} data-spec-id="nav-progress" data-bos-level="section" data-bos-type="nav" aria-label={stepLabel}>
               <div className="ssq-track" id={`${id}-track`}><span id={`${id}-track-fill`} style={{ width: `${pct}%` }} /></div>
-              <span className="ssq-prog-t" id={`${id}-progress-label`} data-spec-id="label-step-counter">Step {pos} of {total}</span>
+              <span className="ssq-prog-t" id={`${id}-progress-label`} data-spec-id="label-step-counter">{stepLabel}</span>
             </nav>
             <section className="tone-card ssw-card" id={`${id}-question`} data-spec-id="sec-question" data-bos-level="section" data-bos-type="question" aria-labelledby={`${id}-title`}>
               <div className="overline" id={`${id}-overline`} data-spec-id="label-step">{overlineText}</div>
@@ -63,7 +65,7 @@ export function StepFrame({ id, stepId, overline, title, hint, helper, multi, ro
               </div>
             </div>
           </div>
-          <CasePanel rows={rows} answered={answered} total={total} upcoming={P.upcoming} onEdit={onEdit} count={count} prev={prev} example={example} />
+          <CasePanel rows={rows} answered={answered} total={total ?? pos} upcoming={P.upcoming} onEdit={onEdit} count={count} prev={prev} example={example} />
         </div>
       </div>
       <Modal id="case-sheet" open={sheet} onDismiss={() => setSheet(false)} labelledBy="case-sheet-title">

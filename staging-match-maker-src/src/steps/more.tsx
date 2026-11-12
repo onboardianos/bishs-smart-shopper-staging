@@ -8,7 +8,7 @@ import { ChoiceTile } from './ChoiceTile';
 import { StepFrame } from './Step';
 import type { CaseRow } from './Case';
 import { SiteHeader } from './SiteHeader';
-import { STEPS, posOf, goNext, goEdit, visibleSteps, navOf } from './flowSteps';
+import { counterLabel, posOf, goNext, goEdit, visibleSteps, navOf } from './flowSteps';
 import { loadAnswers, markDone, go, type Answers, type Trade } from '../answers';
 import { unitsFor, poolOf, liveText, childOpts, bedroomOpts, multiOpts, catalogue, gvwrOf, ceilingOf, financeOf, splits, CAMPING_IMG, TOW_IMG, n, APR, SNAP, E, isMotorOnly, type Opt } from '../session';
 import { answerText, budgetRows, CAMPING, CAMP_STYLE, ACTIVITIES, TRADE_CHANGES, TOW_OPTS, LENGTH_OPTS, TIERS, STEP_ICON, INERT, money, tradeLabel } from './answersText';
@@ -127,7 +127,7 @@ export function StepCamping() {
   const opts = CAMPING.map((o) => ({ ...o, img: CAMPING_IMG[o.id as keyof typeof CAMPING_IMG] }));
   return (
     <StepFrame id="s-camping" stepId="camping" overline="Step 5 · Camping today" title="How are you camping today?" hint="Just so we know where you’re starting from." rows={rows} count={fit(P)} prev={prev}
-      ctaOn={!!a.camping} disabledWhy="Pick one to continue" onContinue={next}>
+      answersForCounter={a} ctaOn={!!a.camping} disabledWhy="Pick one to continue" onContinue={next}>
       <Tiles sid="camping" opts={opts} sel={a.camping ? [a.camping] : []} onPick={(id) => set({ camping: id })} hint={(id) => opts.find((o) => o.id === id)?.hint} />
     </StepFrame>
   );
@@ -483,9 +483,9 @@ export function StepSummary() {
       <div className="ssw" id="s-summary-root" data-layer="canvas" data-bos-level="screen" data-bos-screen="summary">
         <div className="ssw-in mq-sum-in" id="s-summary-in">
           <div className="ssw-main" id="s-summary-main">
-            <nav className="ssq-prog" id="s-summary-progress" data-spec-id="nav-progress" data-bos-level="section" data-bos-type="nav" aria-label={`Step ${pos.pos} of ${STEPS.length}`}>
+            <nav className="ssq-prog" id="s-summary-progress" data-spec-id="nav-progress" data-bos-level="section" data-bos-type="nav" aria-label={counterLabel('summary', a)}>
               <div className="ssq-track" id="s-summary-track"><span id="s-summary-track-fill" style={{ width: `${pct}%` }} /></div>
-              <span className="ssq-prog-t" id="s-summary-progress-label" data-spec-id="label-step-counter">Step {pos.pos} of {STEPS.length}</span>
+              <span className="ssq-prog-t" id="s-summary-progress-label" data-spec-id="label-step-counter">{counterLabel('summary', a)}</span>
             </nav>
             <section className="tone-card ssw-card" id="s-summary-question" data-spec-id="sec-summary" data-bos-level="section" data-bos-type="question" aria-labelledby="s-summary-title">
               <div className="overline" id="s-summary-overline" data-spec-id="label-step">Step {pos.pos} · Summary</div>

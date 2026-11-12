@@ -1,6 +1,7 @@
 // The Smart Shopper question order (live bishsos.com/smart-shopper order, with the Bishified Step 3/4 split of the live "type" screen).
 // Which steps show depends on the answers (same skip rules as live), so "Step n of N" is always the real count for this shopper.
-import { loadAnswers, type Answers } from '../answers';
+import { DEFAULTS, loadAnswers, type Answers } from '../answers';
+import { BUCKETS } from './inventory';
 import { poolOf, multiOpts, shareOf, isB, isToy, isMotorOnly, anyTowable, E } from '../session';
 
 export type StepDef = { id: string; nav: string; skip?: (a: Answers, P: () => ReturnType<typeof poolOf>) => string | null };
@@ -40,6 +41,45 @@ export function posOf(id: string, a: Answers = loadAnswers()) {
   const vis = visibleSteps(a);
   const i = vis.findIndex((s) => s.id === id);
   return { pos: i + 1, total: vis.length, vis, next: vis[i + 1]?.id || 'qload', prev: vis[i - 1]?.id || '00', upcoming: vis.slice(i + 1).map((s) => s.nav) };
+}
+
+/** Classes implied by the step-2 path, before a later subtype narrows them. */
+export function classesForPath(path: string[]) {
+  return [...new Set(path.flatMap((id) => BUCKETS[id] || []))];
+}
+
+/**
+ * The counter's path. Later answers (sleep, length, budget, and so on) are left out
+ * so the total does not change again after the path, hitch, class, or camping choice.
+ */
+export function scopeForCounter(a: Answers): Answers {
+  return {
+    ...DEFAULTS,
+    stores: a.stores,
+    path: a.path,
+    hitch: a.hitch,
+    sub: a.sub,
+    fifthSub: a.fifthSub,
+    motor: a.motor,
+    camping: a.camping,
+    classes: a.path.length ? (a.classes.length ? a.classes : classesForPath(a.path)) : a.classes,
+  };
+}
+
+/** Step label for the shopper's chosen path. No total until a path is picked. */
+export function counterOf(id: string, a: Answers = loadAnswers()) {
+  if (!a.path.length) {
+    const early = ['01', '02'];
+    const at = early.indexOf(id);
+    return { pos: at >= 0 ? at + 1 : 1, total: null as number | null };
+  }
+  const vis = visibleSteps(scopeForCounter(a));
+  const i = vis.findIndex((s) => s.id === id);
+  return { pos: (i >= 0 ? i : 0) + 1, total: vis.length };
+}
+export function counterLabel(id: string, a: Answers = loadAnswers()) {
+  const { pos, total } = counterOf(id, a);
+  return total == null ? `Step ${pos}` : `Step ${pos} of ${total}`;
 }
 export function navOf(id: string) { return STEPS.find((s) => s.id === id)?.nav || id; }
 

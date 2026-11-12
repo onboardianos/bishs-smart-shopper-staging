@@ -38,8 +38,9 @@ export function Step2Path({ sheet }: { sheet?: boolean }) {
   return (
     <StepFrame id="s02" pos={2} overline={c.overline} title={c.title} hint={c.hint} helper={flow.multiHelper} multi rows={rows} answered={1}
       count={sel.length ? sum(c.options, sel) : unitsAt(SEL)} prev={unitsAt(SEL)} ctaOn={sel.length > 0} disabledWhy="Pick one to continue" sheetOpen={sheet}
+      answersForCounter={{ ...loadAnswers(), path: sel, classes: sel.length ? classesFor(sel) : [], hitch: sel.includes('towable') ? loadAnswers().hitch : [], sub: sel.includes('towable') ? loadAnswers().sub : [], fifthSub: sel.includes('towable') ? loadAnswers().fifthSub : [], motor: sel.includes('motorhome') ? loadAnswers().motor : [] }}
       onBack={() => go('01')}
-      onContinue={() => { markDone('02', { stores: SEL, classes: classesFor(sel), path: sel, ...(sel.includes('towable') ? {} : { hitch: [], sub: [] }) }); goNext('02'); }}>
+      onContinue={() => { markDone('02', { stores: SEL, classes: classesFor(sel), path: sel, ...(sel.includes('towable') ? {} : { hitch: [], sub: [], fifthSub: [] }), ...(sel.includes('motorhome') ? {} : { motor: [] }) }); goNext('02'); }}>
       <div className="ct-grid g3" id="s02-grid">
         {c.options.map((o) => <ChoiceTile key={o.id} id={`s02-${o.id}`} specId={`input-choice-tile-${o.id}#02`} label={o.label} hint={fmt(o.count)} image={img(o.img)} multi selected={sel.includes(o.id)} disabled={o.count === 0} onClick={() => toggle(o.id)} />)}
       </div>
@@ -55,6 +56,7 @@ export function Step3Type({ sheet }: { sheet?: boolean }) {
   return (
     <StepFrame id="s03" pos={3} overline={c.overline} title={c.title} hint={c.hint} helper={flow.multiHelper} multi rows={rows} answered={2}
       count={sel.length ? sum(c.options as Opt[], sel) : towableCount} prev={cnt('towable', SEL)} ctaOn={sel.length > 0} sheetOpen={sheet}
+      answersForCounter={{ ...loadAnswers(), hitch: sel, ...(sel.includes('bumper') ? {} : { sub: [] }), ...(sel.includes('fifth') ? {} : { fifthSub: [] }) }}
       onBack={() => go('02')}
       onContinue={() => { markDone('03', { stores: SEL, classes: withOther(classesFor(sel), A0.path.filter((x) => x !== 'towable')), hitch: sel, ...(sel.includes('bumper') ? {} : { sub: [] }), ...(sel.includes('fifth') ? {} : { fifthSub: [] }) }); goNext('03'); }}>
       <div className="ct-grid g3 hitch" id="s03-grid">
@@ -113,6 +115,7 @@ export function Step4Bumper({ garageOpen, sheet }: { garageOpen?: boolean; sheet
   return (
     <StepFrame id="s04" pos={4} overline={c.overline} title={c.title} helper={flow.multiHelper} multi rows={rows} answered={3}
       count={sel.length ? count : cnt('bumper', SEL)} prev={cnt('bumper', SEL)} ctaOn={sel.length > 0 && (!sel.includes('garage') || lens.length > 0)} disabledWhy={sel.includes('garage') && lens.length === 0 ? 'Choose a garage length' : 'Pick one to continue'} sheetOpen={sheet} overlay={overlay}
+      answersForCounter={{ ...loadAnswers(), sub: sel, classes: withOther(classesFor(sel.length ? sel : ['bumper']), [...A0.hitch.filter((x) => x !== 'bumper'), ...A0.path.filter((x) => x !== 'towable')]) }}
       onBack={() => go('03')}
       onContinue={() => { markDone('04', { stores: SEL, classes: withOther(classesFor(sel.length ? sel : ['bumper']), [...A0.hitch.filter((x) => x !== 'bumper'), ...A0.path.filter((x) => x !== 'towable')]), sub: sel, garageFt: sel.includes('garage') && trimmed ? minFt : null, garageAny: sel.includes('garage') && !trimmed }); goNext('04'); }}>
       <div className="ct-grid g5" id="s04-grid">
@@ -133,6 +136,7 @@ export function StepFifth({ sheet }: { sheet?: boolean }) {
   return (
     <StepFrame id="sfw" stepId="fw" overline={c.overline} title={c.title} hint={c.hint} helper={flow.multiHelper} multi rows={rows} answered={3}
       count={sel.length ? sum(c.options, sel) : all} prev={all} ctaOn={sel.length > 0} sheetOpen={sheet}
+      answersForCounter={{ ...loadAnswers(), fifthSub: sel, classes: [...new Set([...A0.classes.filter((code) => code !== 'FW' && code !== 'FWTH'), ...classesFor(sel.length ? sel : ['fifth'])])] }}
       onBack={() => go('03')}
       onContinue={() => {
         const fifthClasses = classesFor(sel);
@@ -165,9 +169,14 @@ export function StepMotorhome({ sheet }: { sheet?: boolean }) {
   const [sel, toggle] = useMulti(A0.motor);
   const opts = MH.map((o) => ({ ...o, count: classCount(o.classes) }));
   const rows: CaseRow[] = [startRow, { step: '02', label: 'Path', value: 'Motorhome', icon: 'compass' }, { step: '03', label: 'Motorhome class', value: names(opts, sel), icon: 'truck', current: true }];
+  const motorClasses = sel.length && !sel.includes('any')
+    ? sel.flatMap((id) => MH.find((o) => o.id === id)?.classes || [])
+    : classesFor(A0.path.includes('motorhome') ? ['motorhome'] : []);
+  const motorAnswers = { ...loadAnswers(), motor: sel.includes('any') ? ['any'] : sel, classes: [...new Set([...A0.classes.filter((c) => !MOTOR_CODES.includes(c)), ...motorClasses])] };
   return (
     <StepFrame id="smh" pos={3} overline="Step 3 · Class" title="Which kind of motorhome?" hint="Pick a class, or keep every motorhome in the running." helper={flow.multiHelper} multi rows={rows} answered={2}
       count={sel.length ? (opts.filter((o) => sel.includes(o.id) && o.id !== 'any').reduce((a, o) => a + o.count, 0) || (sel.includes('any') ? opts.filter((o) => o.id !== 'any').reduce((a, o) => a + o.count, 0) : 0)) : cnt('motorhome', SEL)} prev={cnt('motorhome', SEL)} ctaOn={sel.length > 0} disabledWhy="Pick one to continue" sheetOpen={sheet}
+      answersForCounter={motorAnswers}
       onBack={() => go('02')}
       onContinue={() => {
         const picked = sel.includes('any') ? opts.filter((o) => o.id !== 'any') : opts.filter((o) => sel.includes(o.id));
