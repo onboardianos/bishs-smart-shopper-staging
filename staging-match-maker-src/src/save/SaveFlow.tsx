@@ -1,4 +1,5 @@
 // Save Progress entry. The dialogs are the v5 frames; this file keeps the results-page button and the ?state= list.
+import type { ReactNode } from 'react';
 import { Action, VIcon } from './v5ui';
 import { V5Save } from './v5save';
 
@@ -14,13 +15,14 @@ export function savePhaseFromUrl(): SavePhase {
   return (SAVE_PHASES as readonly string[]).includes(raw) ? (raw as SavePhase) : '';
 }
 
-export function SaveButton({ onOpen }: { onOpen: () => void }) {
+export function SaveButton({ onOpen, backup }: { onOpen: () => void; backup?: ReactNode }) {
   return (
     <div className="sp-save-slot" data-spec-id="sec-save-progress-slot">
       <Action specId="btn-action-save-progress" perm="profile.create" target="frame-save-progress" onClick={onOpen}>
         <VIcon name="save" size={18} />
         Save Progress
       </Action>
+      {backup}
     </div>
   );
 }

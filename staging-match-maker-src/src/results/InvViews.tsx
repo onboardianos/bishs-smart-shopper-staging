@@ -108,7 +108,7 @@ function CarTile({ m, pins, saved, onPin, onSave, drag }: Common & { m: Match })
             <p className="c-price" id={`${id}-price`}>{m.priceText}</p>
             <button type="button" className={`save-b${isSaved ? ' is-on' : ''}`} id={`${id}-save`} aria-pressed={isSaved} data-spec-id={`btn-action-save#${u.stock}`} data-bos-class="action" onClick={() => onSave(u.stock)}>{isSaved ? 'Saved' : 'Save'}</button>
           </div>
-          <p className="c-meta c-meta-line" id={`${id}-meta`}>Sleeps {u.sleeps ?? '—'} · {lengthFt(u)} ft · {u.slides ? `${u.slides} slide${u.slides > 1 ? 's' : ''}` : 'No slides'}</p>
+          <p className="c-meta c-meta-line" id={`${id}-meta`}>{storeCity(u.location)} · Sleeps {u.sleeps ?? '—'}</p>
         </div>
       </article>
     </li>

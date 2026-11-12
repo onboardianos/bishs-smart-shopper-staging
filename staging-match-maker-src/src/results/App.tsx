@@ -75,6 +75,8 @@ export function App() {
   const [filtOpen, setFiltOpen] = useState(() => q().get('filters') === '1');
   const [savedSet, setSavedSet] = useState<string[]>(() => loadProfile()?.saved || []);
   const [savePhase, setSavePhase] = useState<SavePhase>(savePhaseFromUrl);
+  const openBook = () => { location.assign(`${location.pathname}?state=book-visit`); };
+  const bookBackup = <button type="button" className="rs-backup" id="mm-book" data-spec-id="btn-action-book-visit-results" data-bos-class="action" data-bos-perm="visit.book" onClick={openBook}>Book a visit</button>;
   const openSave = () => {
     const s = new URLSearchParams(location.search);
     s.set('screen', s.get('screen') || 'results');
@@ -159,7 +161,8 @@ export function App() {
       <main className="pg" id="mm-main" inert={savePhase ? true : undefined}>
         {tab === 'inventory' && (
           <>
-            <PageHead id="mm-inv-head" title="Find your next getaway." sub={`${live.total.toLocaleString('en-US')} matching units`} onAnswers={() => setDrawer(true)} extra={<Notice label={desk.towMax < desk.R.towMax ? `${desk.towMax.toLocaleString('en-US')} lbs` : ''} onAdd={() => setTowOpen(true)} />} budget={answers} save={<SaveButton onOpen={openSave} />} />
+            <PageHead id="mm-inv-head" title="Find your next getaway." sub={`${live.total.toLocaleString('en-US')} matching units`} onAnswers={() => setDrawer(true)} extra={<Notice label={desk.towMax < desk.R.towMax ? `${desk.towMax.toLocaleString('en-US')} lbs` : ''} onAdd={() => setTowOpen(true)} />} budget={answers} save={<SaveButton onOpen={openSave} backup={bookBackup} />} />
+            <PhoneSummary total={live.total} answers={answers} filtN={activeFilters(desk)} filtOpen={filtOpen} towOn={desk.towMax < desk.R.towMax} onAnswers={() => setDrawer(true)} onFilters={() => setFiltOpen((v) => !v)} onTow={() => setTowOpen(true)} />
             <button type="button" className="filt-toggle" id="mm-filt-toggle" data-spec-id="btn-action-toggle-filters" data-bos-class="action" aria-expanded={filtOpen} aria-controls="mm-filt" onClick={() => setFiltOpen((v) => !v)}>
               <Svg id="mm-filt-toggle-icon" d={I.sliders} size={18} />
               <span id="mm-filt-toggle-t">Filters</span>
@@ -180,14 +183,18 @@ export function App() {
         )}
         {tab === 'top3' && (
           <>
-            <PageHead id="mm-tt-head" title="Your top three." sub="Choose your favorite to explore purchase options." onAnswers={() => setDrawer(true)} save={<SaveButton onOpen={openSave} />} />
+            <PageHead id="mm-tt-head" title="Your top three." sub="Choose your favorite to explore purchase options." onAnswers={() => setDrawer(true)} save={<SaveButton onOpen={openSave} backup={bookBackup} />} />
+            <PhoneSummary total={live.total} answers={answers} filtN={activeFilters(desk)} filtOpen={filtOpen} towOn={desk.towMax < desk.R.towMax} onAnswers={() => setDrawer(true)} onFilters={() => setFiltOpen((v) => !v)} onTow={() => setTowOpen(true)} />
+            <Filters open={filtOpen} desk={desk} onChange={setDesk} />
             <TabsRow tab={tab} onTab={setTab} savedN={savedSet.length} />
             <TopThreeBoard slots={slots} over={over} drag={drag} onRemove={unpin} onBrowse={() => setTab('inventory')} />
           </>
         )}
         {tab === 'saved' && (
           <>
-            <PageHead id="mm-sv-head" title="Saved." sub={`${savedSet.length} RVs you saved. Pin any of them into your top three.`} onAnswers={() => setDrawer(true)} save={<SaveButton onOpen={openSave} />} />
+            <PageHead id="mm-sv-head" title="Saved." sub={`${savedSet.length} RVs you saved. Pin any of them into your top three.`} onAnswers={() => setDrawer(true)} save={<SaveButton onOpen={openSave} backup={bookBackup} />} />
+            <PhoneSummary total={live.total} answers={answers} filtN={activeFilters(desk)} filtOpen={filtOpen} towOn={desk.towMax < desk.R.towMax} onAnswers={() => setDrawer(true)} onFilters={() => setFiltOpen((v) => !v)} onTow={() => setTowOpen(true)} />
+            <Filters open={filtOpen} desk={desk} onChange={setDesk} />
             <TabsRow tab={tab} onTab={setTab} savedN={savedSet.length} />
             <ul className="grid grid-saved" id="mm-saved-grid" data-spec-id="list-saved-tiles">
               {saved.filter((m) => savedSet.includes(m.unit.stock)).map((m) => <Tile key={m.unit.stock} m={m} {...tileProps} prefix="mm-sv" />)}
@@ -215,6 +222,23 @@ function TopBar() {
   return <SiteHeader prefix="mm" />;
 }
 
+function PhoneSummary({ total, answers, filtN, filtOpen, towOn, onAnswers, onFilters, onTow }: {
+  total: number; answers: Answers; filtN: number; filtOpen: boolean; towOn: boolean; onAnswers: () => void; onFilters: () => void; onTow: () => void;
+}) {
+  const sleeps = answers.picked.includes('adults') || answers.picked.includes('children') ? `sleeps ${answers.adults + answers.children}` : 'sleeps any';
+  const budget = answers.budgetMode ? budgetText(answers) : 'No budget set';
+  return (
+    <div className="rs-phone" id="mm-phone-sum">
+      <p className="rs-line" id="mm-phone-line">{total.toLocaleString('en-US')} matches · {budget} · {sleeps}</p>
+      <div className="rs-chips" id="mm-phone-chips">
+        <button type="button" className="rs-chip" id="mm-chip-answers" data-spec-id="btn-action-open-your-answers-phone" data-bos-class="action" onClick={onAnswers}>Your answers</button>
+        <button type="button" className="rs-chip" id="mm-chip-filters" data-spec-id="btn-action-toggle-filters-phone" data-bos-class="action" aria-expanded={filtOpen} onClick={onFilters}>Filters{filtN ? ` · ${filtN}` : ''}</button>
+        <button type="button" className="rs-chip" id="mm-chip-tow" data-spec-id="btn-action-add-vehicle-phone" data-bos-class="action" data-bos-perm="discovery.navigate" onClick={onTow}>{towOn ? 'Tow set' : 'Tow'}</button>
+      </div>
+    </div>
+  );
+}
+
 function PageHead({ id, title, sub, onAnswers, extra, budget, save }: { id: string; title: string; sub: string; onAnswers: () => void; extra?: ReactNode; budget?: Answers; save?: ReactNode }) {
   return (
     <header className="ph" id={id} data-spec-id="sec-page-heading">
@@ -227,7 +251,7 @@ function PageHead({ id, title, sub, onAnswers, extra, budget, save }: { id: stri
       <button type="button" className="answers-btn" id={`${id}-answers`} data-spec-id="btn-action-open-your-answers" data-bos-class="action" aria-haspopup="dialog" onClick={onAnswers}>
         <Svg id={`${id}-answers-icon`} d={I.user} size={18} />
         <span id={`${id}-answers-t`}>Your answers</span>
-<span className="answers-sum" id={`${id}-answers-sum`}>{budget ? `${budgetText(budget)} · sleeps ${budget.picked.includes('adults') || budget.picked.includes('children') ? budget.adults + budget.children : '—'}` : ''}</span>
+        <span className="answers-sum" id={`${id}-answers-sum`}>{budget ? `${budget.budgetMode ? budgetText(budget) : 'No budget set'} · ${budget.picked.includes('adults') || budget.picked.includes('children') ? `sleeps ${budget.adults + budget.children}` : 'sleeps any'}` : ''}</span>
         </button>
         {save}
       </div>
