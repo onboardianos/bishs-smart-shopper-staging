@@ -8,6 +8,7 @@ import {
 } from './inventory';
 import { loadAnswers, saveAnswers, onPurchase, garageFtLabel, garagePicks, garageMatchText, GARAGE_BOOST, GARAGE_TOP_FT, type Answers } from '../answers';
 import { snapshotMeta, withPicked } from '../liveRank';
+import { UnitPhoto } from '../unitPhotos';
 import { isHauler, locationsOf, motorPath, rankDesk, seedDesk, seedLocation, snapshotUnitCount, unitTypeOptions, type Desk, type Toggle } from '../deskRank';
 import { SiteHeader } from '../steps/SiteHeader';
 import { buildSession, gvwrOf } from '../session';
@@ -208,7 +209,7 @@ export function App() {
       </main>
       {!fit && (
         <footer className="pg-foot" id="mm-foot" data-spec-id="info-preview-footer">
-          <span id="mm-foot-t">Snapshot {snapshotMeta().inventorySnapshotId} · {snapshotUnitCount().toLocaleString('en-US')} units · {locationsOf().length} locations · class art, not unit photos</span>
+          <span id="mm-foot-t">Snapshot {snapshotMeta().inventorySnapshotId} · {snapshotUnitCount().toLocaleString('en-US')} units · {locationsOf().length} locations · unit photos from bishs.com, class art where a photo is missing</span>
         </footer>
       )}
       {drawer && <AnswersDrawer onClose={() => setDrawer(false)} answers={answers} onTow={() => { setDrawer(false); setTowOpen(true); }} />}
@@ -524,7 +525,7 @@ function PinSlot({ i, m, over, drag, onRemove }: { i: number; m: Match | null; o
         <article className="card slot-card" id={`${id}-card`} aria-labelledby={`${id}-name`} draggable onDragStart={(e) => drag.onDragStart(m.unit.stock, e)}>
           <span className="num" id={`${id}-num`} data-spec-id={`badge-top3-number#${n}`}>{n}</span>
           <div className="ph-media" id={`${id}-media`} data-spec-id={`media-top3-slot#${n}`}>
-            <img className="ph-img" id={`${id}-img`} src={unitImg(m.unit)} alt="" />
+            <UnitPhoto className="ph-img" id={`${id}-img`} stock={m.unit.stock} art={unitImg(m.unit)} title={unitTitle(m.unit)} />
             {m.picked && <span className="badge-pick" id={`${id}-pick`} data-spec-id={`badge-your-pick-slot#${n}`}>Your pick</span>}
             <span className="slot-tools" id={`${id}-tools`}>
               <button type="button" className="tool-b" id={`${id}-remove`} data-spec-id={`btn-action-remove-slot#${n}`} data-bos-class="action" aria-label={`Remove from slot ${n}`} title="Remove" onClick={() => onRemove(i)}><Svg id={`${id}-remove-i`} d={I.x} size={14} stroke={2} /></button>
@@ -561,7 +562,7 @@ function Tile({ m, pins, saved, onPin, onSave, drag, prefix = 'mm-tile' }: {
     <li className={`tile${m.picked ? ' is-pick' : ''}`} id={`${id}-wrap`} data-spec-id={`card-inventory#${u.stock}${sfx}`} data-bos-type="card" draggable onDragStart={(e) => drag.onDragStart(u.stock, e)}>
       <article className="card" id={id} aria-labelledby={`${id}-name`}>
         <div className="ph-media" id={`${id}-media`} data-spec-id={`media-inventory#${u.stock}${sfx}`}>
-          <img className="ph-img" id={`${id}-img`} src={unitImg(u)} alt="" loading="lazy" />
+          <UnitPhoto className="ph-img" id={`${id}-img`} stock={u.stock} art={unitImg(u)} title={unitTitle(u)} />
           {m.picked
             ? <span className="badge-pick" id={`${id}-pick`} data-spec-id={`badge-your-pick#${u.stock}${sfx}`}>Your pick</span>
             : (u.isLStock ? <span className="badge-fp" id={`${id}-fp`} data-spec-id={`badge-floorplan-example#${u.stock}${sfx}`}>Floor plan</span> : null)}
@@ -611,7 +612,7 @@ function TopThreeBoard({ slots, over, drag, onRemove, onBrowse }: { slots: (Matc
           {top ? (
             <>
               <div className="tt-media" id="mm-ttpick-media" data-spec-id="media-your-top-pick">
-                <img className="ph-img" id="mm-ttpick-img" src={unitImg(top.unit)} alt="" />
+                <UnitPhoto className="ph-img" id="mm-ttpick-img" stock={top.unit.stock} art={unitImg(top.unit)} title={unitTitle(top.unit)} />
                 {top.unit.isLStock && <span className="badge-fp" id="mm-ttpick-fp" data-spec-id="badge-floorplan-example-top">Floor plan</span>}
               </div>
               <div className="tt-body" id="mm-ttpick-body">
@@ -654,7 +655,7 @@ function RailCard({ i, m, over, drag, onRemove }: { i: number; m: Match | null; 
       {m ? (
         <article className="rail-in" id={`${id}-in`} aria-labelledby={`${id}-name`} draggable onDragStart={(e) => drag.onDragStart(m.unit.stock, e)}>
           <div className="rail-media" id={`${id}-media`} data-spec-id={`media-top3-rail#${n}`}>
-            <img className="ph-img" id={`${id}-img`} src={unitImg(m.unit)} alt="" />
+            <UnitPhoto className="ph-img" id={`${id}-img`} stock={m.unit.stock} art={unitImg(m.unit)} title={unitTitle(m.unit)} />
             {m.unit.isLStock && <span className="badge-fp" id={`${id}-fp`} data-spec-id={`badge-floorplan-example-rail#${n}`}>Floor plan</span>}
           </div>
           <div className="rail-body" id={`${id}-body`}>

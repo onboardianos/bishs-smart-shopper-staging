@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { UnitPhoto } from '../unitPhotos';
 import { SiteHeader } from './SiteHeader';
 import { navigate } from '../answers';
 import { findLiveUnit, snapshotMeta } from '../liveRank';
@@ -47,7 +48,7 @@ export function Loading() {
         <section className="sl-card" id="sl-card" data-spec-id="sec-loading-matches" data-bos-level="section" data-bos-type="card" aria-labelledby="sl-title" aria-live="polite">
           {unit && (
             <div className="sl-media" id="sl-media" data-spec-id="media-loading-unit">
-              <img className="sl-img" id="sl-img" src={unitImg(unit)} alt="" width={480} height={240} />
+              <UnitPhoto className="sl-img" id="sl-img" stock={unit.stock} art={unitImg(unit)} title={`${unit.year} ${unit.manufacturer} ${unit.make} ${unit.model}`} loading="eager" width={480} height={240} />
             </div>
           )}
           <p className="overline sl-over" id="sl-over" data-spec-id="label-loading-context">Smart Shopper</p>

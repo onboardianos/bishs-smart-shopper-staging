@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type DragEvent } from 'react';
+import { UnitPhoto } from '../unitPhotos';
 import { GridGlyph, Grip, I, ListGlyph, Svg } from './icons';
 import { BUDGET, countNoun, lengthFt, money, storeCity, titleCase, unitImg, unitTitle, type Match } from './inventory';
 import { QuickView } from './QuickView';
@@ -69,7 +70,7 @@ export function Carousel({ others, total, onList, alsoShown = 0, ...c }: Common 
       <div className="car-h" id="mm-car-h">
         <div className="car-h-l" id="mm-car-h-l">
           <h2 className="inv-t" id="mm-inv-t" data-spec-id="label-all-other-inventory">All other inventory</h2>
-          <span className="inv-s" id="mm-inv-s" data-spec-id="info-illustrative">{countNoun(total, 'match', 'matches')} · class art, not unit photos</span>
+          <span className="inv-s" id="mm-inv-s" data-spec-id="info-illustrative">{countNoun(total, 'match', 'matches')} · unit photos where available</span>
         </div>
         <div className="car-arrows" id="mm-car-arrows">
           <button type="button" className="arrow-b" id="mm-car-prev" data-spec-id="btn-action-carousel-prev" data-bos-class="action" aria-label="Previous RVs" aria-controls="mm-grid" disabled={edge.start} onClick={() => page(-1)}><Svg id="mm-car-prev-i" d={I.chevronLeft} size={20} stroke={2} /></button>
@@ -98,7 +99,7 @@ function CarTile({ m, pins, saved, onPin, onSave, drag }: Common & { m: Match })
     <li className={`tile car-tile${m.picked ? ' is-pick' : ''}`} id={`${id}-wrap`} data-spec-id={`card-inventory#${u.stock}`} data-bos-type="card" draggable onDragStart={(e) => drag.onDragStart(u.stock, e)}>
       <article className="card" id={id} aria-labelledby={`${id}-name`}>
         <div className="ph-media" id={`${id}-media`} data-spec-id={`media-inventory#${u.stock}`}>
-          <img className="ph-img" id={`${id}-img`} src={unitImg(u)} alt="" loading="lazy" draggable={false} />
+          <UnitPhoto className="ph-img" id={`${id}-img`} stock={u.stock} art={unitImg(u)} title={unitTitle(u)} draggable={false} />
           {m.picked
             ? <span className="badge-pick" id={`${id}-pick`} data-spec-id={`badge-your-pick#${u.stock}`}>Your pick</span>
             : (u.isLStock ? <span className="badge-fp" id={`${id}-fp`} data-spec-id={`badge-floorplan-example#${u.stock}`}>Floor plan</span> : null)}
@@ -333,7 +334,7 @@ function TRow({ m, i, pfx = 'mm-tr', pins, saved, onPin, onSave, drag, why, onWh
       <td className="td-thumb" id={`${id}-thumb`}>
         <span className="td-thumb-in" id={`${id}-thumb-in`}>
           {pinned ? <span className="num" id={`${id}-num`} data-spec-id={`badge-top3-number-row#${n}${dd}`}>{n}</span> : <span className="tgrip" id={`${id}-grip`} aria-hidden="true"><Grip id={`${id}-grip-i`} size={16} /></span>}
-          <span className="tthumb" id={`${id}-tthumb`}><img id={`${id}-img`} src={unitImg(u)} alt="" draggable={false} /></span>
+          <span className="tthumb" id={`${id}-tthumb`}><UnitPhoto id={`${id}-img`} stock={u.stock} art={unitImg(u)} title={unitTitle(u)} size="190x140" draggable={false} /></span>
         </span>
       </td>
       <td className="td-score" id={`${id}-score`}><span className="score" id={`${id}-score-v`} data-spec-id={`info-score#${u.stock}${sfx}`}>{mm.score}</span></td>

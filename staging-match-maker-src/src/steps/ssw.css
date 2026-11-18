@@ -505,3 +505,8 @@
   .sm-title { font-size: 28px; }
   .sm-grid { grid-template-columns: 1fr; }
 }
+
+/* Unit photos (unit-images.json): fill the same fixed media box as the class art, cover-cropped so sizes never shift. */
+.sm-tile-img.is-photo, .sm-row-img.is-photo { width: 100%; height: 100%; max-width: none; max-height: none; object-fit: cover; object-position: center; }
+.sl-img.is-photo { width: 100%; height: 100%; max-width: none; object-fit: cover; object-position: center; }
+.sm-tile-img.is-plan, .sm-row-img.is-plan, .sl-img.is-plan { object-fit: contain; padding: 4%; box-sizing: border-box; background: var(--surface-light-card); }

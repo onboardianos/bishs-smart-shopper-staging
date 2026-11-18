@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type TouchEvent } from 'react';
+import { UnitPhoto } from '../unitPhotos';
 import { I, Svg } from './icons';
 import { BUDGET, lengthFt, money, storeCity, titleCase, unitImg, unitTitle, type Match } from './inventory';
 import { onPurchase } from '../answers';
@@ -88,7 +89,7 @@ export function QuickView({ m, slot, list, pins, saved, onClose, onNav, onPin, o
           </section>
           <h2 className="qv-t" id="mm-qv-title" data-spec-id="label-quick-view-title">{unitTitle(u)}</h2>
           <p className="qv-s" id="mm-qv-sub" data-spec-id="info-quick-view-stock-location">Stock #{u.stock} · {storeCity(u.location)}</p>
-          <div className="qv-media" id="mm-qv-media" data-spec-id="media-quick-view"><img id="mm-qv-img" src={unitImg(u)} alt={`${titleCase(u.className)} class art`} /></div>
+          <div className="qv-media" id="mm-qv-media" data-spec-id="media-quick-view"><UnitPhoto id="mm-qv-img" stock={u.stock} art={unitImg(u)} title={unitTitle(u)} size="800x600" alt={`${titleCase(u.className)} class art`} /></div>
           <dl className="qv-facts" id="mm-qv-facts" data-spec-id="list-quick-view-facts">
             {[
               ['class', 'Class', titleCase(u.className)],
