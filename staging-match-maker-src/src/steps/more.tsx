@@ -361,7 +361,6 @@ export function StepGarage() {
         </Field>
       )}
       <p className="mq-line" id="s-garage-line" data-spec-id="metric-garage-fit" aria-live="polite"><b id="s-garage-line-n">{n(P.pool.length)}</b> campers fit</p>
-      {a.sub.includes('garage') && <Note id="s-garage-from4" spec="info-garage-from-step-4">You set this in Step 4 (With garage). Change it here and both stay in step.</Note>}
     </StepFrame>
   );
 }
@@ -378,9 +377,11 @@ export function StepMulti({ k }: { k: 'bath' | 'inside' | 'outside' }) {
   const opts = multiOpts(k, a, P.pool);
   const sel = a[k];
   const mustKey = `${k}Must` as 'bathMust';
+  // "Open to any bathroom" / "Open / no preference" is a real answer: it is stored as ['open'] so the tile shows selected and Continue
+  // turns on. It clears the cards above (live rule); picking any card clears it again. buildSession skips 'open' (no gate, no boost).
   const pickOne = (id: string) => {
-    if (id === 'open') return set({ [k]: [], [mustKey]: [] } as Partial<Answers>);
-    const nx = toggle(sel, id); set({ [k]: nx, [mustKey]: a[mustKey].filter((x) => nx.includes(x)) } as Partial<Answers>);
+    if (id === 'open') return set({ [k]: sel.includes('open') ? [] : ['open'], [mustKey]: [] } as Partial<Answers>);
+    const nx = toggle(sel.filter((x) => x !== 'open'), id); set({ [k]: nx, [mustKey]: a[mustKey].filter((x) => nx.includes(x)) } as Partial<Answers>);
   };
   const shown = sel;
   const mustable = opts.filter((o) => o.must && sel.includes(o.id));

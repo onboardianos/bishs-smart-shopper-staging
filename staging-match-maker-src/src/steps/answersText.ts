@@ -46,7 +46,6 @@ export function towText(a: Answers) {
   if (a.tow === 'yes') { const g = gvwrOf(a); const veh = [a.towYr, a.towMk, a.towMd].filter(Boolean).join(' '); return g ? `Up to ${n(g)} lbs${veh ? ` · ${veh}` : ''}` : 'Own vehicle · rating not set'; }
   return lab(TOW_OPTS, a.tow ? [a.tow] : []);
 }
-const titles = (key: string, a: Answers, ids: string[]) => multiOptsAll(key, a).filter((o) => ids.includes(o.id)).map((o) => o.title);
 export function answerText(id: string, a: Answers): string {
   const O = catalogue();
   switch (id) {
@@ -54,7 +53,7 @@ export function answerText(id: string, a: Answers): string {
     case '02': return lab(S['02'].options, a.path) || '—';
     case '03': return lab(S['03'].options, a.hitch) || '—';
     case 'mh': return a.motor.map((m) => MH[m]).join(', ') || '—';
-    case '04': return [lab(S['04'].options, a.sub), a.sub.includes('garage') ? (a.garageFt ? `garage ${a.garageFt} ft+` : 'any garage') : ''].filter(Boolean).join(' · ') || '—';
+    case '04': return lab(S['04'].options, a.sub) || '—';
     case 'fw': return lab(S.fw.options, a.fifthSub || []) || '—';
     case 'camping': return lab(CAMPING, a.camping ? [a.camping] : []) || '—';
     case 'trade-now': return tradeLabel(a) || 'Not filled in';
@@ -66,7 +65,12 @@ export function answerText(id: string, a: Answers): string {
     case 'tow': return towText(a) || '—';
     case 'length': return a.lengthMode === 'hard' ? (a.picked.includes('lengthFt') ? (a.lengthFt >= 41 ? '40+ ft · no limit' : `Up to ${a.lengthFt} ft`) : 'Hard limit') : lab(LENGTH_OPTS, a.lengthMode ? [a.lengthMode] : []) || '—';
     case 'garage': return a.garageAny ? 'Any garage is fine' : a.garageFt ? `${a.garageFt} ft and longer` : '—';
-    case 'bath': case 'inside': case 'outside': { const t = titles(id, a, a[id]); const must = a[`${id}Must` as 'bathMust']; return t.length ? t.map((x, i) => (must.includes(a[id][i]) ? `${x} (must)` : x)).join(', ') : '—'; }
+    case 'bath': case 'inside': case 'outside': {
+      if (a[id].includes('open')) return id === 'bath' ? 'Open to any bathroom' : 'Open / no preference';
+      const must = a[`${id}Must` as 'bathMust'];
+      const t = multiOptsAll(id, a).filter((o) => a[id].includes(o.id)).map((o) => (must.includes(o.id) ? `${o.title} (must)` : o.title));
+      return t.length ? t.join(', ') : '—';
+    }
     case 'size': return [O.space, O.balanced, O.simple].find((o) => o.id === a.size)?.title || '—';
     case 'build': return `${[O.laminate, O.value, O.either].find((o) => o.id === a.build)?.title || '—'}${a.buildMust ? ' · only this' : ''}`;
     case 'budget': return budgetText(a);

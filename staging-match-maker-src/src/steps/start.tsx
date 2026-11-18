@@ -81,10 +81,10 @@ export function Step1Start({ query = '', locMode = '' }: { query?: string; locMo
           <section className="tone-card st-card st-right" id="s01-start" data-spec-id="sec-start-now" data-bos-level="section" data-bos-type="card" aria-labelledby="s01-start-title">
             <div className="overline" id="s01-start-overline" data-spec-id="label-or">{c.rightOverline}</div>
             <h2 className="t-title t-title-2" id="s01-start-title" data-spec-id="label-start-title">{c.rightTitle}</h2>
-            <MatchBox id="s01-match" base={ALL_UNITS} count={storeCount} where={selected ? (selected.length === 0 ? 'no stores' : selected.length === 1 ? names![0] : `${selected.length} stores`) : undefined} />
+            <MatchBox id="s01-match" base={ALL_UNITS} count={storeCount} where={selected ? (selected.length === 0 ? 'no stores' : selected.length === 1 ? (STORES.find((x) => x.code === selected[0])?.name || '1 store') : `${selected.length} stores`) : undefined} />
             {storeCount === 0 && <p className="st-nostore" id="s01-no-stores" role="status" data-spec-id="info-no-stores-selected"><Icon name="triangle-alert" size={16} /> <span id="s01-no-stores-t">No stores selected. Pick a store under the store link below to start.</span></p>}
             <div className="st-choices" id="s01-choices">
-              <Button kind="commit" id="s01-start-now" data-spec-id="btn-commit-start-smart-shopper" perm="discovery.navigate" size="lg" block trailingIcon="arrow-right" disabled={storeCount === 0} aria-describedby={storeCount === 0 ? 's01-no-stores' : undefined} onClick={() => { navigate('?screen=02'); }}>{c.startNow}</Button>
+              <Button kind="commit" id="s01-start-now" data-spec-id="btn-commit-start-smart-shopper" perm="discovery.navigate" size="lg" block trailingIcon="arrow-right" disabled={storeCount === 0} aria-describedby={storeCount === 0 ? 's01-no-stores' : undefined} onClick={() => { saveAnswers({ stores: selected }); navigate(`?screen=02${selected ? `&stores=${selected.join(',')}` : ''}`); }}>{c.startNow}</Button>
               <button type="button" className="st-placeholder" id="s01-option-tbd" data-spec-id="btn-action-option-2-placeholder" data-bos-class="action" data-bos-access="disabled" aria-disabled="true" disabled>
                 <span className="chip chip-neutral" id="s01-option-tbd-chip">{c.placeholderChip}</span>
                 <span className="st-ph-t" id="s01-option-tbd-t">{c.placeholderText}</span>

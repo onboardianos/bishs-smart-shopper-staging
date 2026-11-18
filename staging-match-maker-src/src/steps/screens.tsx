@@ -1,14 +1,11 @@
 import { useState } from 'react';
-import { Button } from '@v1/components/Button';
-import { Icon } from '@v1/components/Icon';
-import { Modal } from '@v1/components/Modal';
 import { ChoiceTile } from './ChoiceTile';
 import { BumperHitchArt, FifthWheelHitchArt } from './HitchArt';
 import { StepFrame } from './Step';
 import type { CaseRow } from './Case';
 import flow from './flow.json';
-import { count as cnt, garageCount, storesFromUrl, unitsAt, STORES, BUCKETS } from './inventory';
-import { go, saveAnswers, markDone, loadAnswers } from '../answers';
+import { count as cnt, storesFromUrl, unitsAt, STORES, BUCKETS } from './inventory';
+import { go, markDone, loadAnswers } from '../answers';
 import { goNext } from './flowSteps';
 const A0 = loadAnswers();
 const withOther = (own: string[], keepBuckets: string[]) => [...new Set([...own, ...keepBuckets.flatMap((b) => BUCKETS[b] || [])])];
@@ -67,60 +64,30 @@ export function Step3Type({ sheet }: { sheet?: boolean }) {
   );
 }
 
-export function Step4Bumper({ garageOpen, sheet }: { garageOpen?: boolean; sheet?: boolean }) {
-  const c = { ...S['04'], options: live(S['04'].options) }; const g = S.garage;
+// Step 4 · Bumper pull. "With garage" is a normal card: the garage length is asked once, on the Garage question
+// (live Q13 wording, also asked for fifth-wheel toy haulers), so Step 4 no longer opens its own garage-length sheet.
+export function Step4Bumper({ sheet }: { garageOpen?: boolean; sheet?: boolean }) {
+  const c = { ...S['04'], options: live(S['04'].options) };
   const [sel, toggle] = useMulti(A0.sub);
-  const [open, setOpen] = useState(!!garageOpen);
-  const [lens, setLens] = useState<string[]>(() => {
-    if (!A0.sub.includes('garage')) return [];
-    if (A0.garageAny) return [...g.lengths];
-    if (A0.garageFt) return g.lengths.filter((l) => Number(String(l).replace('+', '')) >= A0.garageFt!);
-    return [];
-  });
-  const toggleLen = (l: string) => setLens((s) => (s.includes(l) ? s.filter((x) => x !== l) : [...s, l]));
-  const trimmed = lens.length > 0 && lens.length < g.lengths.length;
-  const shortest = lens.length ? g.lengths.find((l) => lens.includes(l)) : undefined;
-  const minFt = shortest ? Number(shortest.replace('+', '')) : 0;
-  const gCount = trimmed ? garageCount(minFt, SEL) : cnt('garage', SEL);
-  const count = sum(c.options, sel.filter((x) => x !== 'garage')) + (sel.includes('garage') ? gCount : 0);
-  const removed = shortest && shortest !== g.lengths[0] ? shortest.replace('+', '') : null;
+  const count = sum(c.options, sel);
   const rows: CaseRow[] = [startRow, { step: '02', label: 'Path', value: 'Towable', icon: 'compass' }, { step: '03', label: 'Towable type', value: 'Bumper pull', icon: 'truck' },
-    { step: '04', label: c.caseLabel, value: names(c.options, sel), icon: c.icon, current: !sel.includes('garage') }];
-  if (sel.includes('garage')) rows.push({ step: '04g', label: g.caseLabel, value: !lens.length ? '—' : trimmed ? `${shortest} ft and longer` : 'Any length', icon: g.icon, current: true });
-  const overlay = (
-    <Modal id="s04-garage-sheet" open={open} onDismiss={() => setOpen(false)} labelledBy="s04-garage-title">
-      <div className="gl" id="s04-garage-body" data-spec-id="sec-overlay-garage-lengths" data-bos-level="section" data-bos-type="overlay" data-layer="overlay">
-        <div className="overline" id="s04-garage-overline" data-spec-id="label-overlay-context"><Icon name="check" size={14} stroke={3} /> {g.context}</div>
-        <h2 className="t-title t-title-2" id="s04-garage-title" data-spec-id="label-overlay-title">{g.title}</h2>
-        <p className="t-subtitle" id="s04-garage-hint" data-spec-id="info-garage-hint">{g.hint}</p>
-        <div className="gl-chips" id="s04-garage-chips" role="group" aria-labelledby="s04-garage-title">
-          {g.lengths.map((l) => (
-            <button type="button" key={l} id={`s04-garage-len-${l.replace('+', 'plus')}`} data-spec-id={`input-choice-garage-length-${l.replace('+', 'plus')}#04`}
-              data-bos-class="input" data-bos-perm="discovery.navigate" data-bos-access="act" role="checkbox" aria-checked={lens.includes(l)}
-              className={`gl-chip${lens.includes(l) ? ' on' : ''}`} onClick={() => toggleLen(l)}>
-              {lens.includes(l) && <Icon name="check" size={16} stroke={3} />}<span>{l} ft</span>
-            </button>
-          ))}
-        </div>
-        {removed
-          ? <p className="gl-note" id="s04-garage-note" data-spec-id="info-garage-eliminates" role="status"><Icon name="info" size={16} /> <span id="s04-garage-note-t">{g.noteTemplate.replace('{len}', removed)}</span></p>
-          : <p className="gl-note gl-note-n" id="s04-garage-note" data-spec-id="info-garage-keeps-all" role="status"><Icon name="info" size={16} /> <span id="s04-garage-note-t">{g.allKept}</span></p>}
-        <p className="gl-count" id="s04-garage-count" data-spec-id="metric-garage-campers-fit" aria-live="polite"><strong id="s04-garage-count-n">{gCount.toLocaleString('en-US')}</strong> toy haulers keep</p>
-        <div className="gl-actions" id="s04-garage-actions">
-          <Button kind="commit" id="s04-garage-continue" data-spec-id="btn-commit-continue#garage-overlay" perm="discovery.navigate" size="lg" block trailingIcon="arrow-right" className="btn-pulse" disabled={lens.length === 0} onClick={() => setOpen(false)}>{flow.cta}</Button>
-        </div>
-      </div>
-    </Modal>
-  );
+    { step: '04', label: c.caseLabel, value: names(c.options, sel), icon: c.icon, current: true }];
+  const classes = () => withOther(classesFor(sel.length ? sel : ['bumper']), [...A0.hitch.filter((x) => x !== 'bumper'), ...A0.path.filter((x) => x !== 'towable')]);
   return (
     <StepFrame id="s04" pos={4} overline={c.overline} title={c.title} helper={flow.multiHelper} multi rows={rows} answered={3}
-      count={sel.length ? count : cnt('bumper', SEL)} prev={cnt('bumper', SEL)} ctaOn={sel.length > 0 && (!sel.includes('garage') || lens.length > 0)} disabledWhy={sel.includes('garage') && lens.length === 0 ? 'Choose a garage length' : 'Pick one to continue'} sheetOpen={sheet} overlay={overlay}
-      answersForCounter={{ ...loadAnswers(), sub: sel, classes: withOther(classesFor(sel.length ? sel : ['bumper']), [...A0.hitch.filter((x) => x !== 'bumper'), ...A0.path.filter((x) => x !== 'towable')]) }}
+      count={sel.length ? count : cnt('bumper', SEL)} prev={cnt('bumper', SEL)} ctaOn={sel.length > 0} disabledWhy="Pick one to continue" sheetOpen={sheet}
+      answersForCounter={{ ...loadAnswers(), sub: sel, classes: classes() }}
       onBack={() => go('03')}
-      onContinue={() => { markDone('04', { stores: SEL, classes: withOther(classesFor(sel.length ? sel : ['bumper']), [...A0.hitch.filter((x) => x !== 'bumper'), ...A0.path.filter((x) => x !== 'towable')]), sub: sel, garageFt: sel.includes('garage') && trimmed ? minFt : null, garageAny: sel.includes('garage') && !trimmed }); goNext('04'); }}>
+      onContinue={() => {
+        const cls = classes();
+        // Keep the Garage answer while a toy hauler is still in play; clear it when none is.
+        const toy = cls.some((x) => x === 'TTTH' || x === 'FWTH');
+        markDone('04', { stores: SEL, classes: cls, sub: sel, ...(toy ? {} : { garageFt: null, garageAny: false }) });
+        goNext('04');
+      }}>
       <div className="ct-grid g5" id="s04-grid">
         {c.options.map((o) => <ChoiceTile key={o.id} id={`s04-${o.id}`} specId={`input-choice-tile-${o.id}#04`} label={o.label} hint={fmt(o.count)} image={img(o.img)} multi
-          selected={sel.includes(o.id)} disabled={o.count === 0} onClick={() => { toggle(o.id); if (o.id === 'garage' && !sel.includes('garage')) setOpen(true); }} />)}
+          selected={sel.includes(o.id)} disabled={o.count === 0} onClick={() => toggle(o.id)} />)}
       </div>
     </StepFrame>
   );

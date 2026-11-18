@@ -57,13 +57,18 @@ html, body, #root { margin: 0; background: var(--surface-light-card); }
 .filt-toggle { display: none; }
 .filt { display: grid; gap: 12px; padding: 2px 0 12px; }
 .f-row { display: grid; column-gap: 28px; align-items: end; }
-.f-row-1 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-.f-row-2 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+/* Column count follows the live filter set (Finance adds Down; Garage length and Condition show only when they apply). */
+.f-row-1 { grid-template-columns: repeat(var(--f-n, 5), minmax(0, 1fr)); }
+.f-row-2 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); row-gap: 12px; }
+.f-lrow .f-l { white-space: nowrap; }
 .f-cell { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .f-l { font-size: 15px; font-weight: 700; color: var(--ink); }
 .f-lrow { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .f-any { font-size: 13px; color: var(--ink-3); }
 .step { display: grid; grid-template-columns: auto 40px minmax(72px, 1fr) 40px; height: 40px; border: 1px solid var(--hair); border-radius: 8px; overflow: hidden; }
+.step.step-nolead { grid-template-columns: 40px minmax(72px, 1fr) 40px; }
+.f-cond { grid-column: span 2; }
+.f-cond .seg-b { white-space: nowrap; }
 #mm-f-price-mode { padding: 0 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.2px; }
 .step-b { display: grid !important; place-items: center; color: var(--ink); }
 .step-b:hover { background: var(--cream-tray) !important; }
@@ -261,7 +266,7 @@ html, body, #root { margin: 0; background: var(--surface-light-card); }
   .ph-s { font-size: 17px; }
   .answers-sum { display: none; }
   .f-row { column-gap: 16px; }
-  .f-row-1 { grid-template-columns: 1.25fr repeat(4, minmax(0, 1fr)); }
+  .f-row-1 { grid-template-columns: 1.25fr repeat(calc(var(--f-n, 5) - 1), minmax(0, 1fr)); }
   .f-l { font-size: 14px; }
   .seg-b { font-size: 14px; }
   .t3-grid, .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -303,6 +308,7 @@ html, body, #root { margin: 0; background: var(--surface-light-card); }
   .filt.is-open { display: grid; }
   .f-row-1, .f-row-2 { grid-template-columns: 1fr 1fr; row-gap: 14px; }
   .f-row-1 > :first-child { grid-column: 1 / -1; }
+  .f-cond { grid-column: 1 / -1; }
   .note { font-size: 13px; padding: 8px 12px; flex-wrap: wrap; row-gap: 2px; }
   .tabs .inv-tools .sel-sm { display: flex; }
   .tabs-l { gap: 20px; }
