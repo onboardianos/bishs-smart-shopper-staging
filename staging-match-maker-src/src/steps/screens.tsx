@@ -82,7 +82,7 @@ export function Step4Bumper({ sheet }: { sheet?: boolean }) {
         const cls = classes();
         // Keep the Garage answer while a toy hauler is still in play; clear it when none is.
         const toy = cls.some((x) => x === 'TTTH' || x === 'FWTH');
-        markDone('04', { stores: SEL, classes: cls, sub: sel, ...(toy ? {} : { garageFt: null, garageAny: false }) });
+        markDone('04', { stores: SEL, classes: cls, sub: sel, ...(toy ? {} : { garageFt: null, garageFts: [], garageAny: false }) });
         goNext('04');
       }}>
       <div className="ct-grid g5" id="s04-grid">

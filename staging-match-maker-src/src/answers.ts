@@ -16,6 +16,8 @@ export type Answers = {
   towYr: string; towMk: string; towMd: string; towEn: string; towIdx: number | null;
   // Length, garage (Q13)
   lengthMode: string | null; lengthFt: number; garageFt: number | null; garageAny: boolean;
+  // Garage lengths picked on the Garage question (multi-select, 10–14; 14 = 14+ ft). A ranking boost, not a gate.
+  garageFts: number[];
   bath: string[]; bathMust: string[]; inside: string[]; insideMust: string[]; outside: string[]; outsideMust: string[];
   size: string | null; build: string | null; buildMust: boolean;
   // Budget (matches on the snapshot price = sale price, DSRP fallback; never MSRP)
@@ -32,7 +34,7 @@ export const DEFAULTS: Answers = {
   camping: null, trade: null, campStyle: [], activities: [], activitiesOther: '',
   adults: 0, children: 0, pets: 0, childSetup: null, bedroom: null,
   tow: null, towRating: null, towMode: null, towLabel: '', towYr: '', towMk: '', towMd: '', towEn: '', towIdx: null,
-  lengthMode: null, lengthFt: 0, garageFt: null, garageAny: false,
+  lengthMode: null, lengthFt: 0, garageFt: null, garageAny: false, garageFts: [],
   bath: [], bathMust: [], inside: [], insideMust: [], outside: [], outsideMust: [],
   size: null, build: null, buildMust: false,
   budgetMode: null, maxSpend: 0, payment: 0, down: 0, tier: null, store: '',
@@ -80,3 +82,15 @@ export function go(screen: string, extra = '') {
 // Garage length label: the longest Garage-question choice reads "14+ ft" everywhere (still a 14 ft minimum, longer included).
 export const GARAGE_TOP_FT = 14;
 export const garageFtLabel = (ft: number) => (ft === GARAGE_TOP_FT ? `${GARAGE_TOP_FT}+ ft` : `${ft} ft`);
+
+// Picked garage lengths (falls back to an older single garageFt answer).
+export const garagePicks = (a: Pick<Answers, 'garageAny' | 'garageFts' | 'garageFt'>): number[] =>
+  a.garageAny ? [] : (a.garageFts && a.garageFts.length ? [...a.garageFts].sort((x, y) => x - y) : a.garageFt ? [a.garageFt] : []);
+// A unit matches a picked length when its garage falls in that 1-ft bucket (floor of the garage length in feet); "14+ ft" takes 14 ft and longer.
+export const garageBucketHit = (garageIn: number | null | undefined, picks: number[]) => {
+  if (garageIn == null || !(garageIn > 0) || !picks.length) return false;
+  const ft = Math.floor(garageIn / 12);
+  return picks.some((p) => (p >= GARAGE_TOP_FT ? ft >= GARAGE_TOP_FT : ft === p));
+};
+export const garagePicksText = (picks: number[]) => picks.map(garageFtLabel).join(', ').replace(/ ft, /g, ', ');
+export const GARAGE_BOOST = 5;

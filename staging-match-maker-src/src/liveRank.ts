@@ -1,5 +1,5 @@
 import { loadAnswers, type Answers } from './answers';
-import { buildSession, ceilingOf as ceil, unitsFor } from './session';
+import { buildSession, ceilingOf as ceil, unitsFor, applyGarageBoost } from './session';
 
 type SnapUnit = {
   stocknumber: string; year: number; manufacturer: string; make: string; model: string;
@@ -42,7 +42,8 @@ export function rankLive(a: Answers = loadAnswers(), limit = 80): { matches: Liv
   const session = buildSession(a);
   const ceiling = ceilingOf(a);
   const ranked = E.rankResults(units, session);
-  const matches = ranked.all.slice(0, limit).map((row) => {
+  const all = applyGarageBoost(ranked.all as unknown as Parameters<typeof applyGarageBoost>[0], a) as unknown as typeof ranked.all;
+  const matches = all.slice(0, limit).map((row) => {
     const unit = toUnit(row.unit);
     const price = unit.price;
     const diff = ceiling && price && price > 0 ? ceiling - price : null;

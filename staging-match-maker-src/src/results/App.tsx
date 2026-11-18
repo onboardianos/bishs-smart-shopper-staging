@@ -6,7 +6,7 @@ import {
   countNoun, matchOf, money, storeCity, titleCase,
   unitImg, unitTitle, lengthFt, type Match,
 } from './inventory';
-import { loadAnswers, saveAnswers, onPurchase, garageFtLabel, GARAGE_TOP_FT, type Answers } from '../answers';
+import { loadAnswers, saveAnswers, onPurchase, garageFtLabel, garagePicks, garagePicksText, GARAGE_BOOST, GARAGE_TOP_FT, type Answers } from '../answers';
 import { snapshotMeta, withPicked } from '../liveRank';
 import { isHauler, locationsOf, motorPath, rankDesk, seedDesk, seedLocation, snapshotUnitCount, unitTypeOptions, type Desk, type Toggle } from '../deskRank';
 import { SiteHeader } from '../steps/SiteHeader';
@@ -694,15 +694,16 @@ function AnswersDrawer({ onClose, answers, onTow }: { onClose: () => void; answe
   if (g.priceMax) must.push(`Sale price up to ${money(g.priceMax)}`);
   if (g.gvwrMax) must.push(`GVWR up to ${g.gvwrMax.toLocaleString('en-US')} lbs`);
   if (g.lengthMaxFt) must.push(`Up to ${g.lengthMaxFt} ft long`);
-  if (answers.garageFt && !answers.garageAny && answers.classes.some((c) => c === 'TTTH' || c === 'FWTH')) must.push(answers.garageFt === GARAGE_TOP_FT ? `Toy-hauler garage ${garageFtLabel(answers.garageFt)}` : `Toy-hauler garage ${answers.garageFt} ft or longer`);
-  if (g.sidewall) must.push(g.sidewall === 'LAMINATE' ? 'Laminate / fiberglass walls only' : 'Stick and tin only');
+  if (g.sidewall) must.push(g.sidewall === 'LAMINATE' ? 'Fiberglass exterior only' : 'Aluminum exterior only');
   (g.requiredAnyOf || []).forEach(() => must.push('Dedicated bunks'));
   (g.requiredChars || []).forEach((id: number) => must.push(id === 15 ? 'Private bedroom' : id === 3 ? 'Two bathrooms' : id === 2 ? 'Washer / dryer prep' : `Feature ${id}`));
   const prefs: string[] = sess.prefs.map((p: { label: string }) => p.label);
   const pri = sess.numericPriorities as Record<string, boolean>;
   if (pri.compact && answers.lengthMode === 'soft') prefs.push('Shorter is better');
-  if (answers.size === 'simple') prefs.push('Lighter and simpler — fewer slides');
-  if (sess.sidewallPref) prefs.push(sess.sidewallPref === 'laminate' ? 'Laminate / fiberglass walls' : 'Stick and tin / aluminum (value)');
+  if (answers.size === 'simple') prefs.push('Lighter-shorter-fewer slides');
+  if (sess.sidewallPref) prefs.push(sess.sidewallPref === 'laminate' ? 'Fiberglass exterior' : 'Aluminum exterior (value)');
+  const gp = answers.classes.some((c) => c === 'TTTH' || c === 'FWTH') ? garagePicks(answers) : [];
+  if (gp.length) prefs.push(`Garage ${garagePicksText(gp)} (+${GARAGE_BOOST} points)`);
   const avoid: string[] = sess.avoids.map((x: { label: string }) => x.label);
   const tow = gvwrOf(answers);
   return (
