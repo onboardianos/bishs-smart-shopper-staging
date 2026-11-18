@@ -334,3 +334,12 @@ body.kb-open .ssw-act, body.kb-open .sh { position: static; }
   #s-garage-grid .ct-btn { min-height: 64px; }
   #s-garage-grid .ct-text { padding: 10px 36px 10px 4px; }
 }
+
+/* Unit photos (unit-images.json): fill the fixed 16:10 media box, cover-cropped, no layout shift. Class art keeps the contain rules above. */
+.ph-media img.is-photo, .rail-media img.is-photo, .tthumb img.is-photo, .tt-media img.is-photo, .qv-media img.is-photo,
+.ss .ph-media img.is-photo, .ss .rail-media img.is-photo, .ss .tthumb img.is-photo {
+  width: 100% !important; height: 100% !important; max-width: none; max-height: none;
+  object-fit: cover !important; object-position: center; background: var(--surface-light-card, #fff); display: block;
+}
+.ph-media img.is-plan, .rail-media img.is-plan, .tthumb img.is-plan, .tt-media img.is-plan, .qv-media img.is-plan,
+.ss .ph-media img.is-plan, .ss .rail-media img.is-plan, .ss .tthumb img.is-plan { object-fit: contain !important; padding: 4%; box-sizing: border-box; }
