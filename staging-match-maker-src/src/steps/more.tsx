@@ -9,7 +9,7 @@ import { StepFrame } from './Step';
 import type { CaseRow } from './Case';
 import { SiteHeader } from './SiteHeader';
 import { counterLabel, posOf, goNext, goEdit, visibleSteps, navOf } from './flowSteps';
-import { loadAnswers, markDone, go, type Answers, type Trade } from '../answers';
+import { loadAnswers, markDone, go, garageFtLabel, type Answers, type Trade } from '../answers';
 import { unitsFor, poolOf, liveText, childOpts, bedroomOpts, multiOpts, catalogue, gvwrOf, ceilingOf, financeOf, splits, CAMPING_IMG, TOW_IMG, n, APR, SNAP, E, isMotorOnly, type Opt } from '../session';
 import { answerText, budgetRows, CAMPING, CAMP_STYLE, ACTIVITIES, TRADE_CHANGES, TOW_OPTS, LENGTH_OPTS, TIERS, STEP_ICON, INERT, money, tradeLabel } from './answersText';
 import TOW from '../tow.json';
@@ -343,25 +343,21 @@ export function StepLength() {
 }
 
 /* ───────── Q13 · Garage ───────── */
+// Garage length is picked right on this question: 10–14 ft (the length is a minimum, shorter garages drop out, unknown
+// garage lengths stay in, same as live's garage gate and the results Garage length slider) or "Any garage is fine".
+export const GARAGE_FT = [10, 11, 12, 13, 14];
 export function StepGarage() {
   const { a, set, P, prev, rows, next } = useDraft('garage');
-  const mode = a.garageAny ? 'any' : a.garageFt ? 'need' : null;
+  const sel = a.garageAny ? ['any'] : a.garageFt && GARAGE_FT.includes(a.garageFt) ? [String(a.garageFt)] : [];
+  const fitAt = useMemo(() => Object.fromEntries(GARAGE_FT.map((ft) => [String(ft), poolOf({ ...a, garageAny: false, garageFt: ft }).pool.length])), [a]);
+  const anyN = useMemo(() => poolOf({ ...a, garageAny: true, garageFt: null }).pool.length, [a]);
+  const opts = [...GARAGE_FT.map((ft) => ({ id: String(ft), label: garageFtLabel(ft), icon: 'ruler' })), { id: 'any', label: 'Any garage is fine', icon: 'warehouse' }];
   return (
-    <StepFrame id="s-garage" stepId="garage" overline="Step 14 · Garage" title="How long does the garage need to be?" hint="Measure your longest toy — we’ll skip garages that are shorter." rows={rows} count={fit(P)} prev={prev}
-      ctaOn={!!mode && (mode === 'any' || !!a.garageFt)} disabledWhy="Pick one, or enter your length" onContinue={next}>
-      <Tiles sid="garage" cols={2} opts={[{ id: 'need', label: 'I know my length', icon: 'ruler' }, { id: 'any', label: 'Any garage is fine', icon: 'warehouse' }]} sel={mode ? [mode] : []}
-        onPick={(id) => set(id === 'any' ? { garageAny: true, garageFt: null } : { garageAny: false, garageFt: null })} hint={(id) => (id === 'need' ? 'Shorter garages drop out' : 'Garage length shows on every result')} />
-      {mode === 'need' && (
-        <Field id="s-garage-ft" label="Garage length needed">
-          <span className="mq-input-row" id="s-garage-ft-row">
-            <input className="mq-input" id="s-garage-ft-in" data-spec-id="input-garage-length-feet#garage" data-bos-class="input" data-bos-perm="discovery.navigate" data-bos-access="act" type="text" inputMode="numeric" placeholder="12"
-              value={a.garageFt || ''} onChange={(e) => set({ garageFt: Number(e.target.value.replace(/[^0-9]/g, '')) || null })} />
-            <span className="mq-suffix" id="s-garage-ft-suffix">feet</span>
-          </span>
-        </Field>
-      )}
-      <p className="mq-line" id="s-garage-line" data-spec-id="metric-garage-fit" aria-live="polite"><b id="s-garage-line-n">{n(P.pool.length)}</b> campers fit</p>
-      {a.sub.includes('garage') && <Note id="s-garage-from4" spec="info-garage-from-step-4">You set this in Step 4 (With garage). Change it here and both stay in step.</Note>}
+    <StepFrame id="s-garage" stepId="garage" overline="Step 14 · Garage" title="How long does the garage need to be?" hint="Pick your longest toy. Garages shorter than that drop out." rows={rows} count={fit(P)} prev={prev}
+      answersForCounter={a} ctaOn={sel.length > 0} disabledWhy="Pick a garage length, or Any garage is fine" onContinue={next}>
+      <Tiles sid="garage" cols={3} opts={opts} sel={sel}
+        onPick={(id) => set(id === 'any' ? { garageAny: true, garageFt: null } : { garageAny: false, garageFt: Number(id) })}
+        hint={(id) => `${n(id === 'any' ? anyN : fitAt[id])} campers fit`} />
     </StepFrame>
   );
 }
@@ -378,9 +374,11 @@ export function StepMulti({ k }: { k: 'bath' | 'inside' | 'outside' }) {
   const opts = multiOpts(k, a, P.pool);
   const sel = a[k];
   const mustKey = `${k}Must` as 'bathMust';
+  // "Open to any bathroom" / "Open / no preference" is a real answer: it is stored as ['open'] so the tile shows selected and Continue
+  // turns on. It clears the cards above (live rule); picking any card clears it again. buildSession skips 'open' (no gate, no boost).
   const pickOne = (id: string) => {
-    if (id === 'open') return set({ [k]: [], [mustKey]: [] } as Partial<Answers>);
-    const nx = toggle(sel, id); set({ [k]: nx, [mustKey]: a[mustKey].filter((x) => nx.includes(x)) } as Partial<Answers>);
+    if (id === 'open') return set({ [k]: sel.includes('open') ? [] : ['open'], [mustKey]: [] } as Partial<Answers>);
+    const nx = toggle(sel.filter((x) => x !== 'open'), id); set({ [k]: nx, [mustKey]: a[mustKey].filter((x) => nx.includes(x)) } as Partial<Answers>);
   };
   const shown = sel;
   const mustable = opts.filter((o) => o.must && sel.includes(o.id));

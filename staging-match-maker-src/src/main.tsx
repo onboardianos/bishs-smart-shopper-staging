@@ -47,7 +47,7 @@ function Screen() {
   if (screen === '01') return <Step1Start query={q.get('q') || ''} locMode={q.get('loc') || ''} />;
   if (screen === '02') return <Step2Path sheet={sheet} />;
   if (screen === '03') return <Step3Type sheet={sheet} />;
-  if (screen === '04') return <Step4Bumper garageOpen={q.get('garage') === '1'} sheet={sheet} />;
+  if (screen === '04') return <Step4Bumper sheet={sheet} />;
   if (screen === 'fw') return <StepFifth sheet={sheet} />;
   if (screen === 'mh') return <StepMotorhome sheet={sheet} />;
   if (screen === 'camping') return <StepCamping />;

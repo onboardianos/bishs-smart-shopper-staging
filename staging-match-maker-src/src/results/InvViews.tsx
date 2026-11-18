@@ -10,10 +10,12 @@ export type View = 'grid' | 'list';
 type DragFns = { onDragStart: (stock: string, e: DragEvent) => void; onDragOver: (i: number | null) => void; onDrop: (i: number, e: DragEvent) => void };
 type Common = { pins: string[]; saved: string[]; onPin: (s: string) => void; onSave: (s: string) => void; drag: DragFns };
 
-export function InvTools({ view, onView, search, onSearch, location, onLocation, stores, total }: {
+export function InvTools({ view, onView, search, onSearch, location, onLocation, stores, mine = 0 }: {
   view: View; onView: (v: View) => void; search: string; onSearch: (q: string) => void; location: string; onLocation: (code: string) => void;
-  stores: { code: string; name: string; units: number }[]; total: number;
+  stores: { code: string; name: string; units: number }[]; mine?: number;
 }) {
+  // Live desk.js location select: All locations, then each named store with units. MINE ('@mine') = the stores picked before the questions.
+  const face = location === '@mine' ? `Your ${mine} stores` : location ? (stores.find((s) => s.code === location)?.name || 'Store') : 'All stores';
   return (
     <div className="inv-tools" id="mm-inv-tools">
       <label className="search" id="mm-search-wrap">
@@ -26,10 +28,11 @@ export function InvTools({ view, onView, search, onSearch, location, onLocation,
       </div>
       <div className="sel sel-sm" id="mm-loc-wrap">
         <Svg id="mm-loc-pin" d={I.mapPin} size={16} className="sel-lead" />
-        <span className="loc-face" id="mm-loc-face"><Svg id="mm-loc-face-pin" d={I.mapPin} size={14} /><span>{location ? (stores.find((s) => s.code === location)?.name || 'Store') : 'All stores'}</span></span>
+        <span className="loc-face" id="mm-loc-face"><Svg id="mm-loc-face-pin" d={I.mapPin} size={14} /><span>{face}</span></span>
         <select className="sel-in" id="mm-loc" data-spec-id="input-location" data-bos-class="input" value={location} aria-label="Location" onChange={(e) => onLocation(e.target.value)}>
-          <option id="mm-loc-all" value="">All locations ({total.toLocaleString('en-US')})</option>
-          {stores.map((s) => <option key={s.code} id={`mm-loc-${s.code}`} value={s.code}>{s.name} ({s.units.toLocaleString('en-US')})</option>)}
+          <option id="mm-loc-all" value="">All locations</option>
+          {mine > 1 && <option id="mm-loc-mine" value="@mine">Your {mine} stores</option>}
+          {stores.map((s) => <option key={s.code} id={`mm-loc-${s.code}`} value={s.code}>{s.name}</option>)}
         </select>
         <Svg id="mm-loc-caret" d={I.chevronDown} size={16} className="sel-caret" />
       </div>

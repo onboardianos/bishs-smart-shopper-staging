@@ -6,9 +6,9 @@ import {
   countNoun, matchOf, money, storeCity, titleCase,
   unitImg, unitTitle, lengthFt, type Match,
 } from './inventory';
-import { loadAnswers, saveAnswers, onPurchase, type Answers } from '../answers';
+import { loadAnswers, saveAnswers, onPurchase, garageFtLabel, GARAGE_TOP_FT, type Answers } from '../answers';
 import { snapshotMeta, withPicked } from '../liveRank';
-import { locationsOf, rankDesk, seedDesk, snapshotUnitCount, type Desk, type Toggle } from '../deskRank';
+import { isHauler, locationsOf, motorPath, rankDesk, seedDesk, seedLocation, snapshotUnitCount, unitTypeOptions, type Desk, type Toggle } from '../deskRank';
 import { SiteHeader } from '../steps/SiteHeader';
 import { buildSession, gvwrOf } from '../session';
 import { budgetText, budgetRows, people, answerText } from '../steps/answersText';
@@ -40,8 +40,10 @@ function pinsFromUrl(): string[] {
   return [p[0] || '', p[1] || '', p[2] || ''];
 }
 function tabFromUrl(): Tab { const t = q().get('tab'); return t === 'top3' || t === 'saved' ? t : 'inventory'; }
-function writeQuery(pins: string[], tab: Tab, drawer: boolean, view: string) {
+function writeQuery(pins: string[], tab: Tab, drawer: boolean, view: string, loc: string, seedLoc: string) {
   const s = q();
+  // The location the shopper picks here rides in the URL, so a refresh, Back, or the Save / Book a visit round trip keeps it.
+  if (loc === seedLoc) s.delete('loc'); else s.set('loc', loc);
   if (view === 'list') s.set('view', 'list'); else s.delete('view');
   if (pins.every((x) => !x)) s.delete('pins'); else s.set('pins', pins.join(','));
   if (tab === 'inventory') s.delete('tab'); else s.set('tab', tab);
@@ -65,7 +67,9 @@ export function App() {
     return a;
   });
   const [towOpen, setTowOpen] = useState(false);
-  const [desk, setDesk] = useState<Desk>(() => seedDesk(answers));
+  const [desk, setDesk] = useState<Desk>(() => seedDesk(answers, q().get('loc')));
+  // Store the shopper chose before the questions (?stores=). Changing the location below only filters the list: answers, filters, tab and pins stay.
+  const [seedLoc] = useState(() => seedLocation(answers, null));
   const live = useMemo(() => { const r = withPicked(rankDesk(answers, desk, 120), q().get('unit')); if (r.ceiling) setLiveBudget(r.ceiling); return r; }, [answers, desk]);
   const rows = live.matches as Match[];
   const patch = (p: Partial<Answers>) => setAnswers(saveAnswers(p));
@@ -112,7 +116,7 @@ export function App() {
     const ro = new ResizeObserver(set); ro.observe(slot);
     return () => ro.disconnect();
   }, [tab, view]);
-  useEffect(() => { writeQuery(pins, tab, drawer, view); }, [pins, tab, drawer, view]);
+  useEffect(() => { writeQuery(pins, tab, drawer, view, desk.location, seedLoc); }, [pins, tab, drawer, view, desk.location, seedLoc]);
   useEffect(() => {
     if (!drawer) return;
     const k = (e: KeyboardEvent) => { if (e.key === 'Escape') setDrawer(false); };
@@ -169,8 +173,8 @@ export function App() {
               <span className="filt-toggle-n" id="mm-filt-toggle-n">{activeFilters(desk) ? `${activeFilters(desk)} set` : 'Any'}</span>
               <Svg id="mm-filt-toggle-caret" d={I.chevronDown} size={16} className={filtOpen ? 'is-up' : ''} />
             </button>
-            <Filters open={filtOpen} desk={desk} onChange={setDesk} />
-            <TabsRow tab={tab} onTab={setTab} savedN={savedSet.length} tools={<InvTools view={view} onView={setView} search={desk.search} onSearch={(search) => setDesk((d) => ({ ...d, search }))} location={desk.location} onLocation={(location) => setDesk((d) => ({ ...d, location }))} stores={locationsOf()} total={snapshotUnitCount()} />} />
+            <Filters open={filtOpen} desk={desk} answers={answers} onChange={setDesk} />
+            <TabsRow tab={tab} onTab={setTab} savedN={savedSet.length} tools={<InvTools view={view} onView={setView} search={desk.search} onSearch={(search) => setDesk((d) => ({ ...d, search }))} location={desk.location} onLocation={(location) => setDesk((d) => ({ ...d, location }))} stores={locationsOf()} mine={answers.stores && answers.stores.length > 1 ? answers.stores.length : 0} />} />
             {view === 'grid' ? (
               <>
                 <TopStrip slots={slots} over={over} drag={drag} onRemove={unpin} onOpen={() => setTab('top3')} />
@@ -185,7 +189,7 @@ export function App() {
           <>
             <PageHead id="mm-tt-head" title="Your top three." sub="Choose your favorite to explore purchase options." onAnswers={() => setDrawer(true)} save={<SaveButton onOpen={openSave} backup={bookBackup} />} />
             <PhoneSummary total={live.total} answers={answers} filtN={activeFilters(desk)} filtOpen={filtOpen} towOn={desk.towMax < desk.R.towMax} onAnswers={() => setDrawer(true)} onFilters={() => setFiltOpen((v) => !v)} onTow={() => setTowOpen(true)} />
-            <Filters open={filtOpen} desk={desk} onChange={setDesk} />
+            <Filters open={filtOpen} desk={desk} answers={answers} onChange={setDesk} />
             <TabsRow tab={tab} onTab={setTab} savedN={savedSet.length} />
             <TopThreeBoard slots={slots} over={over} drag={drag} onRemove={unpin} onBrowse={() => setTab('inventory')} />
           </>
@@ -194,7 +198,7 @@ export function App() {
           <>
             <PageHead id="mm-sv-head" title="Saved." sub={`${countNoun(savedSet.length, 'RV')} you saved. Pin any of them into your top three.`} onAnswers={() => setDrawer(true)} save={<SaveButton onOpen={openSave} backup={bookBackup} />} />
             <PhoneSummary total={live.total} answers={answers} filtN={activeFilters(desk)} filtOpen={filtOpen} towOn={desk.towMax < desk.R.towMax} onAnswers={() => setDrawer(true)} onFilters={() => setFiltOpen((v) => !v)} onTow={() => setTowOpen(true)} />
-            <Filters open={filtOpen} desk={desk} onChange={setDesk} />
+            <Filters open={filtOpen} desk={desk} answers={answers} onChange={setDesk} />
             <TabsRow tab={tab} onTab={setTab} savedN={savedSet.length} />
             <ul className="grid grid-saved" id="mm-saved-grid" data-spec-id="list-saved-tiles">
               {saved.filter((m) => savedSet.includes(m.unit.stock)).map((m) => <Tile key={m.unit.stock} m={m} {...tileProps} prefix="mm-sv" />)}
@@ -303,13 +307,6 @@ function Slider({ id, label, min, max, step, value, dir, minL, maxL, valL, any, 
   );
 }
 
-function classOptions() {
-  const snap = (window as unknown as { BISH_SNAPSHOT?: { units: { class: string }[]; lookups?: { classes?: Record<string, { description?: string }> } } }).BISH_SNAPSHOT;
-  const counts: Record<string, number> = {};
-  for (const u of snap?.units || []) counts[u.class] = (counts[u.class] || 0) + 1;
-  return Object.keys(counts).sort().map((code) => ({ code, name: snap?.lookups?.classes?.[code]?.description || code, units: counts[code] }));
-}
-
 function activeFilters(d: Desk) {
   let n = 0;
   if (d.method === 'Cash' ? d.cash > 0 : d.payment > 0) n += 1;
@@ -320,29 +317,58 @@ function activeFilters(d: Desk) {
   if (d.lenMax < d.R.lenMax) n += 1;
   if (d.towMax < d.R.towMax) n += 1;
   if (d.sleepMin > d.R.sleepMin) n += 1;
+  if (isHauler(d) && d.garageMin > d.R.garMin) n += 1;
   if (d.unitType !== 'ALL') n += 1;
+  if (!d.conds.lot || !d.conds.ex) n += 1;
   if (d.location) n += 1;
   if (d.search.trim()) n += 1;
   return n;
 }
 
-function Filters({ open, desk, onChange }: { open: boolean; desk: Desk; onChange: (fn: (d: Desk) => Desk) => void }) {
+/** Live desk.js stepper(): a dollar field with minus / plus. Cash = Sales price ($) by $500; Finance = Payment ($/mo) and Down ($) by $50. */
+function Money({ id, label, value, step, aria, onSet, lead }: { id: string; label: string; value: number; step: number; aria: string; onSet: (n: number) => void; lead?: ReactNode }) {
+  return (
+    <div className="f-cell" id={id}>
+      <label className="f-l" id={`${id}-l`} htmlFor={`${id}-in`}>{label}</label>
+      <div className={`step${lead ? '' : ' step-nolead'}`} id={`${id}-box`}>
+        {lead}
+        <button type="button" className="step-b" id={`${id}-dec`} data-spec-id={`btn-action-${id.replace('mm-f-', '')}-dec`} data-bos-class="action" aria-label={`Lower ${aria} by $${step}`} onClick={() => onSet(Math.max(0, value - step))}><Svg id={`${id}-dec-i`} d={I.minus} size={16} stroke={2} /></button>
+        <input className="step-in" id={`${id}-in`} data-spec-id={`input-filter-${id.replace('mm-f-', '')}`} data-bos-class="input" value={value > 0 ? String(value) : ''} placeholder="Any" inputMode="numeric" aria-label={aria}
+          onChange={(e) => onSet(Number(e.target.value.replace(/[^0-9]/g, '')) || 0)} />
+        <button type="button" className="step-b" id={`${id}-inc`} data-spec-id={`btn-action-${id.replace('mm-f-', '')}-inc`} data-bos-class="action" aria-label={`Raise ${aria} by $${step}`} onClick={() => onSet(value + step)}><Svg id={`${id}-inc-i`} d={I.plus} size={16} stroke={2} /></button>
+      </div>
+    </div>
+  );
+}
+
+// Filters = the live bishsos.com/match-maker desk filter bar (desk.js filterBar + head): budget stepper(s), the four toggles,
+// Length (max) / Tow limit / Sleeps sliders, Unit type, Garage length (toy-hauler types only) and the On the lot / Floorplan examples condition.
+// Filters never write back to the shopper's answers.
+function Filters({ open, desk, answers, onChange }: { open: boolean; desk: Desk; answers: Answers; onChange: (fn: (d: Desk) => Desk) => void }) {
   const finance = desk.method === 'Finance';
-  const shown = finance ? String(desk.payment || '') : desk.cash > 0 ? String(desk.cash) : '';
   const setToggle = <K extends keyof Toggle>(key: K, v: Toggle[K] | null) => onChange((d) => ({ ...d, toggle: { ...d.toggle, [key]: v } }));
-  const types = classOptions();
+  const types = unitTypeOptions(answers);
+  const showTow = !motorPath(answers);
+  const hauler = isHauler(desk);
+  const snapUnits = ((window as unknown as { BISH_SNAPSHOT?: { units: { isLStock?: boolean }[] } }).BISH_SNAPSHOT?.units) || [];
+  const conds: ['lot' | 'ex', string][] = [];
+  if (snapUnits.some((u) => !u.isLStock)) conds.push(['lot', 'On the lot']);
+  if (snapUnits.some((u) => u.isLStock)) conds.push(['ex', 'Floorplan examples']);
+  const mode = (
+    <button type="button" className="step-b" id="mm-f-price-mode" data-spec-id="btn-action-budget-mode" data-bos-perm="discovery.navigate" aria-pressed={finance} aria-label={finance ? 'Paying monthly. Switch to cash' : 'Paying cash. Switch to monthly payment'} onClick={() => onChange((d) => ({ ...d, method: finance ? 'Cash' : 'Finance' }))}>{finance ? '/mo' : 'Cash'}</button>
+  );
+  const r1 = 5 + (finance ? 1 : 0);
   return (
     <section className={`filt${open ? ' is-open' : ''}`} id="mm-filt" data-spec-id="sec-filters" data-bos-level="section" data-bos-type="toolbar" aria-label="Filters">
-      <div className="f-row f-row-1" id="mm-filt-r1">
-        <div className="f-cell" id="mm-f-price">
-          <label className="f-l" id="mm-f-price-l" htmlFor="mm-f-price-in">{finance ? 'Payment ($/mo)' : 'Sales price ($)'}</label>
-          <div className="step" id="mm-f-price-box">
-            <button type="button" className="step-b" id="mm-f-price-mode" data-spec-id="btn-action-budget-mode" data-bos-perm="discovery.navigate" aria-pressed={finance} onClick={() => onChange((d) => ({ ...d, method: finance ? 'Cash' : 'Finance' }))}>{finance ? '/mo' : 'Cash'}</button>
-            <button type="button" className="step-b" id="mm-f-price-dec" data-spec-id="btn-action-price-dec" data-bos-class="action" aria-label="Lower price" onClick={() => onChange((d) => finance ? { ...d, payment: Math.max(0, d.payment - 50) } : { ...d, cash: Math.max(0, d.cash - 500) })}><Svg id="mm-f-price-dec-i" d={I.minus} size={16} stroke={2} /></button>
-            <input className="step-in" id="mm-f-price-in" data-spec-id="input-filter-price" data-bos-class="input" value={shown} placeholder="Any" inputMode="numeric" aria-label={finance ? 'Monthly payment' : 'Maximum sales price'} onChange={(e) => { const n = Number(e.target.value.replace(/[^0-9]/g, '')) || 0; onChange((d) => finance ? { ...d, payment: n } : { ...d, cash: n }); }} />
-            <button type="button" className="step-b" id="mm-f-price-inc" data-spec-id="btn-action-price-inc" data-bos-class="action" aria-label="Raise price" onClick={() => onChange((d) => finance ? { ...d, payment: d.payment + 50 } : { ...d, cash: d.cash + 500 })}><Svg id="mm-f-price-inc-i" d={I.plus} size={16} stroke={2} /></button>
-          </div>
-        </div>
+      <div className="f-row f-row-1" id="mm-filt-r1" style={{ ['--f-n' as string]: r1 }}>
+        {finance ? (
+          <>
+            <Money id="mm-f-price" label="Payment ($/mo)" value={desk.payment} step={50} aria="Monthly payment" lead={mode} onSet={(n) => onChange((d) => ({ ...d, payment: n }))} />
+            <Money id="mm-f-down" label="Down ($)" value={desk.down} step={50} aria="Down payment" onSet={(n) => onChange((d) => ({ ...d, down: n }))} />
+          </>
+        ) : (
+          <Money id="mm-f-price" label="Sales price ($)" value={desk.cash} step={500} aria="Maximum sales price" lead={mode} onSet={(n) => onChange((d) => ({ ...d, cash: n }))} />
+        )}
         <Seg id="mm-f-bunks" label="Bunks" opts={['Yes', 'No']} value={desk.toggle.bunks} onPick={(v) => setToggle('bunks', v)} />
         <Seg id="mm-f-slides" label="Slides" opts={['Yes', 'No']} value={desk.toggle.slides} onPick={(v) => setToggle('slides', v)} />
         <Seg id="mm-f-bedroom" label="Bedroom" opts={['Private', 'Open']} value={desk.toggle.bedroom} onPick={(v) => setToggle('bedroom', v)} />
@@ -350,18 +376,36 @@ function Filters({ open, desk, onChange }: { open: boolean; desk: Desk; onChange
       </div>
       <div className="f-row f-row-2" id="mm-filt-r2">
         <Slider id="mm-f-length" label="Length (max)" min={desk.R.lenMin} max={desk.R.lenMax} value={desk.lenMax} dir="max" minL={`${desk.R.lenMin} ft`} maxL={`${desk.R.lenMax} ft`} valL={`${desk.lenMax} ft`} any={desk.lenMax < desk.R.lenMax ? 'Up to' : 'Any'} onChange={(n) => onChange((d) => ({ ...d, lenMax: n }))} />
-        <Slider id="mm-f-tow" label="Tow limit" min={desk.R.towMin} max={desk.R.towMax} step={250} value={desk.towMax} dir="max" minL={`${(desk.R.towMin / 1000).toFixed(2).replace(/0$/, '')}K`} maxL={`${(desk.R.towMax / 1000).toFixed(2).replace(/0$/, '')}K`} valL={`${(desk.towMax / 1000).toFixed(2)}K lbs`} any={desk.towMax < desk.R.towMax ? 'Up to' : 'Any'} onChange={(n) => onChange((d) => ({ ...d, towMax: n }))} />
+        {showTow && <Slider id="mm-f-tow" label="Tow limit" min={desk.R.towMin} max={desk.R.towMax} step={250} value={desk.towMax} dir="max" minL={`${+(desk.R.towMin / 1000).toFixed(2)}K lbs`} maxL={`${+(desk.R.towMax / 1000).toFixed(2)}K lbs`} valL={`${+(desk.towMax / 1000).toFixed(2)}K lbs`} any={desk.towMax < desk.R.towMax ? 'Up to' : 'Any'} onChange={(n) => onChange((d) => ({ ...d, towMax: n }))} />}
         <Slider id="mm-f-sleeps" label="Sleeps" min={desk.R.sleepMin} max={desk.R.sleepMax} value={desk.sleepMin} dir="min" minL={`${desk.R.sleepMin}`} maxL={`${desk.R.sleepMax}+`} valL={`${desk.sleepMin}+`} any={desk.sleepMin > desk.R.sleepMin ? 'At least' : 'Any'} onChange={(n) => onChange((d) => ({ ...d, sleepMin: n }))} />
         <div className="f-cell" id="mm-f-type">
           <label className="f-l" id="mm-f-type-l" htmlFor="mm-f-type-sel">Unit type</label>
           <div className="sel" id="mm-f-type-wrap">
-            <select className="sel-in" id="mm-f-type-sel" data-spec-id="input-filter-unit-type" data-bos-class="input" value={desk.unitType} onChange={(e) => onChange((d) => ({ ...d, unitType: e.target.value }))}>
-              <option id="mm-f-type-all" value="ALL">All types ({snapshotUnitCount().toLocaleString('en-US')})</option>
-              {types.map((c) => <option key={c.code} id={`mm-f-type-${c.code}`} value={c.code}>{c.name} ({c.units.toLocaleString('en-US')})</option>)}
+            <select className="sel-in" id="mm-f-type-sel" data-spec-id="input-filter-unit-type" data-bos-class="input" value={desk.unitType}
+              onChange={(e) => { const unitType = e.target.value; onChange((d) => ({ ...d, unitType, garageMin: ['TTTH', 'FWTH'].includes(unitType) ? d.garageMin : d.R.garMin })); }}>
+              {types.map(([code, label]) => <option key={code} id={`mm-f-type-${code.toLowerCase()}`} value={code}>{label}</option>)}
             </select>
             <Svg id="mm-f-type-caret" d={I.chevronDown} size={18} className="sel-caret" />
           </div>
         </div>
+        {hauler && <Slider id="mm-f-garage" label="Garage length" min={desk.R.garMin} max={desk.R.garMax} value={desk.garageMin} dir="min" minL={`${desk.R.garMin} ft`} maxL={`${desk.R.garMax} ft`} valL={desk.garageMin === GARAGE_TOP_FT ? garageFtLabel(desk.garageMin) : `${desk.garageMin} ft`} any={desk.garageMin === GARAGE_TOP_FT ? '' : desk.garageMin > desk.R.garMin ? 'At least' : 'Any'} onChange={(n) => onChange((d) => ({ ...d, garageMin: n }))} />}
+        {conds.length > 1 && (
+          <div className="f-cell f-cond" id="mm-f-cond">
+            <span className="f-l" id="mm-f-cond-l">Condition</span>
+            <div className="seg" id="mm-f-cond-seg" role="group" aria-labelledby="mm-f-cond-l" data-spec-id="input-filter-condition">
+              {conds.map(([k, l]) => {
+                const on = desk.conds[k];
+                return (
+                  <button key={k} type="button" aria-pressed={on} className={`seg-b${on ? ' is-on' : ''}`} id={`mm-f-cond-${k}`} data-spec-id={`input-choice-condition-${k}`} data-bos-class="input"
+                    onClick={() => onChange((d) => { const c = { ...d.conds, [k]: !d.conds[k] }; if (!c.lot && !c.ex) c[k === 'lot' ? 'ex' : 'lot'] = true; return { ...d, conds: c }; })}>
+                    {on && <Svg id={`mm-f-cond-${k}-chk`} d={I.check} size={14} stroke={3} />}
+                    <span id={`mm-f-cond-${k}-t`}>{l}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
@@ -650,7 +694,7 @@ function AnswersDrawer({ onClose, answers, onTow }: { onClose: () => void; answe
   if (g.priceMax) must.push(`Sale price up to ${money(g.priceMax)}`);
   if (g.gvwrMax) must.push(`GVWR up to ${g.gvwrMax.toLocaleString('en-US')} lbs`);
   if (g.lengthMaxFt) must.push(`Up to ${g.lengthMaxFt} ft long`);
-  if (answers.garageFt && !answers.garageAny && answers.classes.some((c) => c === 'TTTH' || c === 'FWTH')) must.push(`Toy-hauler garage ${answers.garageFt} ft or longer`);
+  if (answers.garageFt && !answers.garageAny && answers.classes.some((c) => c === 'TTTH' || c === 'FWTH')) must.push(answers.garageFt === GARAGE_TOP_FT ? `Toy-hauler garage ${garageFtLabel(answers.garageFt)}` : `Toy-hauler garage ${answers.garageFt} ft or longer`);
   if (g.sidewall) must.push(g.sidewall === 'LAMINATE' ? 'Laminate / fiberglass walls only' : 'Stick and tin only');
   (g.requiredAnyOf || []).forEach(() => must.push('Dedicated bunks'));
   (g.requiredChars || []).forEach((id: number) => must.push(id === 15 ? 'Private bedroom' : id === 3 ? 'Two bathrooms' : id === 2 ? 'Washer / dryer prep' : `Feature ${id}`));

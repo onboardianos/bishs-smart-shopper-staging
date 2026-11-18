@@ -98,6 +98,6 @@ export function goNext(id: string) {
 }
 export function goPrev(id: string) { go(posOf(id).prev); }
 export function goEdit(stepId: string, from: string) {
-  const target = stepId === '04g' ? '04' : stepId;
-  go(target, `&ret=${from}${stepId === '04g' ? '&garage=1' : ''}`);
+  // Garage length lives on the Garage question only (no Step 4 overlay), so an old '04g' edit link opens that question.
+  go(stepId === '04g' ? 'garage' : stepId, `&ret=${from}`);
 }

@@ -4,12 +4,13 @@
 import type { Answers } from './answers';
 import { buildSession, gvwrOf, isMotorOnly, SNAP } from './session';
 import { toUnit, type LiveMatch } from './liveRank';
+import { BUCKETS } from './steps/inventory';
 
 type SnapUnit = {
   stocknumber: string; year: number; manufacturer: string; make: string; model: string;
   class: string; location: string; price: number | null; lengthIn: number | null;
   sleeps: number | null; slides: number | null; gvwr?: number | null;
-  sidewallConstruction?: string; characteristicTypeIds?: number[]; garageLength?: number | null;
+  sidewallConstruction?: string; characteristicTypeIds?: number[]; garageLength?: number | null; isLStock?: boolean;
 };
 type Eng = {
   IDS: { PRIVATE_MASTER: number }; BUNK_IDS: number[];
@@ -20,35 +21,53 @@ type Eng = {
 const E = () => (window as unknown as { Engine: Eng }).Engine;
 
 export type Toggle = { bunks: 'Yes' | 'No' | null; slides: 'Yes' | 'No' | null; bedroom: 'Private' | 'Open' | null; build: 'Fiber' | 'Alum' | null };
-export type Ranges = { lenMin: number; lenMax: number; towMin: number; towMax: number; sleepMin: number; sleepMax: number };
+export type Ranges = { lenMin: number; lenMax: number; towMin: number; towMax: number; sleepMin: number; sleepMax: number; garMin: number; garMax: number };
+/** Live desk.js `conds`: On the lot (physical units) and Floorplan examples (L-stock). At least one stays on. */
+export type Conds = { lot: boolean; ex: boolean };
 export type Desk = {
   method: 'Cash' | 'Finance';
   payment: number; down: number; cash: number; tier: string;
-  unitType: string; lenMax: number; towMax: number; sleepMin: number;
-  toggle: Toggle; location: string; search: string; R: Ranges;
+  unitType: string; lenMax: number; towMax: number; sleepMin: number; garageMin: number;
+  toggle: Toggle; conds: Conds;
+  /** '' = all locations, a store code, or MINE = the stores the shopper picked before the questions (more than one) */
+  location: string; search: string; R: Ranges;
 };
+export const MINE = '@mine';
+export const TOY_CLASSES = ['TTTH', 'FWTH'];
+export const isHauler = (d: Desk) => TOY_CLASSES.includes(d.unitType);
+
+// Live Match Maker unit-type labels and order (index.html TOWABLE_TILES / MOTOR_TILES), used by the desk's Unit type select.
+const TOWABLE_TILES: [string, string][] = [['TT', 'Travel Trailer'], ['FW', 'Fifth Wheel'], ['TTTH', 'TT Toy Hauler'], ['FWTH', 'FW Toy Hauler'], ['TC', 'Truck Camper'], ['DT', 'Destination Trailer'], ['HTT', 'Hybrid Trailer'], ['FD', 'Pop-up / Fold-down'], ['AT', 'Adventure Trailer']];
+const MOTOR_TILES: [string, string][] = [['AG', 'Class A gas'], ['AD', 'Class A diesel'], ['B', 'Class B van'], ['C', 'Class C'], ['CD', 'Class C diesel']];
 
 const ft = (u: SnapUnit) => (u.lengthIn ? Math.round(u.lengthIn / 12) : null);
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 export type StoreOpt = { code: string; name: string; units: number };
 
-/** Every named store, plus any location that actually has units (POC has stock and no rooftop row). Counts are the full snapshot, not a sample. */
+/** Live desk.js store list: every named store that has units in the snapshot. Counts are the full snapshot, not a sample. */
 export function locationsOf(): StoreOpt[] {
   const snap = SNAP() as { units: SnapUnit[]; lookups: { rooftops?: Record<string, { storeName?: string }> } };
   const counts: Record<string, number> = {};
   for (const u of snap.units) counts[u.location] = (counts[u.location] || 0) + 1;
   const roofs = snap.lookups.rooftops || {};
-  const codes = new Set<string>([...Object.keys(roofs), ...Object.keys(counts)]);
   const out: StoreOpt[] = [];
-  for (const code of codes) {
+  for (const code of Object.keys(roofs)) {
     const name = roofs[code]?.storeName;
     const units = counts[code] || 0;
-    if (!name && !units) continue;
-    out.push({ code, name: name || code, units });
+    if (!name || !units) continue;
+    out.push({ code, name, units });
   }
   out.sort((a, b) => a.name.localeCompare(b.name) || a.code.localeCompare(b.code));
   return out;
+}
+
+/** The location the desk starts on: the ?loc= the shopper last picked here, else the store(s) chosen before the questions. */
+export function seedLocation(a: Answers, fromUrl: string | null): string {
+  if (fromUrl != null) return fromUrl === MINE && !(a.stores && a.stores.length > 1) ? '' : fromUrl;
+  if (a.stores && a.stores.length === 1) return a.stores[0];
+  if (a.stores && a.stores.length > 1) return MINE;
+  return '';
 }
 
 export function snapshotUnitCount() { return (SNAP().units as SnapUnit[]).length; }
@@ -57,24 +76,44 @@ function inScopeClasses() {
   return [...new Set((SNAP().units as SnapUnit[]).map((u) => u.class))];
 }
 
+/** Live pathClasses(): the classes on the shopper's path (Towable, Motorhome, Destination) that are in the snapshot. No path yet = every class. */
+export function pathClasses(a: Answers) {
+  const present = new Set(inScopeClasses());
+  if (!a.path.length) return [...present];
+  const want = new Set(a.path.flatMap((p) => BUCKETS[p] || []));
+  return [...present].filter((c) => want.has(c));
+}
+/** Live hides the Tow limit slider on the motorhome path (motorhomes are driven). */
+export const motorPath = (a: Answers) => a.path.length > 0 && a.path.every((p) => p === 'motorhome');
+
+/** Live unitTypeOptions(): All types, then the live tile labels for the classes on the shopper's path. */
+export function unitTypeOptions(a: Answers): [string, string][] {
+  const on = new Set(pathClasses(a));
+  return [['ALL', 'All types'] as [string, string]].concat([...TOWABLE_TILES, ...MOTOR_TILES].filter(([c]) => on.has(c)));
+}
+
 export function rangesOf(a: Answers): Ranges {
-  const us = SNAP().units as SnapUnit[];
+  const cl = new Set(pathClasses(a));
+  const us = (SNAP().units as SnapUnit[]).filter((u) => cl.has(u.class));
   const L = us.map(ft).filter((v): v is number => v != null);
   const W = us.map((u) => u.gvwr || 0).filter((v) => v > 0);
   const SL = us.map((u) => u.sleeps || 0).filter((v) => v > 0);
+  const G = us.map((u) => u.garageLength || 0).filter((v) => v > 0);
   const lo = (xs: number[]) => (xs.length ? Math.min(...xs) : 0);
   const hi = (xs: number[]) => (xs.length ? Math.max(...xs) : 0);
   return {
     lenMin: Math.max(10, Math.floor(lo(L) || 10)),
-    lenMax: Math.ceil(hi(L) || 45),
-    towMin: Math.floor(lo(W) / 250) * 250 || 1000,
-    towMax: Math.ceil(hi(W) / 250) * 250 || 20000,
+    lenMax: Math.ceil(hi(L) || 40),
+    towMin: Math.floor(lo(W) / 250) * 250 || 6000,
+    towMax: Math.ceil(hi(W) / 250) * 250 || 13000,
     sleepMin: Math.min(2, lo(SL) || 2),
     sleepMax: Math.min(12, Math.max(hi(SL), (a.adults || 0) + (a.children || 0), 4)),
+    garMin: Math.floor(lo(G) / 12) || 6,
+    garMax: Math.ceil(hi(G) / 12) || 16,
   };
 }
 
-export function seedDesk(a: Answers): Desk {
+export function seedDesk(a: Answers, locFromUrl: string | null = null): Desk {
   const R = rangesOf(a);
   const session = buildSession(a);
   const g = session.gates as { lengthMaxFt?: number | null; gvwrMax?: number | null; sleepsMin?: number | null };
@@ -85,17 +124,20 @@ export function seedDesk(a: Answers): Desk {
     down: a.down || 0,
     cash: a.maxSpend || 0,
     tier: a.tier || 'good',
-    unitType: 'ALL',
+    // Live seed: the shopper's own type when they picked exactly one; otherwise All types
+    unitType: a.classes.length === 1 && a.classes[0] !== 'ZZ' && pathClasses(a).includes(a.classes[0]) ? a.classes[0] : 'ALL',
     lenMax: g.lengthMaxFt ? clamp(g.lengthMaxFt, R.lenMin, R.lenMax) : R.lenMax,
     towMax: g.gvwrMax ? clamp(Math.floor(g.gvwrMax / 250) * 250, R.towMin, R.towMax) : R.towMax,
     sleepMin: g.sleepsMin ? clamp(g.sleepsMin, R.sleepMin, R.sleepMax) : R.sleepMin,
+    garageMin: !a.garageAny && a.garageFt ? clamp(a.garageFt, R.garMin, R.garMax) : R.garMin,
     toggle: {
       bunks: !motor && a.children > 0 && a.childSetup === 'must' ? 'Yes' : null,
       slides: a.size === 'space' ? 'Yes' : a.size === 'simple' ? 'No' : null,
       bedroom: a.bedroom === 'must' ? 'Private' : a.bedroom === 'space' ? 'Open' : null,
       build: a.build === 'laminate' ? 'Fiber' : a.build === 'value' ? 'Alum' : null,
     },
-    location: '',
+    conds: { lot: true, ex: true },
+    location: seedLocation(a, locFromUrl),
     search: '',
     R,
   };
@@ -113,10 +155,10 @@ function deskSession(a: Answers, d: Desk) {
   const s = buildSession(a);
   const g = s.gates as {
     classes: string[]; priceMax: number | null; gvwrMax: number | null; lengthMaxFt: number | null;
-    sleepsMin: number | null; sidewall: string | null; requiredAnyOf: number[][]; requiredChars: number[];
+    sleepsMin: number | null; sidewall: string | null; requiredAnyOf: number[][]; requiredChars: number[]; garageMinFt: number | null;
   };
-  g.classes = a.classes.length === 1 && a.classes[0] === 'ZZ' ? ['ZZ'] : d.unitType === 'ALL' ? inScopeClasses() : [d.unitType];
-  g.priceMax = null; g.gvwrMax = null; g.lengthMaxFt = null; g.sleepsMin = null; g.sidewall = null;
+  g.classes = a.classes.length === 1 && a.classes[0] === 'ZZ' ? ['ZZ'] : d.unitType === 'ALL' ? pathClasses(a) : [d.unitType];
+  g.priceMax = null; g.gvwrMax = null; g.lengthMaxFt = null; g.sleepsMin = null; g.sidewall = null; g.garageMinFt = null;
   g.requiredAnyOf = (g.requiredAnyOf || []).filter((list) => !(list.length === e.BUNK_IDS.length && list.every((id) => e.BUNK_IDS.indexOf(id) !== -1)));
   if (a.bedroom === 'must') g.requiredChars = (g.requiredChars || []).filter((id) => id !== e.IDS.PRIVATE_MASTER);
   if (d.method === 'Cash') {
@@ -127,7 +169,8 @@ function deskSession(a: Answers, d: Desk) {
     const r = e.solveFinanceCeiling({ monthlyPayment: d.payment, downPayment: d.down || 0, creditTier: d.tier || 'good', ...(tax != null ? { taxRate: tax } : {}) });
     if (r.valid) g.priceMax = r.ceiling;
   }
-  if (!isMotorOnly(a) && d.towMax < d.R.towMax) g.gvwrMax = d.towMax;
+  if (!isMotorOnly(a) && !motorPath(a) && d.towMax < d.R.towMax) g.gvwrMax = d.towMax;
+  if (isHauler(d) && d.garageMin > d.R.garMin) g.garageMinFt = d.garageMin;
   if (d.lenMax < d.R.lenMax) g.lengthMaxFt = d.lenMax;
   if (d.sleepMin > d.R.sleepMin) g.sleepsMin = d.sleepMin;
   if (d.toggle.bunks === 'Yes') g.requiredAnyOf.push(e.BUNK_IDS.slice());
@@ -155,8 +198,11 @@ export function rankDesk(a: Answers, d: Desk, limit = 80): { matches: LiveMatch[
   if (!(a.classes.length === 1 && a.classes[0] === 'ZZ')) {
     if (d.unitType !== 'ALL') units = units.filter((u) => u.class === d.unitType);
   }
-  if (d.location) units = units.filter((u) => u.location === d.location);
-  const gar = !a.garageAny && a.garageFt ? a.garageFt : 0;
+  if (d.location === MINE) { const mine = a.stores || []; if (mine.length) units = units.filter((u) => mine.includes(u.location)); }
+  else if (d.location) units = units.filter((u) => u.location === d.location);
+  units = units.filter((u) => (u.isLStock ? d.conds.ex : d.conds.lot));
+  // Garage: a toy-hauler unit type uses the desk's Garage length slider (engine gate, live). With All types the shopper's garage answer still trims toy haulers.
+  const gar = !isHauler(d) && !a.garageAny && a.garageFt ? a.garageFt : 0;
   if (gar > 0) units = units.filter((u) => (u.class !== 'TTTH' && u.class !== 'FWTH') || u.garageLength == null || u.garageLength >= gar * 12);
   const session = deskSession(a, d);
   const ceiling = (session.gates.priceMax as number | null) || null;

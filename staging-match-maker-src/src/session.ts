@@ -141,7 +141,7 @@ export function buildSession(a: Answers): Sess {
 export function unitsFor(a: Answers): U[] {
   let list = SNAP().units;
   if (a.stores && a.stores.length) list = list.filter((u) => a.stores!.includes(u.location));
-  // Garage length (Q13 / Step 4 overlay): live applies it as a pre-filter on toy haulers only; unknown garage lengths stay in
+  // Garage length (Q13 Garage question): live applies it as a pre-filter on toy haulers only; unknown garage lengths stay in
   const ft = !a.garageAny && a.garageFt ? a.garageFt : 0;
   if (ft > 0 && isToy(a)) list = list.filter((u) => !TOY.includes(u.class) || u.garageLength == null || u.garageLength >= ft * 12);
   return list;

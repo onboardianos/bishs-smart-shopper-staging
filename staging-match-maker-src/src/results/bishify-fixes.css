@@ -81,6 +81,7 @@ body.kb-open .ssw-act, body.kb-open .sh { position: static; }
   .car-track > li { flex: none !important; width: 100% !important; max-width: 100%; }
   .pg, .bar-in, .pg-foot { padding-left: 16px; padding-right: 16px; }
   .search, .slider, .f-cell, .tbl, .slot, .tile { min-width: 0 !important; }
+  .f-cond { grid-column: auto; }
   .tbl { display: block; width: 100%; max-width: 100%; overflow-x: auto; }
   .ph { flex-direction: column; align-items: stretch; }
   .sm-grid { grid-template-columns: minmax(0, 1fr) !important; }
@@ -324,4 +325,12 @@ body.kb-open .ssw-act, body.kb-open .sh { position: static; }
     letter-spacing: .4px; text-transform: uppercase; text-decoration: underline; text-underline-offset: 3px;
     color: var(--text-light-secondary, #3d3d38); cursor: pointer;
   }
+}
+
+/* Garage question: 10–14 ft + "Any garage is fine" stay on one screen on phones — two columns, text-only tiles */
+@media (max-width: 1023px) {
+  #s-garage-grid.ct-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  #s-garage-grid .ct-media { display: none !important; }
+  #s-garage-grid .ct-btn { min-height: 64px; }
+  #s-garage-grid .ct-text { padding: 10px 36px 10px 4px; }
 }
