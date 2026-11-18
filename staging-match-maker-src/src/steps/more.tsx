@@ -9,7 +9,7 @@ import { StepFrame } from './Step';
 import type { CaseRow } from './Case';
 import { SiteHeader } from './SiteHeader';
 import { counterLabel, posOf, goNext, goEdit, visibleSteps, navOf } from './flowSteps';
-import { loadAnswers, markDone, go, type Answers, type Trade } from '../answers';
+import { loadAnswers, markDone, go, garageFtLabel, type Answers, type Trade } from '../answers';
 import { unitsFor, poolOf, liveText, childOpts, bedroomOpts, multiOpts, catalogue, gvwrOf, ceilingOf, financeOf, splits, CAMPING_IMG, TOW_IMG, n, APR, SNAP, E, isMotorOnly, type Opt } from '../session';
 import { answerText, budgetRows, CAMPING, CAMP_STYLE, ACTIVITIES, TRADE_CHANGES, TOW_OPTS, LENGTH_OPTS, TIERS, STEP_ICON, INERT, money, tradeLabel } from './answersText';
 import TOW from '../tow.json';
@@ -351,7 +351,7 @@ export function StepGarage() {
   const sel = a.garageAny ? ['any'] : a.garageFt && GARAGE_FT.includes(a.garageFt) ? [String(a.garageFt)] : [];
   const fitAt = useMemo(() => Object.fromEntries(GARAGE_FT.map((ft) => [String(ft), poolOf({ ...a, garageAny: false, garageFt: ft }).pool.length])), [a]);
   const anyN = useMemo(() => poolOf({ ...a, garageAny: true, garageFt: null }).pool.length, [a]);
-  const opts = [...GARAGE_FT.map((ft) => ({ id: String(ft), label: `${ft} ft`, icon: 'ruler' })), { id: 'any', label: 'Any garage is fine', icon: 'warehouse' }];
+  const opts = [...GARAGE_FT.map((ft) => ({ id: String(ft), label: garageFtLabel(ft), icon: 'ruler' })), { id: 'any', label: 'Any garage is fine', icon: 'warehouse' }];
   return (
     <StepFrame id="s-garage" stepId="garage" overline="Step 14 · Garage" title="How long does the garage need to be?" hint="Pick your longest toy. Garages shorter than that drop out." rows={rows} count={fit(P)} prev={prev}
       answersForCounter={a} ctaOn={sel.length > 0} disabledWhy="Pick a garage length, or Any garage is fine" onContinue={next}>

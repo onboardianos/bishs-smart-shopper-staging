@@ -76,3 +76,7 @@ export function go(screen: string, extra = '') {
   const stores = a.stores ? `&stores=${a.stores.join(',')}` : '';
   navigate(`?screen=${screen}${stores}${extra}`);
 }
+
+// Garage length label: the longest Garage-question choice reads "14+ ft" everywhere (still a 14 ft minimum, longer included).
+export const GARAGE_TOP_FT = 14;
+export const garageFtLabel = (ft: number) => (ft === GARAGE_TOP_FT ? `${GARAGE_TOP_FT}+ ft` : `${ft} ft`);

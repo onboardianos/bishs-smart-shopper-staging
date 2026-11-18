@@ -1,5 +1,5 @@
 // Plain-words answer text for the case rail, the summary and the results drawer. Option labels are the live wording.
-import type { Answers } from '../answers';
+import { garageFtLabel, GARAGE_TOP_FT, type Answers } from '../answers';
 import flow from './flow.json';
 import { STORES } from './inventory';
 import { catalogue, childOpts, bedroomOpts, multiOptsAll, gvwrOf, ceilingOf, financeOf, n, APR, SNAP } from '../session';
@@ -64,7 +64,7 @@ export function answerText(id: string, a: Answers): string {
     case 'bedroom': return bedroomOpts(a).find((o) => o.id === a.bedroom)?.title || '—';
     case 'tow': return towText(a) || '—';
     case 'length': return a.lengthMode === 'hard' ? (a.picked.includes('lengthFt') ? (a.lengthFt >= 41 ? '40+ ft · no limit' : `Up to ${a.lengthFt} ft`) : 'Hard limit') : lab(LENGTH_OPTS, a.lengthMode ? [a.lengthMode] : []) || '—';
-    case 'garage': return a.garageAny ? 'Any garage is fine' : a.garageFt ? `${a.garageFt} ft and longer` : '—';
+    case 'garage': return a.garageAny ? 'Any garage is fine' : a.garageFt ? (a.garageFt === GARAGE_TOP_FT ? garageFtLabel(a.garageFt) : `${a.garageFt} ft and longer`) : '—';
     case 'bath': case 'inside': case 'outside': {
       if (a[id].includes('open')) return id === 'bath' ? 'Open to any bathroom' : 'Open / no preference';
       const must = a[`${id}Must` as 'bathMust'];

@@ -6,7 +6,7 @@ import {
   countNoun, matchOf, money, storeCity, titleCase,
   unitImg, unitTitle, lengthFt, type Match,
 } from './inventory';
-import { loadAnswers, saveAnswers, onPurchase, type Answers } from '../answers';
+import { loadAnswers, saveAnswers, onPurchase, garageFtLabel, GARAGE_TOP_FT, type Answers } from '../answers';
 import { snapshotMeta, withPicked } from '../liveRank';
 import { isHauler, locationsOf, motorPath, rankDesk, seedDesk, seedLocation, snapshotUnitCount, unitTypeOptions, type Desk, type Toggle } from '../deskRank';
 import { SiteHeader } from '../steps/SiteHeader';
@@ -388,7 +388,7 @@ function Filters({ open, desk, answers, onChange }: { open: boolean; desk: Desk;
             <Svg id="mm-f-type-caret" d={I.chevronDown} size={18} className="sel-caret" />
           </div>
         </div>
-        {hauler && <Slider id="mm-f-garage" label="Garage length" min={desk.R.garMin} max={desk.R.garMax} value={desk.garageMin} dir="min" minL={`${desk.R.garMin} ft`} maxL={`${desk.R.garMax} ft`} valL={`${desk.garageMin} ft`} any={desk.garageMin > desk.R.garMin ? 'At least' : 'Any'} onChange={(n) => onChange((d) => ({ ...d, garageMin: n }))} />}
+        {hauler && <Slider id="mm-f-garage" label="Garage length" min={desk.R.garMin} max={desk.R.garMax} value={desk.garageMin} dir="min" minL={`${desk.R.garMin} ft`} maxL={`${desk.R.garMax} ft`} valL={desk.garageMin === GARAGE_TOP_FT ? garageFtLabel(desk.garageMin) : `${desk.garageMin} ft`} any={desk.garageMin === GARAGE_TOP_FT ? '' : desk.garageMin > desk.R.garMin ? 'At least' : 'Any'} onChange={(n) => onChange((d) => ({ ...d, garageMin: n }))} />}
         {conds.length > 1 && (
           <div className="f-cell f-cond" id="mm-f-cond">
             <span className="f-l" id="mm-f-cond-l">Condition</span>
@@ -694,7 +694,7 @@ function AnswersDrawer({ onClose, answers, onTow }: { onClose: () => void; answe
   if (g.priceMax) must.push(`Sale price up to ${money(g.priceMax)}`);
   if (g.gvwrMax) must.push(`GVWR up to ${g.gvwrMax.toLocaleString('en-US')} lbs`);
   if (g.lengthMaxFt) must.push(`Up to ${g.lengthMaxFt} ft long`);
-  if (answers.garageFt && !answers.garageAny && answers.classes.some((c) => c === 'TTTH' || c === 'FWTH')) must.push(`Toy-hauler garage ${answers.garageFt} ft or longer`);
+  if (answers.garageFt && !answers.garageAny && answers.classes.some((c) => c === 'TTTH' || c === 'FWTH')) must.push(answers.garageFt === GARAGE_TOP_FT ? `Toy-hauler garage ${garageFtLabel(answers.garageFt)}` : `Toy-hauler garage ${answers.garageFt} ft or longer`);
   if (g.sidewall) must.push(g.sidewall === 'LAMINATE' ? 'Laminate / fiberglass walls only' : 'Stick and tin only');
   (g.requiredAnyOf || []).forEach(() => must.push('Dedicated bunks'));
   (g.requiredChars || []).forEach((id: number) => must.push(id === 15 ? 'Private bedroom' : id === 3 ? 'Two bathrooms' : id === 2 ? 'Washer / dryer prep' : `Feature ${id}`));
