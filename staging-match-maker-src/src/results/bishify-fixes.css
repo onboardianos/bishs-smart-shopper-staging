@@ -326,3 +326,11 @@ body.kb-open .ssw-act, body.kb-open .sh { position: static; }
     color: var(--text-light-secondary, #3d3d38); cursor: pointer;
   }
 }
+
+/* Garage question: 10–14 ft + "Any garage is fine" stay on one screen on phones — two columns, text-only tiles */
+@media (max-width: 1023px) {
+  #s-garage-grid.ct-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  #s-garage-grid .ct-media { display: none !important; }
+  #s-garage-grid .ct-btn { min-height: 64px; }
+  #s-garage-grid .ct-text { padding: 10px 36px 10px 4px; }
+}

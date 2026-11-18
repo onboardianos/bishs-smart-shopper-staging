@@ -66,7 +66,7 @@ export function Step3Type({ sheet }: { sheet?: boolean }) {
 
 // Step 4 · Bumper pull. "With garage" is a normal card: the garage length is asked once, on the Garage question
 // (live Q13 wording, also asked for fifth-wheel toy haulers), so Step 4 no longer opens its own garage-length sheet.
-export function Step4Bumper({ sheet }: { garageOpen?: boolean; sheet?: boolean }) {
+export function Step4Bumper({ sheet }: { sheet?: boolean }) {
   const c = { ...S['04'], options: live(S['04'].options) };
   const [sel, toggle] = useMulti(A0.sub);
   const count = sum(c.options, sel);

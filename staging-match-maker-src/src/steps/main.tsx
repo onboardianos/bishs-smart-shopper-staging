@@ -10,7 +10,7 @@ import { Step2Path, Step3Type, Step4Bumper } from './screens';
 import { Loading } from './Loading';
 import { Matches } from './Matches';
 
-// ?screen=00 (public landing; default) | loading | matches |01|02|03|04 · &unit=100384 (known-unit path) · &view=list (matches list) · &garage=1 · &case=1 · &q= &loc=1 · &freeze=1 (hold loading mid-progress / pulse, for stills)
+// ?screen=00 (public landing; default) | loading | matches |01|02|03|04 · &unit=100384 (known-unit path) · &view=list (matches list) · &case=1 · &q= &loc=1 · &freeze=1 (hold loading mid-progress / pulse, for stills)
 const q = new URLSearchParams(location.search);
 const s = q.get('screen') || '00';
 const sheet = q.get('case') === '1';
@@ -24,7 +24,7 @@ createRoot(root).render(
     {s === '01' && <Step1Start query={q.get('q') || ''} locMode={q.get('loc') === '1' ? 'multi' : q.get('loc') || ''} />}
     {s === '02' && <Step2Path sheet={sheet} />}
     {s === '03' && <Step3Type sheet={sheet} />}
-    {s === '04' && <Step4Bumper garageOpen={q.get('garage') === '1'} sheet={sheet} />}
+    {s === '04' && <Step4Bumper sheet={sheet} />}
   </ToastProvider>
 );
 startIdStamper(root);
