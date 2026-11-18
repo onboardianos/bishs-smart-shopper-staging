@@ -1,6 +1,6 @@
 // Engine glue for the Bishified questions. Straight port of the live bishsos.com/smart-shopper buildSession(),
 // option catalogue (O), skip rules and live counts, against the same window.Engine + window.BISH_SNAPSHOT.
-import type { Answers } from './answers';
+import { garagePicks, garageHit, garageMatchText, GARAGE_BOOST, type Answers } from './answers';
 
 type U = { stocknumber: string; class: string; location: string; price: number | null; gvwr: number | null; lengthIn: number | null; sleeps: number | null; slides: number | null; sidewallConstruction?: string; garageLength?: number | null; manufacturer: string; make: string; model: string; year: number };
 type Sess = { gates: Record<string, any>; prefs: any[]; avoids: any[]; numericPriorities: Record<string, boolean>; sidewallPref: string | null; lifestylePaths: string[]; sleepers: any; tow: any; budget: any };
@@ -53,24 +53,24 @@ export function catalogue() {
     anyBed: { id: 'open', title: 'No preference', img: IMG.sleepOther, kind: 'open' },
     bigger: { id: 'bigger', title: 'Bigger, more private bath', img: IMG.rearBath, kind: 'rank', concept: 'bath', ids: [I.REAR_BATH, I.DUAL_VANITY, I.FRONT_BATH], strength: 'prefer' },
     two: { id: 'two', title: 'Two bathrooms', img: IMG.halfBath, kind: 'rank', concept: 'bath_second', ids: [I.DOUBLE_BATH], strength: 'prefer', must: { requiredChars: [I.DOUBLE_BATH] } },
-    dual: { id: 'dual', title: 'Easy in and out for kids or pets', img: IMG.dualentry, kind: 'rank', concept: 'traffic', ids: [I.DUAL_ENTRY], strength: 'prefer' },
-    walk: { id: 'walk', title: 'Not a pass-through bath', img: IMG.splitBath, kind: 'avoid', concept: 'bath_walkthru', ids: [I.WALK_THRU], strength: 'avoid' },
+    dual: { id: 'dual', title: 'Dual Entry', img: IMG.dualentry, kind: 'rank', concept: 'traffic', ids: [I.DUAL_ENTRY], strength: 'prefer' },
+    walk: { id: 'walk', title: 'Not a walk through', img: IMG.splitBath, kind: 'avoid', concept: 'bath_walkthru', ids: [I.WALK_THRU], strength: 'avoid' },
     compact: { id: 'compact', title: 'A compact bath is fine', img: IMG.wetBath, kind: 'rank', concept: 'bath_compact', ids: [I.WETBATH], strength: 'nice' },
-    cook: { id: 'cook', group: 'Kitchen', title: 'I cook inside often', img: IMG.island, kind: 'rank', concept: 'kitchen', ids: [I.ISLAND_KITCHEN, I.U_KITCHEN, I.L_KITCHEN, I.FRONT_KITCHEN], strength: 'prefer' },
+    cook: { id: 'cook', group: 'Kitchen', title: 'More counter space', img: IMG.island, kind: 'rank', concept: 'kitchen', ids: [I.ISLAND_KITCHEN, I.U_KITCHEN, I.L_KITCHEN, I.FRONT_KITCHEN], strength: 'prefer' },
     living: { id: 'living', group: 'Living room', title: 'An open living room', img: IMG.trifold, kind: 'rank', concept: 'living', ids: [I.REAR_LIVING, I.FRONT_LIVING, I.FRONT_CAP_WINDOW], strength: 'prefer' },
     bedslide: { id: 'bedslide', group: 'Bedroom', title: 'Walk-around bedroom', img: IMG.queen, kind: 'rank', concept: 'slide_bed', ids: [I.BED_SLIDE], strength: 'prefer' },
     murphy: { id: 'murphy', group: 'Bedroom', title: 'Fold-away bed for daytime space', img: IMG.jack, kind: 'rank', concept: 'murphy', ids: [I.MURPHY], strength: 'prefer' },
     wd: { id: 'wd', group: 'Laundry', title: 'Washer / dryer prep', icon: 'warehouse', kind: 'rank', concept: 'amenity_wd', ids: [I.WASH], strength: 'strongly', must: { requiredChars: [I.WASH] } },
-    gsleep: { id: 'gsleep', group: 'Bedroom', title: 'The garage sleeps people too', img: IMG.bunks, kind: 'rank', concept: 'garage_sleep', ids: e.TOY_BED_IDS, strength: 'prefer' },
-    cookout: { id: 'cookout', title: 'I cook outside often', img: IMG.cookout, kind: 'rank', concept: 'outdoor', ids: [I.OUTSIDE_KITCHEN], strength: 'prefer' },
+    gsleep: { id: 'gsleep', group: 'Bedroom', title: 'Garage Bunks', img: IMG.bunks, kind: 'rank', concept: 'garage_sleep', ids: e.TOY_BED_IDS, strength: 'prefer' },
+    cookout: { id: 'cookout', title: 'Outside kitchen', img: IMG.cookout, kind: 'rank', concept: 'outdoor', ids: [I.OUTSIDE_KITCHEN], strength: 'prefer' },
     rearkit: { id: 'rearkit', title: 'Kitchen near the outdoor action', img: IMG.rearKitchen, kind: 'rank', concept: 'kitchen_outdoor', ids: [I.REAR_KITCHEN], strength: 'prefer' },
     patio: { id: 'patio', title: 'Outdoor hangout or patio', icon: 'sun', kind: 'rank', concept: 'outdoor_patio', ids: [I.REAR_PATIO, I.SIDE_PATIO], strength: 'prefer' },
     rearpatio: { id: 'rearpatio', title: 'Rear patio', icon: 'sun', kind: 'rank', concept: 'rear_patio', ids: [I.REAR_PATIO], strength: 'prefer' },
     space: { id: 'space', title: 'More room — slide-outs welcome', img: IMG.slides, kind: 'rank', concept: 'space', ids: e.SLIDE_IDS, strength: 'prefer', priority: 'space' },
     balanced: { id: 'balanced', title: 'Open to either', icon: 'repeat', kind: 'open' },
-    simple: { id: 'simple', title: 'Lighter and simpler — fewer slides', img: IMG.noslides, kind: 'prio', priority: ['simple', 'lightweight', 'compact'] },
-    laminate: { id: 'laminate', title: 'Laminate / fiberglass', img: IMG.laminate, kind: 'sidewall', sidewall: 'laminate' },
-    value: { id: 'value', title: 'Stick and tin / aluminum', img: IMG.stt, kind: 'sidewall', sidewall: 'value', priority: 'value' },
+    simple: { id: 'simple', title: 'Lighter-shorter-fewer slides', img: IMG.noslides, kind: 'prio', priority: ['simple', 'lightweight', 'compact'] },
+    laminate: { id: 'laminate', title: 'Fiberglass', img: IMG.laminate, kind: 'sidewall', sidewall: 'laminate' },
+    value: { id: 'value', title: 'Aluminum', img: IMG.stt, kind: 'sidewall', sidewall: 'value', priority: 'value' },
     either: { id: 'either', title: 'No preference', icon: 'repeat', kind: 'open' },
   } as Record<string, Opt>;
 }
@@ -141,9 +141,7 @@ export function buildSession(a: Answers): Sess {
 export function unitsFor(a: Answers): U[] {
   let list = SNAP().units;
   if (a.stores && a.stores.length) list = list.filter((u) => a.stores!.includes(u.location));
-  // Garage length (Q13 Garage question): live applies it as a pre-filter on toy haulers only; unknown garage lengths stay in
-  const ft = !a.garageAny && a.garageFt ? a.garageFt : 0;
-  if (ft > 0 && isToy(a)) list = list.filter((u) => !TOY.includes(u.class) || u.garageLength == null || u.garageLength >= ft * 12);
+  // Garage length is NOT a gate in staging (Zach, 2026-11-18): it never removes units. See applyGarageBoost().
   return list;
 }
 export function poolOf(a: Answers) {
@@ -166,3 +164,28 @@ export function liveText(o: Opt, a: Answers, P: ReturnType<typeof poolOf>) {
   if (o.kind === 'info') return 'For your outfitter';
   return `Keeps all ${n(pool.length)}`;
 }
+
+// Garage length boost (staging rule, Zach 2026-11-18; live uses a hard pre-filter instead): a toy hauler whose garage length is on file and
+// is at least the smallest picked length ("that length or longer"; 14+ ft = 14 ft and longer) gets +5 points, once. Units without garage data
+// or with a shorter garage keep their score and stay in. Re-sorts with the engine's own order (rank group, then final score, then tie-breaks).
+const RANK_ORDER: Record<string, number> = { VERIFIED_AVAILABLE: 1, VERIFIED_L_STOCK_EXAMPLE: 2, PROBABLE_NEEDS_VERIFICATION: 3, INELIGIBLE: 9 };
+type Row = { unit: { stocknumber: string | number; garageLength?: number | null }; score: { rankGroup: string; final: number; display: number; reasons: string[]; _prefScore?: number; _lifeScore?: number; _valScore?: number; _numScore?: number; garageBoost?: number } };
+export function applyGarageBoost<T extends Row>(rows: T[], a: Answers): T[] {
+  const picks = garagePicks(a);
+  const out = rows.map((r) => {
+    const reasons = (r.score.reasons || []).map(relabelReason);
+    if (!picks.length || !garageHit(r.unit.garageLength, picks)) return { ...r, score: { ...r.score, reasons } };
+    const final = r.score.final + GARAGE_BOOST;
+    return { ...r, score: { ...r.score, final, display: Math.max(0, Math.min(100, Math.round(final))), garageBoost: GARAGE_BOOST, reasons: [`Garage ${garageMatchText(picks)} matches your pick`, ...reasons] } };
+  });
+  if (!picks.length) return out;
+  return out.sort((x, y) => {
+    const a1 = x.score, b1 = y.score;
+    if (RANK_ORDER[a1.rankGroup] !== RANK_ORDER[b1.rankGroup]) return RANK_ORDER[a1.rankGroup] - RANK_ORDER[b1.rankGroup];
+    if (b1.final !== a1.final) return b1.final - a1.final;
+    for (const k of ['_prefScore', '_lifeScore', '_valScore', '_numScore'] as const) if ((b1[k] || 0) !== (a1[k] || 0)) return (b1[k] || 0) - (a1[k] || 0);
+    return String(x.unit.stocknumber) > String(y.unit.stocknumber) ? 1 : -1;
+  });
+}
+// Engine reason text uses the old construction words; show the shopper's wording (Fiberglass / Aluminum).
+export const relabelReason = (t: string) => t.replace(/^Laminate construction/, 'Fiberglass exterior').replace(/^Stick-and-tin construction/, 'Aluminum exterior');

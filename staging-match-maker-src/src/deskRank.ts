@@ -2,7 +2,7 @@
 // the engine ranks on sale price / DSRP (never MSRP), tow stays at 90% unless the slider moves the gate,
 // and the four toggles replace the matching answer gates. Filters do not write back to the shopper's answers.
 import type { Answers } from './answers';
-import { buildSession, gvwrOf, isMotorOnly, SNAP } from './session';
+import { applyGarageBoost, buildSession, gvwrOf, isMotorOnly, SNAP } from './session';
 import { toUnit, type LiveMatch } from './liveRank';
 import { BUCKETS } from './steps/inventory';
 
@@ -129,7 +129,8 @@ export function seedDesk(a: Answers, locFromUrl: string | null = null): Desk {
     lenMax: g.lengthMaxFt ? clamp(g.lengthMaxFt, R.lenMin, R.lenMax) : R.lenMax,
     towMax: g.gvwrMax ? clamp(Math.floor(g.gvwrMax / 250) * 250, R.towMin, R.towMax) : R.towMax,
     sleepMin: g.sleepsMin ? clamp(g.sleepsMin, R.sleepMin, R.sleepMax) : R.sleepMin,
-    garageMin: !a.garageAny && a.garageFt ? clamp(a.garageFt, R.garMin, R.garMax) : R.garMin,
+    // Garage length filter starts open: the shopper's garage picks are a +5 ranking boost (applyGarageBoost), never a hidden gate.
+    garageMin: R.garMin,
     toggle: {
       bunks: !motor && a.children > 0 && a.childSetup === 'must' ? 'Yes' : null,
       slides: a.size === 'space' ? 'Yes' : a.size === 'simple' ? 'No' : null,
@@ -201,13 +202,13 @@ export function rankDesk(a: Answers, d: Desk, limit = 80): { matches: LiveMatch[
   if (d.location === MINE) { const mine = a.stores || []; if (mine.length) units = units.filter((u) => mine.includes(u.location)); }
   else if (d.location) units = units.filter((u) => u.location === d.location);
   units = units.filter((u) => (u.isLStock ? d.conds.ex : d.conds.lot));
-  // Garage: a toy-hauler unit type uses the desk's Garage length slider (engine gate, live). With All types the shopper's garage answer still trims toy haulers.
-  const gar = !isHauler(d) && !a.garageAny && a.garageFt ? a.garageFt : 0;
-  if (gar > 0) units = units.filter((u) => (u.class !== 'TTTH' && u.class !== 'FWTH') || u.garageLength == null || u.garageLength >= gar * 12);
+  // Garage: only the desk's own Garage length slider (toy-hauler unit types, user-controlled, starts open) filters. The Garage question answer
+  // never removes units; it adds +5 to matching garages below (applyGarageBoost).
   const session = deskSession(a, d);
   const ceiling = (session.gates.priceMax as number | null) || null;
   const ranked = E().rankResults(units, session);
-  let list = ranked.all.filter((row) => togglePass(row.unit, d));
+  let list = applyGarageBoost(ranked.all as unknown as Parameters<typeof applyGarageBoost>[0], a) as unknown as typeof ranked.all;
+  list = list.filter((row) => togglePass(row.unit, d));
   const q = d.search.trim().toLowerCase();
   if (q) list = list.filter((row) => `${row.unit.year} ${row.unit.manufacturer} ${row.unit.make} ${row.unit.model} ${row.unit.stocknumber}`.toLowerCase().includes(q));
   const matches = list.slice(0, limit).map((row) => {

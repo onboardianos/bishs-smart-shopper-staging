@@ -84,3 +84,11 @@
   .mq-sum-ic { width: 30px; height: 30px; }
   .ssw-why { text-align: center; }
 }
+
+/* Rate your credit: score ranges only, buttons 40% larger (48px → 68px tall, 14px → 20px type, padding ×1.4) */
+.mq-chips-big .mq-chip { min-height: 68px; padding: 0 calc(var(--sp-4) * 1.4); font-size: 20px; font-weight: 700; }
+.mq-chips-big .mq-chip.on { padding-right: calc(var(--sp-4) * 1.4 + 30px); }
+.mq-chips-big .mq-chip-ck { width: 26px; height: 26px; margin-top: -13px; right: 12px; }
+/* Down payment: the amount rides with the slider thumb (positioned in Range; clamped to the track so it never clips) */
+.mq-bubble-track { position: relative; height: 36px; margin-bottom: -6px; }
+.mq-bubble { position: absolute; bottom: 0; left: 0; white-space: nowrap; font-family: var(--font-display); font-weight: 400; font-size: 28px; line-height: 1; color: var(--text-light-primary); }

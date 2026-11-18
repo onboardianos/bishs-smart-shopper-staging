@@ -1,5 +1,5 @@
 // Plain-words answer text for the case rail, the summary and the results drawer. Option labels are the live wording.
-import { garageFtLabel, GARAGE_TOP_FT, type Answers } from '../answers';
+import { garagePicks, garagePicksText, type Answers } from '../answers';
 import flow from './flow.json';
 import { STORES } from './inventory';
 import { catalogue, childOpts, bedroomOpts, multiOptsAll, gvwrOf, ceilingOf, financeOf, n, APR, SNAP } from '../session';
@@ -24,7 +24,8 @@ export const TRADE_CHANGES = [
 ];
 export const TOW_OPTS = [{ id: 'yes', label: 'Yes, with my own vehicle' }, { id: 'no', label: 'Not sure yet' }, { id: 'delivery', label: 'I need it delivered' }];
 export const LENGTH_OPTS = [{ id: 'hard', label: 'Hard limit', icon: 'ruler' }, { id: 'soft', label: 'Shorter is better', icon: 'minus' }, { id: 'none', label: 'Not a concern', icon: 'circle-help' }];
-export const TIERS = [{ id: 'veryGood', label: 'Very good · 740–799' }, { id: 'good', label: 'Good · 670–739' }, { id: 'fair', label: 'Fair · 580–669' }, { id: 'poor', label: 'Poor · 300–579' }];
+// Credit tiers show the score range only (Zach, 2026-11-18); ids and APRs are unchanged.
+export const TIERS = [{ id: 'veryGood', label: '740–799' }, { id: 'good', label: '670–739' }, { id: 'fair', label: '580–669' }, { id: 'poor', label: '300–579' }];
 const MH: Record<string, string> = { ag: 'Class A gas', ad: 'Class A diesel', b: 'Class B van', c: 'Class C', cd: 'Class C diesel', any: 'Any motorhome' };
 const S = flow.steps as any;
 const lab = (opts: { id: string; label: string }[], ids: string[]) => opts.filter((o) => ids.includes(o.id)).map((o) => o.label).join(', ');
@@ -64,7 +65,7 @@ export function answerText(id: string, a: Answers): string {
     case 'bedroom': return bedroomOpts(a).find((o) => o.id === a.bedroom)?.title || '—';
     case 'tow': return towText(a) || '—';
     case 'length': return a.lengthMode === 'hard' ? (a.picked.includes('lengthFt') ? (a.lengthFt >= 41 ? '40+ ft · no limit' : `Up to ${a.lengthFt} ft`) : 'Hard limit') : lab(LENGTH_OPTS, a.lengthMode ? [a.lengthMode] : []) || '—';
-    case 'garage': return a.garageAny ? 'Any garage is fine' : a.garageFt ? (a.garageFt === GARAGE_TOP_FT ? garageFtLabel(a.garageFt) : `${a.garageFt} ft and longer`) : '—';
+    case 'garage': { if (a.garageAny) return 'Any garage is fine'; const g = garagePicks(a); return g.length ? garagePicksText(g) : '—'; }
     case 'bath': case 'inside': case 'outside': {
       if (a[id].includes('open')) return id === 'bath' ? 'Open to any bathroom' : 'Open / no preference';
       const must = a[`${id}Must` as 'bathMust'];
