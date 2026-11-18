@@ -6,7 +6,7 @@ import {
   countNoun, matchOf, money, storeCity, titleCase,
   unitImg, unitTitle, lengthFt, type Match,
 } from './inventory';
-import { loadAnswers, saveAnswers, onPurchase, garageFtLabel, garagePicks, garagePicksText, GARAGE_BOOST, GARAGE_TOP_FT, type Answers } from '../answers';
+import { loadAnswers, saveAnswers, onPurchase, garageFtLabel, garagePicks, garageMatchText, GARAGE_BOOST, GARAGE_TOP_FT, type Answers } from '../answers';
 import { snapshotMeta, withPicked } from '../liveRank';
 import { isHauler, locationsOf, motorPath, rankDesk, seedDesk, seedLocation, snapshotUnitCount, unitTypeOptions, type Desk, type Toggle } from '../deskRank';
 import { SiteHeader } from '../steps/SiteHeader';
@@ -703,7 +703,7 @@ function AnswersDrawer({ onClose, answers, onTow }: { onClose: () => void; answe
   if (answers.size === 'simple') prefs.push('Lighter-shorter-fewer slides');
   if (sess.sidewallPref) prefs.push(sess.sidewallPref === 'laminate' ? 'Fiberglass exterior' : 'Aluminum exterior (value)');
   const gp = answers.classes.some((c) => c === 'TTTH' || c === 'FWTH') ? garagePicks(answers) : [];
-  if (gp.length) prefs.push(`Garage ${garagePicksText(gp)} (+${GARAGE_BOOST} points)`);
+  if (gp.length) prefs.push(`Garage ${garageMatchText(gp)} (+${GARAGE_BOOST} points)`);
   const avoid: string[] = sess.avoids.map((x: { label: string }) => x.label);
   const tow = gvwrOf(answers);
   return (

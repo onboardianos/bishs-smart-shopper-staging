@@ -1,6 +1,6 @@
 // Engine glue for the Bishified questions. Straight port of the live bishsos.com/smart-shopper buildSession(),
 // option catalogue (O), skip rules and live counts, against the same window.Engine + window.BISH_SNAPSHOT.
-import { garagePicks, garageBucketHit, garagePicksText, GARAGE_BOOST, type Answers } from './answers';
+import { garagePicks, garageHit, garageMatchText, GARAGE_BOOST, type Answers } from './answers';
 
 type U = { stocknumber: string; class: string; location: string; price: number | null; gvwr: number | null; lengthIn: number | null; sleeps: number | null; slides: number | null; sidewallConstruction?: string; garageLength?: number | null; manufacturer: string; make: string; model: string; year: number };
 type Sess = { gates: Record<string, any>; prefs: any[]; avoids: any[]; numericPriorities: Record<string, boolean>; sidewallPref: string | null; lifestylePaths: string[]; sleepers: any; tow: any; budget: any };
@@ -166,17 +166,17 @@ export function liveText(o: Opt, a: Answers, P: ReturnType<typeof poolOf>) {
 }
 
 // Garage length boost (staging rule, Zach 2026-11-18; live uses a hard pre-filter instead): a toy hauler whose garage length is on file and
-// falls in a picked 1-ft bucket (floor of feet; "14+ ft" = 14 ft and longer) gets +5 points. Units without garage data or outside the picked
-// buckets keep their score and stay in. Re-sorts with the engine's own order (rank group, then final score, then tie-breaks).
+// is at least the smallest picked length ("that length or longer"; 14+ ft = 14 ft and longer) gets +5 points, once. Units without garage data
+// or with a shorter garage keep their score and stay in. Re-sorts with the engine's own order (rank group, then final score, then tie-breaks).
 const RANK_ORDER: Record<string, number> = { VERIFIED_AVAILABLE: 1, VERIFIED_L_STOCK_EXAMPLE: 2, PROBABLE_NEEDS_VERIFICATION: 3, INELIGIBLE: 9 };
 type Row = { unit: { stocknumber: string | number; garageLength?: number | null }; score: { rankGroup: string; final: number; display: number; reasons: string[]; _prefScore?: number; _lifeScore?: number; _valScore?: number; _numScore?: number; garageBoost?: number } };
 export function applyGarageBoost<T extends Row>(rows: T[], a: Answers): T[] {
   const picks = garagePicks(a);
   const out = rows.map((r) => {
     const reasons = (r.score.reasons || []).map(relabelReason);
-    if (!picks.length || !garageBucketHit(r.unit.garageLength, picks)) return { ...r, score: { ...r.score, reasons } };
+    if (!picks.length || !garageHit(r.unit.garageLength, picks)) return { ...r, score: { ...r.score, reasons } };
     const final = r.score.final + GARAGE_BOOST;
-    return { ...r, score: { ...r.score, final, display: Math.max(0, Math.min(100, Math.round(final))), garageBoost: GARAGE_BOOST, reasons: [`Garage length matches your pick (${garagePicksText(picks)})`, ...reasons] } };
+    return { ...r, score: { ...r.score, final, display: Math.max(0, Math.min(100, Math.round(final))), garageBoost: GARAGE_BOOST, reasons: [`Garage ${garageMatchText(picks)} matches your pick`, ...reasons] } };
   });
   if (!picks.length) return out;
   return out.sort((x, y) => {

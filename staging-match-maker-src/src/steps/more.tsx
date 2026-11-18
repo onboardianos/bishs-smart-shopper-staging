@@ -9,7 +9,7 @@ import { StepFrame } from './Step';
 import type { CaseRow } from './Case';
 import { SiteHeader } from './SiteHeader';
 import { counterLabel, posOf, goNext, goEdit, visibleSteps, navOf } from './flowSteps';
-import { loadAnswers, markDone, go, garageFtLabel, garagePicks, garageBucketHit, type Answers, type Trade } from '../answers';
+import { loadAnswers, markDone, go, garageFtLabel, garagePicks, garageHit, type Answers, type Trade } from '../answers';
 import { unitsFor, poolOf, liveText, childOpts, bedroomOpts, multiOpts, catalogue, gvwrOf, ceilingOf, financeOf, splits, CAMPING_IMG, TOW_IMG, n, APR, SNAP, E, isMotorOnly, type Opt } from '../session';
 import { answerText, budgetRows, CAMPING, CAMP_STYLE, ACTIVITIES, TRADE_CHANGES, TOW_OPTS, LENGTH_OPTS, TIERS, STEP_ICON, INERT, money, tradeLabel } from './answersText';
 import TOW from '../tow.json';
@@ -358,13 +358,14 @@ export function StepLength() {
 
 /* ───────── Q13 · Garage ───────── */
 // Garage lengths are multi-select: 10, 11, 12, 13 and 14+ ft, or "Any garage is fine" (exclusive open option). Not a gate (Zach, 2026-11-18):
-// a toy hauler whose garage falls in a picked 1-ft bucket ("14+ ft" = 14 ft and longer) ranks +5; nothing drops out (session.ts applyGarageBoost).
+// a toy hauler whose garage is at least the smallest picked length ("14+ ft" = 14 ft and longer) ranks +5 once; nothing drops out (session.ts
+// applyGarageBoost). Tile counts: units in the pool whose garage is at least that length.
 export const GARAGE_FT = [10, 11, 12, 13, 14];
 export function StepGarage() {
   const { a, set, P, prev, rows, next } = useDraft('garage');
   const picks = garagePicks(a);
   const sel = a.garageAny ? ['any'] : picks.map(String);
-  const fitAt = useMemo(() => Object.fromEntries(GARAGE_FT.map((ft) => [String(ft), P.pool.filter((u) => garageBucketHit(u.garageLength, [ft])).length])), [P]);
+  const fitAt = useMemo(() => Object.fromEntries(GARAGE_FT.map((ft) => [String(ft), P.pool.filter((u) => garageHit(u.garageLength, [ft])).length])), [P]);
   const opts = [...GARAGE_FT.map((ft) => ({ id: String(ft), label: garageFtLabel(ft), icon: 'ruler' })), { id: 'any', label: 'Any garage is fine', icon: 'warehouse' }];
   const pick = (id: string) => {
     if (id === 'any') return set(a.garageAny ? { garageAny: false, garageFts: [], garageFt: null } : { garageAny: true, garageFts: [], garageFt: null });
@@ -439,6 +440,30 @@ export function StepBuild() {
 }
 
 /* ───────── Budget ───────── */
+// After a credit pick, bring the Monthly payment + Down payment sliders into view: smooth (instant under prefers-reduced-motion), skipped when
+// both are already fully visible, and kept clear of the sticky header/case bar above and the sticky Continue dock below.
+function scrollRegionIntoView(firstId: string, lastId: string) {
+  const first = document.getElementById(firstId), last = document.getElementById(lastId);
+  if (!first || !last) return;
+  let sc: HTMLElement | null = first.parentElement;
+  while (sc && sc !== document.body) { const o = getComputedStyle(sc).overflowY; if ((o === 'auto' || o === 'scroll') && sc.scrollHeight > sc.clientHeight + 1) break; sc = sc.parentElement; }
+  const win = !sc || sc === document.body;
+  const box = win ? { top: 0, bottom: window.innerHeight } : sc!.getBoundingClientRect();
+  // sticky things that overlap the scroll viewport: Continue dock below, header / case bar above
+  let topEdge = Math.max(0, box.top), bottomEdge = Math.min(window.innerHeight, box.bottom);
+  const dock = document.querySelector('.ssw-act'); const dr = dock ? dock.getBoundingClientRect() : null;
+  if (dr && dr.top < bottomEdge && dr.bottom > topEdge && (['sticky', 'fixed'].includes(getComputedStyle(dock!).position) || dr.bottom >= bottomEdge - 2)) bottomEdge = dr.top;
+  document.querySelectorAll<HTMLElement>('header, .mm-casebar, .cs-bar, [data-sticky-top]').forEach((el) => { const cs = getComputedStyle(el); if (cs.position !== 'sticky' && cs.position !== 'fixed') return; const r = el.getBoundingClientRect(); if (r.top <= topEdge + 1 && r.bottom > topEdge && r.bottom < bottomEdge) topEdge = r.bottom; });
+  const pad = 12;
+  const a = first.getBoundingClientRect(), b = last.getBoundingClientRect();
+  if (a.top >= topEdge + pad - 1 && b.bottom <= bottomEdge - pad + 1) return; // already fully visible
+  const room = bottomEdge - topEdge - 2 * pad;
+  // fit the bottom of Down payment above the dock; if both don't fit, start at Monthly payment
+  const delta = b.bottom - a.top <= room ? b.bottom - (bottomEdge - pad) : a.top - (topEdge + pad);
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  (win ? window : sc!).scrollBy({ top: delta, behavior: reduce ? 'auto' : 'smooth' });
+}
+
 export function StepBudget() {
   const { a, set, P, prev, rows, next } = useDraft('budget');
   // Monthly payment is the default mode (Zach, 2026-11-18). Only the mode is preset; credit, payment and down still need the shopper.
@@ -467,10 +492,10 @@ export function StepBudget() {
       {a.budgetMode === 'finance' && (
         <>
           <Group id="s-budget-credit" label="First, how would you rate your credit?">
-            <Chips sid="budget-tier" big opts={TIERS} sel={a.tier ? [a.tier] : []} onPick={(id) => set({ tier: id })} />
+            <Chips sid="budget-tier" big opts={TIERS} sel={a.tier ? [a.tier] : []} onPick={(id) => { set({ tier: id }); requestAnimationFrame(() => requestAnimationFrame(() => scrollRegionIntoView('s-budget-payment', 's-budget-down'))); }} />
           </Group>
           <Note id="s-budget-apr" spec="info-apr-estimate">{a.tier ? `We estimate with ${APR[a.tier]} APR for that tier.` : 'Pick a tier to unlock the payment and down-payment sliders.'}</Note>
-          <Range sid="budget" k="payment" label="Monthly payment" value={a.picked.includes('payment') ? a.payment : 750} min={150} max={1350} step={25} fmt={(v) => `${money(v)}${v >= 1350 ? '+' : ''} a month`} ends={['$150', '$1,350+']} disabled={!a.tier} onChange={(v) => set({ payment: v, picked: mark(a, 'payment') })}
+          <Range sid="budget" k="payment" bubble label="Monthly payment" value={a.picked.includes('payment') ? a.payment : 750} min={150} max={1350} step={25} fmt={(v) => `${money(v)}${v >= 1350 ? '+' : ''} a month`} ends={['$150', '$1,350+']} disabled={!a.tier} onChange={(v) => set({ payment: v, picked: mark(a, 'payment') })}
             extra={<span className="mq-live" id="s-budget-payment-avg" data-spec-id="info-average-payment">{a.picked.includes('payment') ? 'The average camper payment is about $436 a month.' : 'Starts at $750 so the slider has a position. It does not count until you set it. The average camper payment is about $436 a month.'}</span>} />
           <Range sid="budget" k="down" bubble label="Down payment" value={a.picked.includes('down') ? a.down : 5500} min={1000} max={10000} step={500} fmt={(v) => `${money(v)}${v >= 10000 ? '+' : ''}`} ends={['$1,000', '$10,000+']} disabled={!a.tier} onChange={(v) => set({ down: v, picked: mark(a, 'down') })} />
           <Field id="s-budget-store" label="Closest Bish’s store">

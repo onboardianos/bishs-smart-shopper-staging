@@ -86,11 +86,13 @@ export const garageFtLabel = (ft: number) => (ft === GARAGE_TOP_FT ? `${GARAGE_T
 // Picked garage lengths (falls back to an older single garageFt answer).
 export const garagePicks = (a: Pick<Answers, 'garageAny' | 'garageFts' | 'garageFt'>): number[] =>
   a.garageAny ? [] : (a.garageFts && a.garageFts.length ? [...a.garageFts].sort((x, y) => x - y) : a.garageFt ? [a.garageFt] : []);
-// A unit matches a picked length when its garage falls in that 1-ft bucket (floor of the garage length in feet); "14+ ft" takes 14 ft and longer.
-export const garageBucketHit = (garageIn: number | null | undefined, picks: number[]) => {
+// A unit matches when its garage length is on file and is at least the smallest picked length ("that length or longer";
+// 14+ ft = 14 ft and longer). One +5 boost per unit, never stacked across picks (Zach, 2026-11-18 2:28 PM).
+export const garageHit = (garageIn: number | null | undefined, picks: number[]) => {
   if (garageIn == null || !(garageIn > 0) || !picks.length) return false;
-  const ft = Math.floor(garageIn / 12);
-  return picks.some((p) => (p >= GARAGE_TOP_FT ? ft >= GARAGE_TOP_FT : ft === p));
+  return garageIn >= Math.min(...picks) * 12;
 };
+// "12 ft or longer" / "14+ ft" for the smallest pick: what the boost actually rewards.
+export const garageMatchText = (picks: number[]) => { const m = Math.min(...picks); return m >= GARAGE_TOP_FT ? garageFtLabel(m) : `${m} ft or longer`; };
 export const garagePicksText = (picks: number[]) => picks.map(garageFtLabel).join(', ').replace(/ ft, /g, ', ');
 export const GARAGE_BOOST = 5;
