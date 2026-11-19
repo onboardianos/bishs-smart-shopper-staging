@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from 'react';
 import { GridGlyph, Grip, I, ListGlyph, Svg } from './icons';
 import logo from './assets/logo-bishs-rv-black-gold.png';
 import { Carousel, InvTable, InvTools, type View } from './InvViews';
@@ -107,16 +107,6 @@ export function App() {
     else if (savePhase === 'save-success') document.title = "Your progress is saved · Smart Shopper · Bish's RV";
     else document.title = tab === 'top3' ? "Your top three · Smart Shopper · Bish's RV" : tab === 'saved' ? "Saved · Smart Shopper · Bish's RV" : "Find your next getaway · Smart Shopper · Bish's RV";
   }, [tab, savePhase]);
-  useLayoutEffect(() => {
-    if (tab !== 'inventory' || view !== 'grid') return;
-    const slot = document.getElementById('mm-slot-1');
-    const root = document.getElementById('mm-root');
-    if (!slot || !root) return;
-    const set = () => root.style.setProperty('--tile-w', `${slot.getBoundingClientRect().width}px`);
-    set();
-    const ro = new ResizeObserver(set); ro.observe(slot);
-    return () => ro.disconnect();
-  }, [tab, view]);
   useEffect(() => { writeQuery(pins, tab, drawer, view, desk.location, seedLoc); }, [pins, tab, drawer, view, desk.location, seedLoc]);
   useEffect(() => {
     if (!drawer) return;
@@ -134,6 +124,7 @@ export function App() {
     seededPins.current = true;
     setPins([rows[0]?.unit.stock || '', rows[1]?.unit.stock || '', rows[2]?.unit.stock || '']);
   }, [rows]);
+  const leads = slots.filter((m): m is Match => !!m);
   const others = rows.filter((m) => !pins.includes(m.unit.stock)).slice(0, PAGE);
   const fit = tab === 'inventory';
   const setSlots = (next: string[]) => setPins([next[0] || '', next[1] || '', next[2] || '']);
@@ -175,12 +166,16 @@ export function App() {
               <Svg id="mm-filt-toggle-caret" d={I.chevronDown} size={16} className={filtOpen ? 'is-up' : ''} />
             </button>
             <Filters open={filtOpen} desk={desk} answers={answers} onChange={setDesk} />
-            <TabsRow tab={tab} onTab={setTab} savedN={savedSet.length} tools={<InvTools view={view} onView={setView} search={desk.search} onSearch={(search) => setDesk((d) => ({ ...d, search }))} location={desk.location} onLocation={(location) => setDesk((d) => ({ ...d, location }))} stores={locationsOf()} mine={answers.stores && answers.stores.length > 1 ? answers.stores.length : 0} />} />
+            <TabsRow tab={tab} onTab={setTab} savedN={savedSet.length} tools={
+              <div className="tabs-r" id="mm-tabs-tools">
+                <button type="button" className="t3-open" id="mm-t3-open" data-spec-id="btn-action-open-top-three" data-bos-class="action" onClick={() => setTab('top3')} disabled={!leads.length}>
+                  Compare your top three →
+                </button>
+                <InvTools view={view} onView={setView} search={desk.search} onSearch={(search) => setDesk((d) => ({ ...d, search }))} location={desk.location} onLocation={(location) => setDesk((d) => ({ ...d, location }))} stores={locationsOf()} mine={answers.stores && answers.stores.length > 1 ? answers.stores.length : 0} />
+              </div>
+            } />
             {view === 'grid' ? (
-              <>
-                <TopStrip slots={slots} over={over} drag={drag} onRemove={unpin} onOpen={() => setTab('top3')} />
-                <Carousel others={others} total={live.total} alsoShown={rows.filter((m) => pins.includes(m.unit.stock)).length} onList={() => setView('list')} {...tileProps} />
-              </>
+              <Carousel leads={leads} others={others} total={live.total} onList={() => setView('list')} {...tileProps} />
             ) : (
               <InvTable slots={slots} others={rows.filter((m) => !pins.includes(m.unit.stock))} total={live.total} onRemove={unpin} {...tileProps} />
             )}
@@ -344,7 +339,7 @@ function Money({ id, label, value, step, aria, onSet, lead }: { id: string; labe
 
 // Filters = the live bishsos.com/match-maker desk filter bar (desk.js filterBar + head): budget stepper(s), the four toggles,
 // Length (max) / Tow limit / Sleeps sliders, Unit type, Garage length (toy-hauler types only) and the On the lot / Floorplan examples condition.
-// Filters never write back to the shopper's answers.
+// Same controls and rules as live; they sit in one horizontal strip so the row stays short. Filters never write back to the shopper's answers.
 function Filters({ open, desk, answers, onChange }: { open: boolean; desk: Desk; answers: Answers; onChange: (fn: (d: Desk) => Desk) => void }) {
   const finance = desk.method === 'Finance';
   const setToggle = <K extends keyof Toggle>(key: K, v: Toggle[K] | null) => onChange((d) => ({ ...d, toggle: { ...d.toggle, [key]: v } }));
@@ -358,10 +353,10 @@ function Filters({ open, desk, answers, onChange }: { open: boolean; desk: Desk;
   const mode = (
     <button type="button" className="step-b" id="mm-f-price-mode" data-spec-id="btn-action-budget-mode" data-bos-perm="discovery.navigate" aria-pressed={finance} aria-label={finance ? 'Paying monthly. Switch to cash' : 'Paying cash. Switch to monthly payment'} onClick={() => onChange((d) => ({ ...d, method: finance ? 'Cash' : 'Finance' }))}>{finance ? '/mo' : 'Cash'}</button>
   );
-  const r1 = 5 + (finance ? 1 : 0);
+  const Sep = () => <span className="f-sep" aria-hidden="true" />;
   return (
     <section className={`filt${open ? ' is-open' : ''}`} id="mm-filt" data-spec-id="sec-filters" data-bos-level="section" data-bos-type="toolbar" aria-label="Filters">
-      <div className="f-row f-row-1" id="mm-filt-r1" style={{ ['--f-n' as string]: r1 }}>
+      <div className="f-scroll" id="mm-filt-scroll">
         {finance ? (
           <>
             <Money id="mm-f-price" label="Payment ($/mo)" value={desk.payment} step={50} aria="Monthly payment" lead={mode} onSet={(n) => onChange((d) => ({ ...d, payment: n }))} />
@@ -370,15 +365,17 @@ function Filters({ open, desk, answers, onChange }: { open: boolean; desk: Desk;
         ) : (
           <Money id="mm-f-price" label="Sales price ($)" value={desk.cash} step={500} aria="Maximum sales price" lead={mode} onSet={(n) => onChange((d) => ({ ...d, cash: n }))} />
         )}
+        <Sep />
         <Seg id="mm-f-bunks" label="Bunks" opts={['Yes', 'No']} value={desk.toggle.bunks} onPick={(v) => setToggle('bunks', v)} />
         <Seg id="mm-f-slides" label="Slides" opts={['Yes', 'No']} value={desk.toggle.slides} onPick={(v) => setToggle('slides', v)} />
         <Seg id="mm-f-bedroom" label="Bedroom" opts={['Private', 'Open']} value={desk.toggle.bedroom} onPick={(v) => setToggle('bedroom', v)} />
         <Seg id="mm-f-build" label="Build" opts={['Fiber', 'Alum']} value={desk.toggle.build} onPick={(v) => setToggle('build', v)} />
-      </div>
-      <div className="f-row f-row-2" id="mm-filt-r2">
+        <Sep />
         <Slider id="mm-f-length" label="Length (max)" min={desk.R.lenMin} max={desk.R.lenMax} value={desk.lenMax} dir="max" minL={`${desk.R.lenMin} ft`} maxL={`${desk.R.lenMax} ft`} valL={`${desk.lenMax} ft`} any={desk.lenMax < desk.R.lenMax ? 'Up to' : 'Any'} onChange={(n) => onChange((d) => ({ ...d, lenMax: n }))} />
         {showTow && <Slider id="mm-f-tow" label="Tow limit" min={desk.R.towMin} max={desk.R.towMax} step={250} value={desk.towMax} dir="max" minL={`${+(desk.R.towMin / 1000).toFixed(2)}K lbs`} maxL={`${+(desk.R.towMax / 1000).toFixed(2)}K lbs`} valL={`${+(desk.towMax / 1000).toFixed(2)}K lbs`} any={desk.towMax < desk.R.towMax ? 'Up to' : 'Any'} onChange={(n) => onChange((d) => ({ ...d, towMax: n }))} />}
         <Slider id="mm-f-sleeps" label="Sleeps" min={desk.R.sleepMin} max={desk.R.sleepMax} value={desk.sleepMin} dir="min" minL={`${desk.R.sleepMin}`} maxL={`${desk.R.sleepMax}+`} valL={`${desk.sleepMin}+`} any={desk.sleepMin > desk.R.sleepMin ? 'At least' : 'Any'} onChange={(n) => onChange((d) => ({ ...d, sleepMin: n }))} />
+        {hauler && <Slider id="mm-f-garage" label="Garage length" min={desk.R.garMin} max={desk.R.garMax} value={desk.garageMin} dir="min" minL={`${desk.R.garMin} ft`} maxL={`${desk.R.garMax} ft`} valL={desk.garageMin === GARAGE_TOP_FT ? garageFtLabel(desk.garageMin) : `${desk.garageMin} ft`} any={desk.garageMin === GARAGE_TOP_FT ? '' : desk.garageMin > desk.R.garMin ? 'At least' : 'Any'} onChange={(n) => onChange((d) => ({ ...d, garageMin: n }))} />}
+        <Sep />
         <div className="f-cell" id="mm-f-type">
           <label className="f-l" id="mm-f-type-l" htmlFor="mm-f-type-sel">Unit type</label>
           <div className="sel" id="mm-f-type-wrap">
@@ -389,7 +386,6 @@ function Filters({ open, desk, answers, onChange }: { open: boolean; desk: Desk;
             <Svg id="mm-f-type-caret" d={I.chevronDown} size={18} className="sel-caret" />
           </div>
         </div>
-        {hauler && <Slider id="mm-f-garage" label="Garage length" min={desk.R.garMin} max={desk.R.garMax} value={desk.garageMin} dir="min" minL={`${desk.R.garMin} ft`} maxL={`${desk.R.garMax} ft`} valL={desk.garageMin === GARAGE_TOP_FT ? garageFtLabel(desk.garageMin) : `${desk.garageMin} ft`} any={desk.garageMin === GARAGE_TOP_FT ? '' : desk.garageMin > desk.R.garMin ? 'At least' : 'Any'} onChange={(n) => onChange((d) => ({ ...d, garageMin: n }))} />}
         {conds.length > 1 && (
           <div className="f-cell f-cond" id="mm-f-cond">
             <span className="f-l" id="mm-f-cond-l">Condition</span>
@@ -474,79 +470,12 @@ function TabsRow({ tab, onTab, savedN, tools }: { tab: Tab; onTab: (t: Tab) => v
   );
 }
 
-/* ─────────── All inventory: sticky top three ─────────── */
-
-function TopStrip({ slots, over, drag, onRemove, onOpen }: { slots: (Match | null)[]; over: number | null; drag: DragFns; onRemove: (i: number) => void; onOpen: () => void }) {
-  const n = slots.filter(Boolean).length;
-  return (
-    <section className="t3" id="mm-sticky" data-spec-id="sec-top3-pinned" aria-label="Your top three, pinned">
-      <div className="t3-h" id="mm-t3-h">
-        <span className="t3-pill" id="mm-t3-pill" data-spec-id="label-top3-pinned">
-          <Svg id="mm-t3-pill-icon" d={I.pin} size={15} />
-          <b id="mm-t3-pill-b">Your top three</b>
-          <span id="mm-t3-pill-s">· Pinned</span>
-        </span>
-        <span className="t3-count" id="mm-t3-count" data-spec-id="info-top3-count">{n} of 3</span>
-      </div>
-      <div className="t3-grid" id="mm-t3-grid">
-        <ol className="t3-slots" id="mm-pin-row" data-spec-id="list-top3-slots">
-          {slots.map((m, i) => <PinSlot key={i} i={i} m={m} over={over === i} drag={drag} onRemove={onRemove} />)}
-        </ol>
-        <div className="t3-aside" id="mm-t3-aside">
-          <p className="t3-foot" id="mm-t3-foot" data-spec-id="info-top3-drag-hint">
-            <Grip id="mm-t3-foot-grip" size={16} />
-            <span id="mm-t3-foot-t">Drag an RV into a top-three slot.</span>
-          </p>
-          <p className="t3-aside-s" id="mm-t3-aside-s">Or tap the pin on any RV. Your top three stay right here while you browse.</p>
-          <button type="button" className="t3-open" id="mm-t3-open" data-spec-id="btn-action-open-top-three" data-bos-class="action" onClick={onOpen} disabled={!n}>
-            Compare your top three →
-          </button>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function reasonLine(m: Match) {
   if (m.picked) return 'The RV you searched for.';
   const ft = lengthFt(m.unit);
   if (m.fits) return ft && ft <= 36 ? 'Private bedroom with room in your budget.' : 'More room, still in your budget.';
   if (m.fits === false) return 'A little over budget, more space.';
   return 'A close match for you.';
-}
-
-function PinSlot({ i, m, over, drag, onRemove }: { i: number; m: Match | null; over: boolean; drag: DragFns; onRemove: (i: number) => void }) {
-  const n = i + 1;
-  const id = `mm-slot-${n}`;
-  return (
-    <li className={`slot${m ? ' is-filled' : ' is-empty'}${over ? ' is-over' : ''}`} id={id} data-spec-id={`card-top3-slot#${n}`} data-bos-type="card"
-      onDragOver={(e) => { e.preventDefault(); drag.onDragOver(i); }} onDragLeave={() => drag.onDragOver(null)} onDrop={(e) => drag.onDrop(i, e)}>
-      {m ? (
-        <article className="card slot-card" id={`${id}-card`} aria-labelledby={`${id}-name`} draggable onDragStart={(e) => drag.onDragStart(m.unit.stock, e)}>
-          <span className="num" id={`${id}-num`} data-spec-id={`badge-top3-number#${n}`}>{n}</span>
-          <div className="ph-media" id={`${id}-media`} data-spec-id={`media-top3-slot#${n}`}>
-            <UnitPhoto className="ph-img" id={`${id}-img`} stock={m.unit.stock} art={unitImg(m.unit)} title={unitTitle(m.unit)} />
-            {m.picked && <span className="badge-pick" id={`${id}-pick`} data-spec-id={`badge-your-pick-slot#${n}`}>Your pick</span>}
-            <span className="slot-tools" id={`${id}-tools`}>
-              <button type="button" className="tool-b" id={`${id}-remove`} data-spec-id={`btn-action-remove-slot#${n}`} data-bos-class="action" aria-label={`Remove from slot ${n}`} title="Remove" onClick={() => onRemove(i)}><Svg id={`${id}-remove-i`} d={I.x} size={14} stroke={2} /></button>
-              <button type="button" className="tool-b grip" id={`${id}-grip`} data-spec-id={`btn-action-drag-slot#${n}`} data-bos-class="action" aria-label={`Drag to reorder slot ${n}`} title="Drag"><Grip id={`${id}-grip-i`} size={16} /></button>
-            </span>
-          </div>
-          <div className="card-b" id={`${id}-body`}>
-            <h3 className="c-name" id={`${id}-name`} data-spec-id={`label-top3-slot-title#${n}`}>{unitTitle(m.unit)}</h3>
-            <p className="c-price" id={`${id}-price`}>{m.priceText}</p>
-            <p className="c-meta c-meta-line" id={`${id}-meta`}>Sleeps {m.unit.sleeps ?? '—'} · {lengthFt(m.unit)} ft · {storeCity(m.unit.location)}</p>
-            <p className="c-reason" id={`${id}-reason`}>{reasonLine(m)}</p>
-          </div>
-        </article>
-      ) : (
-        <div className="slot-empty slot-ghost" id={`${id}-empty`}>
-          <span className="ghost-media" id={`${id}-ghost-media`}><span className="slot-empty-n" id={`${id}-empty-n`}>#{n}</span></span>
-          <span className="ghost-body" id={`${id}-ghost-body`}><span className="slot-empty-t" id={`${id}-empty-t`}>Pin an RV here</span></span>
-        </div>
-      )}
-    </li>
-  );
 }
 
 function Tile({ m, pins, saved, onPin, onSave, drag, prefix = 'mm-tile' }: {
@@ -559,9 +488,10 @@ function Tile({ m, pins, saved, onPin, onSave, drag, prefix = 'mm-tile' }: {
   const full = pins.every(Boolean);
   const isSaved = saved.includes(u.stock);
   return (
-    <li className={`tile${m.picked ? ' is-pick' : ''}`} id={`${id}-wrap`} data-spec-id={`card-inventory#${u.stock}${sfx}`} data-bos-type="card" draggable onDragStart={(e) => drag.onDragStart(u.stock, e)}>
-      <article className="card" id={id} aria-labelledby={`${id}-name`}>
+    <li className={`tile${m.picked ? ' is-pick' : ''}${slot >= 0 ? ' is-top3' : ''}`} id={`${id}-wrap`} data-spec-id={`card-inventory#${u.stock}${sfx}`} data-bos-type="card" draggable onDragStart={(e) => drag.onDragStart(u.stock, e)}>
+      <article className={`card${slot >= 0 ? ' is-top3' : ''}`} id={id} aria-labelledby={`${id}-name`}>
         <div className="ph-media" id={`${id}-media`} data-spec-id={`media-inventory#${u.stock}${sfx}`}>
+          {slot >= 0 && <span className="badge-top3" id={`${id}-top3`}>Top 3 · #{slot + 1}</span>}
           <UnitPhoto className="ph-img" id={`${id}-img`} stock={u.stock} art={unitImg(u)} title={unitTitle(u)} />
           {m.picked
             ? <span className="badge-pick" id={`${id}-pick`} data-spec-id={`badge-your-pick#${u.stock}${sfx}`}>Your pick</span>
