@@ -269,7 +269,7 @@ body.kb-open .ssw-act, body.kb-open .sh { position: static; }
   .ss .t3 { position: static; top: auto; z-index: 1; margin: 0; padding: 0; border: 0; box-shadow: none; background: transparent; }
   .ss .t3-h { margin: 0 0 4px; }
   .ss .t3-pill { font-size: 12px; padding: 0; background: transparent; }
-  .ss .t3-grid { display: flex !important; flex-direction: column; gap: 6px; }
+  .ss .t3-grid { display: flex !important; flex-direction: column; gap: 6px; width: 100%; max-width: 100%; }
   .ss .car { margin: 8px 0 0; width: 100%; }
   .ss .car-track { padding: 0; scroll-padding: 0; gap: 6px; }
   .ss .car-track > li { width: 100%; max-width: 100%; margin: 0; }
