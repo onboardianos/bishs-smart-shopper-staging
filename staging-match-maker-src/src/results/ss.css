@@ -182,6 +182,16 @@ html, body, #root { margin: 0; background: var(--surface-light-card); }
 .slot-empty-t { font-size: 14px; font-weight: 600; }
 .t3-open { font-size: 14px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
 .t3-open:disabled { color: var(--ink-3) !important; text-decoration: none; }
+.tabs-r { display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-wrap: wrap; min-width: 0; }
+.card.is-top3 { border: 2px solid var(--brand-dark-green); }
+.tile.is-top3 .pin-on { display: none !important; }
+.badge-top3 {
+  position: absolute; z-index: 3; top: 8px; left: 8px; max-width: calc(100% - 16px);
+  padding: 3px 8px; border-radius: var(--radius-full);
+  background: var(--brand-dark-green); color: var(--brand-white);
+  font-size: 11px; font-weight: 700; line-height: 1.2; letter-spacing: .2px; white-space: nowrap;
+}
+.card.is-top3 .badge-fp, .card.is-top3 .badge-pick { top: auto; bottom: 8px; left: 8px; }
 
 /* ── All other inventory ── */
 .inv { padding: 0 calc(var(--tray-pad) + 1px); }
@@ -396,7 +406,7 @@ html, body, #root { margin: 0; background: var(--surface-light-card); }
 .is-fit .t3-pill { padding: 2px 12px; }
 }
 /* carousel */
-.car { margin-right: calc(50% - 50vw); margin-top: 8px; }
+.car { margin-right: 0; margin-top: 8px; }
 .car-h { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 calc(50vw - 50% + 13px) 0 13px; margin-bottom: 6px; }
 .car-h-l { display: flex; align-items: baseline; gap: 12px; min-width: 0; }
 .car .inv-t { font-size: 19px; }
@@ -405,9 +415,10 @@ html, body, #root { margin: 0; background: var(--surface-light-card); }
 .arrow-b { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--hair) !important; display: grid !important; place-items: center; background: var(--canvas) !important; color: var(--ink); }
 .arrow-b:hover:not(:disabled) { border-color: var(--ink) !important; }
 .arrow-b:disabled { opacity: .35; }
-.ss .car-track { display: flex; gap: var(--gap); overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-padding-left: 13px; padding: 2px 24px 6px 13px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.ss .car-track { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: var(--gap); overflow: visible; padding: 2px 0 24px; margin: 0; }
+.car-arrows { display: none; }
 .car-track::-webkit-scrollbar { display: none; }
-.car-track > li { flex: 0 0 var(--tile-w, 206px); scroll-snap-align: start; min-width: 0; }
+.car-track > li { min-width: 0; width: auto; }
 .car-tile .card-b { gap: 2px; padding: 8px 10px 10px; }
 .c-name-a { color: var(--ink); text-decoration: none; }
 .c-name-a:hover { text-decoration: underline; text-underline-offset: 2px; }
