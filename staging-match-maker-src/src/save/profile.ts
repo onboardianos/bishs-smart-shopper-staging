@@ -10,6 +10,7 @@ export type CustomerProfile = {
   email: string;
   phone: string;
   store: string;
+  zip?: string;
   consent: boolean;
   answers: Answers;
   pins: string[];

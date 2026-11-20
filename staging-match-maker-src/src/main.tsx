@@ -21,8 +21,12 @@ import { StepCamping, StepTradeNow, StepTradeWhy, StepCampStyle, StepActivities,
 import { App } from './results/App';
 import { CustomerPortal, PORTAL_STATES } from './save/v5portal';
 import { savePhaseFromUrl } from './save/SaveFlow';
+import { UnlockScreens } from './save/UnlockScreens';
+import { WelcomePage } from './save/WelcomePage';
+import { matchesUnlocked } from './save/matchesUnlock';
 import './save/save.css';
 import './save/v5.css';
+import './save/welcome.css';
 
 const q = new URLSearchParams(location.search);
 const screen = q.get('screen') || '00';
@@ -67,8 +71,13 @@ function Screen() {
   if (screen === 'summary') return <StepSummary />;
   if (screen === 'qload') return <QLoading />;
   if (screen === 'loading') return <Loading />;
+  if (state === 'welcome') return <WelcomePage />;
+  if (screen === 'unlock' || state === 'unlock' || savePhaseFromUrl()) return <UnlockScreens />;
   if (screen === 'portal' || (PORTAL_STATES as readonly string[]).includes(state || '')) return <CustomerPortal state={state || 'portal'} />;
-  if (state === 'results' || screen === 'results' || screen === 'matches' || savePhaseFromUrl()) return <App />;
+  if (state === 'results' || screen === 'results' || screen === 'matches') {
+    if (!matchesUnlocked()) return <UnlockScreens />;
+    return <App />;
+  }
   return <Landing query={q.get('q') || ''} locOpen={q.get('loc') === '1'} />;
 }
 

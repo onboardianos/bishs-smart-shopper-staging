@@ -1,0 +1,310 @@
+.ss-unlock-shell { min-height: 100dvh; background: var(--surface-light-page, #F7F6F1); }
+.ss-form-grid-unlock { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 640px) {
+  .ss-form-grid-unlock { grid-template-columns: 1fr; }
+}
+
+.pw {
+  min-height: 100dvh;
+  background: var(--surface-light-page, #F7F6F1);
+  color: var(--text-light-primary, #0A0A09);
+  padding-bottom: 48px;
+}
+.pw-nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-height: 81px;
+  padding: 10px 48px;
+  background: #fff;
+  border-bottom: 4px solid var(--accent-gold, #8B752E);
+}
+.pw-logo { display: block; flex: 0 0 auto; width: 134px; }
+.pw-logo img { display: block; width: 134px; height: auto; }
+.pw-nav-rule { width: 1px; height: 40px; background: rgba(0,0,0,0.15); flex: 0 0 auto; }
+.pw-nav-links { display: flex; align-items: center; gap: 4px; }
+.pw-nav-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 12px;
+  font-family: var(--font-ui, 'Barlow Condensed', sans-serif);
+  font-weight: 600;
+  font-size: 19px;
+  letter-spacing: 0.2px;
+  color: #0A0A09;
+  white-space: nowrap;
+}
+.pw-nav-spacer { flex: 1 1 auto; }
+.pw-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+}
+.pw-account {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-family: var(--font-ui, 'Barlow Condensed', sans-serif);
+  font-weight: 600;
+  font-size: 19px;
+}
+.pw-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #E8DFC4;
+  color: #0A0A09;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-ui, 'Barlow Condensed', sans-serif);
+  font-weight: 700;
+  font-size: 16px;
+}
+.pw-avatar-empty { background: #E8DFC4; }
+.pw-account-name { max-width: 12ch; overflow: hidden; text-overflow: ellipsis; }
+.is-inert { cursor: default; }
+
+.pw-hero-wrap { position: relative; background: var(--surface-light-page, #F7F6F1); }
+.pw-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(0, 1.35fr);
+  min-height: 401px;
+  background: #0A0A09;
+  color: #fff;
+  overflow: hidden;
+}
+.pw-hero-copy {
+  position: relative;
+  z-index: 2;
+  padding: 52px 48px 72px;
+  max-width: 520px;
+}
+.pw-hello {
+  margin: 0;
+  font-family: var(--font-display, 'Bebas Neue', sans-serif);
+  font-weight: 400;
+  font-size: 88px;
+  line-height: 0.95;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #fff;
+}
+.pw-lead {
+  margin: 14px 0 0;
+  font-family: var(--font-ui, 'Barlow Condensed', sans-serif);
+  font-weight: 400;
+  font-size: 32px;
+  line-height: 1.35;
+  color: #fff;
+}
+.pw-hero-art {
+  position: relative;
+  min-height: 401px;
+}
+.pw-hero-edge,
+.pw-hero-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+}
+.pw-hero-edge {
+  z-index: 0;
+  pointer-events: none;
+  object-fit: fill;
+}
+/* Figma gold shape fills the art frame; clip the photo to the diagonal so the wedge of gold shows on the left. */
+.pw-hero-photo {
+  z-index: 1;
+  object-fit: cover;
+  object-position: center 30%;
+  clip-path: polygon(22.07% 0, 100% 0, 100% 100%, 0.09% 100%);
+}
+
+.pw-cards {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: minmax(260px, 475px) minmax(0, 1fr);
+  gap: 20px;
+  padding: 0 48px;
+  margin-top: -72px;
+}
+.pw-card {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.04);
+  padding: 32px 24px 24px;
+}
+.pw-card-start { display: flex; flex-direction: column; align-items: center; text-align: center; min-height: 310px; }
+.pw-card-ria { position: relative; padding-top: 39px; }
+.pw-card-ria::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  top: -1px;
+  height: 6px;
+  background: var(--accent-gold, #8B752E);
+  border-radius: 12px 12px 0 0;
+}
+.pw-card-title {
+  margin: 0;
+  font-family: var(--font-display, 'Bebas Neue', sans-serif);
+  font-size: 38px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  line-height: 1;
+  color: #0A0A09;
+}
+.pw-card-lead {
+  margin: 12px 0 0;
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  font-size: 18px;
+  line-height: 1.5;
+  color: #3D3D38;
+}
+.pw-card-count {
+  margin: 8px 0 0;
+  font-family: var(--font-display, 'Bebas Neue', sans-serif);
+  font-weight: 400;
+  font-size: 88px;
+  line-height: 0.9;
+  letter-spacing: 1px;
+  color: #0A0A09;
+}
+.pw-gold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 68px;
+  min-width: 308px;
+  margin-top: auto;
+  padding: 0 24px;
+  background: var(--accent-gold, #8B752E);
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  font-family: var(--font-ui, 'Barlow Condensed', sans-serif);
+  font-weight: 600;
+  font-size: 24px;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.pw-gold:hover, .pw-gold:focus-visible { background: var(--accent-gold-lo, #5E4F1F); color: #fff; text-decoration: none; }
+.pw-gold-wide { width: min(100%, 420px); }
+.pw-card-start .pw-gold { margin-top: 32px; }
+
+.pw-ria {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 28px;
+  min-height: 56px;
+  padding: 6px 6px 6px 18px;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+}
+.pw-ria-spark { display: inline-flex; flex: 0 0 auto; }
+.pw-ria-input {
+  flex: 1 1 auto;
+  border: 0;
+  background: transparent;
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  font-size: 16px;
+  min-width: 0;
+}
+.pw-ria-input:disabled { color: #6B6B63; }
+.pw-ria-send {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: #0A0A09;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+.pw-ria-note {
+  margin: 10px 0 0;
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  font-size: 13px;
+  color: #6B6B63;
+}
+.pw-chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.pw-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 999px;
+  background: #fff;
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  font-weight: 600;
+  font-size: 15px;
+  color: #3D3D38;
+}
+.pw-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+.pw-tiles {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  padding: 32px 48px 0;
+}
+.pw-tile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  padding: 12px 20px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 8px;
+  box-shadow: 0 1px 1.5px rgba(0,0,0,0.1);
+  text-decoration: none;
+  color: #0A0A09;
+  font-family: var(--font-ui, 'Barlow Condensed', sans-serif);
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 1;
+}
+.pw-tile img { flex: 0 0 auto; }
+.pw-tile.is-inert { color: #0A0A09; cursor: default; }
+.pw-tile:not(.is-inert):hover { border-color: var(--accent-gold, #8B752E); }
+
+
+@media (max-width: 900px) {
+  .pw-nav { padding: 10px 20px; gap: 12px; }
+  .pw-nav-links { display: none; }
+  .pw-account-name { display: none; }
+  .pw-hero { grid-template-columns: 1fr; min-height: 0; }
+  .pw-hero-copy { padding: 32px 20px 24px; max-width: none; }
+  .pw-hello { font-size: 56px; }
+  .pw-lead { font-size: 24px; }
+  .pw-hero-art { min-height: 200px; }
+  .pw-hero-photo, .pw-hero-edge { width: 100%; height: 200px; object-fit: cover; object-position: center 30%; position: relative; inset: auto; display: block; }
+  .pw-hero-edge { display: none; }
+  .pw-cards { grid-template-columns: 1fr; margin-top: -24px; padding: 0 20px; }
+  .pw-card-start { min-height: 0; }
+  .pw-gold { width: 100%; min-width: 0; }
+  .pw-tiles { grid-template-columns: 1fr; padding: 24px 20px 0; }
+  .pw-card-count { font-size: 64px; }
+}
