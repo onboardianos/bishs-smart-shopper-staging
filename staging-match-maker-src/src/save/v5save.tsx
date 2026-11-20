@@ -1,5 +1,5 @@
 // Save Progress overlays (v5 frames). The store list still comes from the staging picker rules.
-import { useEffect, useState, type ClipboardEvent } from 'react';
+import { useEffect, useState, type ClipboardEvent, type FocusEvent, type KeyboardEvent } from 'react';
 import { loadAnswers } from '../answers';
 import { loadZips } from '../steps/inventory';
 import { confirmEmailLink, confirmSignInCode, resendSignInCode, signOutShopper, submitCustomerProfile, asSaveAuthError } from './submitProfile';
@@ -58,7 +58,7 @@ function writeFormMsg(net: boolean, msg: string) {
 
 function SaveForm({ phase, pins, saved, onPhase }: { phase: SavePhase; pins: string[]; saved: string[]; onPhase: (p: SavePhase) => void }) {
   const existing = loadProfile();
-  const held = readFormMsg();
+  const [held] = useState(() => readFormMsg());
   const [email, setEmail] = useState(existing?.email || '');
   const [zip, setZip] = useState(existing?.zip || loadStepZip() || '');
   const [store, setStore] = useState(existing?.store || '');
@@ -177,30 +177,70 @@ function SaveCode({ phase, onPhase }: { phase: SavePhase; onPhase: (p: SavePhase
     return () => clearInterval(t);
   }, []);
 
+  const codeIndex = (target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) return 0;
+    const m = /^sp-code-(\d)$/.exec(target.id);
+    return m ? Math.max(0, Math.min(5, Number(m[1]) - 1)) : 0;
+  };
+
+  const focusBox = (idx: number) => {
+    const el = document.getElementById(`sp-code-${Math.max(1, Math.min(6, idx + 1))}`);
+    if (el instanceof HTMLInputElement) el.focus();
+  };
+
   const setDigit = (i: number) => (v: string) => {
     const digits = v.replace(/\D/g, '');
-    if (digits.length > 1) {
-      const n = emptyCode();
-      digits.slice(0, 6).split('').forEach((ch, idx) => { n[idx] = ch; });
+    if (digits.length >= 3 || (digits.length === 2 && !d[i])) {
+      const start = digits.length >= 6 || i === 0 ? 0 : i;
+      const n = start === 0 ? emptyCode() : d.slice();
+      digits.slice(0, 6 - start).split('').forEach((ch, off) => { n[start + off] = ch; });
       setD(n);
       if (state === 'wrong') { setState(''); setMsg(''); }
+      focusBox(Math.min(5, start + digits.length));
       return;
     }
+    const ch = digits.length === 2 && d[i]
+      ? (digits[0] === d[i] ? digits[1] : digits[1] === d[i] ? digits[0] : digits.slice(-1))
+      : digits.slice(-1);
     const n = d.slice();
-    n[i] = digits.slice(-1);
+    n[i] = ch;
     setD(n);
     if (state === 'wrong') { setState(''); setMsg(''); }
-    if (digits && i < 5) document.getElementById(`sp-code-${i + 2}`)?.focus();
+    if (ch && i < 5) focusBox(i + 1);
   };
 
   const onPaste = (e: ClipboardEvent) => {
     const text = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
     if (text.length < 2) return;
     e.preventDefault();
-    const n = emptyCode();
-    text.split('').forEach((ch, idx) => { n[idx] = ch; });
+    const idx = codeIndex(e.target);
+    const start = text.length >= 6 || idx === 0 ? 0 : idx;
+    const n = start === 0 ? emptyCode() : d.slice();
+    text.slice(0, 6 - start).split('').forEach((ch, off) => { n[start + off] = ch; });
     setD(n);
     if (state === 'wrong') { setState(''); setMsg(''); }
+    focusBox(Math.min(5, start + text.length));
+  };
+
+  const onCodeKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    const idx = codeIndex(e.target);
+    if (e.key === 'Backspace' && !d[idx] && idx > 0) {
+      e.preventDefault();
+      const n = d.slice();
+      n[idx - 1] = '';
+      setD(n);
+      focusBox(idx - 1);
+    } else if (e.key === 'ArrowLeft' && idx > 0) {
+      e.preventDefault();
+      focusBox(idx - 1);
+    } else if (e.key === 'ArrowRight' && idx < 5) {
+      e.preventDefault();
+      focusBox(idx + 1);
+    }
+  };
+
+  const onCodeFocus = (e: FocusEvent<HTMLDivElement>) => {
+    if (e.target instanceof HTMLInputElement) e.target.select();
   };
 
   const verify = async () => {
@@ -269,7 +309,7 @@ function SaveCode({ phase, onPhase }: { phase: SavePhase; onPhase: (p: SavePhase
       {!locked && (
         <fieldset className="ss-code" aria-describedby={err ? 'code-msg' : undefined} onPaste={onPaste}>
           <legend className="ss-label">6-digit code</legend>
-          <div className="ss-code-row">{d.map((v, i) => <Field key={i} id={`sp-code-${i + 1}`} label="" ariaLabel={`Digit ${i + 1} of 6`} value={v} onChange={setDigit(i)} inputMode="numeric" autoComplete={i === 0 ? 'one-time-code' : 'off'} maxLength={i === 0 ? 6 : 1} />)}</div>
+          <div className="ss-code-row" onKeyDown={onCodeKeyDown} onFocusCapture={onCodeFocus}>{d.map((v, i) => <Field key={i} id={`sp-code-${i + 1}`} label="" ariaLabel={`Digit ${i + 1} of 6`} value={v} onChange={setDigit(i)} inputMode="numeric" pattern="[0-9]*" autoComplete={i === 0 ? 'one-time-code' : 'off'} maxLength={6} />)}</div>
           {err && <p id="code-msg" className="ss-err" role="alert" data-spec-id="info-code-error">{err}</p>}
         </fieldset>
       )}

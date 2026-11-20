@@ -1,3 +1,4 @@
+body:has(.pw), body:has(.ss-unlock-shell) { padding-top: 0 !important; }
 .ss-unlock-shell { min-height: 100dvh; background: var(--surface-light-page, #F7F6F1); }
 .ss-form-grid-unlock { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 @media (max-width: 640px) {
@@ -6,6 +7,8 @@
 
 .pw {
   min-height: 100dvh;
+  max-width: 100%;
+  overflow-x: clip;
   background: var(--surface-light-page, #F7F6F1);
   color: var(--text-light-primary, #0A0A09);
   padding-bottom: 48px;
@@ -139,6 +142,7 @@
   margin-top: -72px;
 }
 .pw-card {
+  min-width: 0;
   background: #fff;
   border: 1px solid rgba(0,0,0,0.15);
   border-radius: 12px;
@@ -230,6 +234,7 @@
 }
 .pw-ria-input:disabled { color: #6B6B63; }
 .pw-ria-send {
+  flex: 0 0 44px;
   width: 44px;
   height: 44px;
   border: 0;
@@ -292,19 +297,24 @@
 
 
 @media (max-width: 900px) {
-  .pw-nav { padding: 10px 20px; gap: 12px; }
+  .pw-nav { padding: 10px 16px; gap: 8px; }
+  .pw-logo { width: 112px; }
+  .pw-logo img { width: 112px; }
   .pw-nav-links { display: none; }
   .pw-account-name { display: none; }
   .pw-hero { grid-template-columns: 1fr; min-height: 0; }
-  .pw-hero-copy { padding: 32px 20px 24px; max-width: none; }
-  .pw-hello { font-size: 56px; }
+  .pw-hero-copy { padding: 32px 16px 24px; max-width: none; }
+  .pw-hello { font-size: clamp(40px, 12vw, 56px); overflow-wrap: anywhere; }
   .pw-lead { font-size: 24px; }
   .pw-hero-art { min-height: 200px; }
   .pw-hero-photo, .pw-hero-edge { width: 100%; height: 200px; object-fit: cover; object-position: center 30%; position: relative; inset: auto; display: block; }
   .pw-hero-edge { display: none; }
-  .pw-cards { grid-template-columns: 1fr; margin-top: -24px; padding: 0 20px; }
+  .pw-cards { grid-template-columns: 1fr; margin-top: -24px; padding: 0 16px; }
+  .pw-card { padding: 24px 18px 20px; }
   .pw-card-start { min-height: 0; }
   .pw-gold { width: 100%; min-width: 0; }
-  .pw-tiles { grid-template-columns: 1fr; padding: 24px 20px 0; }
+  .pw-chip { max-width: 100%; height: auto; padding: 8px 14px; line-height: 1.3; white-space: normal; }
+  .pw-tiles { grid-template-columns: 1fr; padding: 24px 16px 0; }
+  .pw-tile { min-width: 0; }
   .pw-card-count { font-size: 64px; }
 }
