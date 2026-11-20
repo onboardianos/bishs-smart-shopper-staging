@@ -120,17 +120,19 @@ export function Field({ id, label, value, onChange, error, helper, type = 'text'
   );
 }
 
-export function SelectField({ id, label, optional, value, onChange, options, group, disabled, placeholder = 'Choose…', hint, warn, children }: {
-  id: string; label: string; optional?: boolean; value: string; onChange: (v: string) => void; options: { code: string; label: string; miles?: number }[]; group?: string; disabled?: boolean; placeholder?: string; hint?: string; warn?: boolean; children?: ReactNode;
+export function SelectField({ id, label, optional, value, onChange, options, group, disabled, placeholder = 'Choose…', hint, warn, error, children }: {
+  id: string; label: string; optional?: boolean; value: string; onChange: (v: string) => void; options: { code: string; label: string; miles?: number }[]; group?: string; disabled?: boolean; placeholder?: string; hint?: string; warn?: boolean; error?: string | null; children?: ReactNode;
 }) {
+  const described = [hint ? `${id}-hint` : '', error ? `${id}-msg` : ''].filter(Boolean).join(' ') || undefined;
   return (
     <div className="ss-field">
       <label className="ss-label" htmlFor={id}>{label}{optional && <span className="ss-opt"> (optional)</span>}</label>
-      <select id={id} className="ss-select" data-spec-id={`input-${slug(id)}`} data-bos-class="input" value={value} disabled={disabled} aria-describedby={hint ? `${id}-hint` : undefined} onChange={(e) => onChange(e.target.value)}>
+      <select id={id} className="ss-select" data-spec-id={`input-${slug(id)}`} data-bos-class="input" value={value} disabled={disabled} aria-invalid={error ? 'true' : undefined} aria-describedby={described} onChange={(e) => onChange(e.target.value)}>
         <option value="">{placeholder}</option>
         {group ? <optgroup label={group}>{options.map((o) => <option key={o.code} value={o.code} data-miles={o.miles != null ? o.miles.toFixed(2) : undefined}>{o.label}</option>)}</optgroup> : options.map((o) => <option key={o.code} value={o.code}>{o.label}</option>)}
       </select>
       {hint && <p id={`${id}-hint`} className={`ss-hint${warn ? ' is-warn' : ''}`} data-spec-id={`info-${slug(id)}-hint`}>{warn && <VIcon name="circle-alert" size={16} />}<span>{hint}</span></p>}
+      {error && <p id={`${id}-msg`} className="ss-err" role="alert" data-spec-id={`info-${slug(id)}-error`}>{error}</p>}
       {children}
     </div>
   );

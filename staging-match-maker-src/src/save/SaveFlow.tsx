@@ -4,7 +4,7 @@ import { Action, VIcon } from './v5ui';
 import { V5Save } from './v5save';
 
 export const SAVE_PHASES = [
-  'save', 'save-error', 'save-loading', 'save-network-error', 'save-code', 'save-code-wrong', 'save-code-expired',
+  'save', 'save-error', 'save-loading', 'save-network-error', 'save-code', 'save-code-wrong', 'save-code-expired', 'save-link',
   'save-merge', 'save-success', 'save-ip', 'save-ip-failed', 'save-zip-invalid', 'save-zip-state', 'save-tie',
 ] as const;
 export type SavePhase = '' | (typeof SAVE_PHASES)[number];

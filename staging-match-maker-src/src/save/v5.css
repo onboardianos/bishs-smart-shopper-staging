@@ -81,7 +81,7 @@ body.is-portal #root { min-height: 100dvh; height: 100dvh; }
 .ss-progress { height: 8px; border-radius: var(--radius-full); background: var(--surface-light-inset); overflow: hidden; }
 .ss-progress span { display: block; height: 100%; background: var(--text-light-primary); }
 .ss-code { border: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.ss-code-row { display: grid; grid-template-columns: repeat(4, minmax(44px, 64px)); gap: 12px; }
+.ss-code-row { display: grid; grid-template-columns: repeat(6, minmax(36px, 52px)); gap: 8px; }
 .ss-ok { color: var(--semantic-success-dark); }
 
 /* public header (custom block, D-01) */

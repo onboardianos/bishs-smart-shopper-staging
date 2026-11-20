@@ -1,9 +1,11 @@
 // Save Progress overlays (v5 frames). The store list still comes from the staging picker rules.
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ClipboardEvent } from 'react';
 import { loadAnswers } from '../answers';
 import { loadZips } from '../steps/inventory';
-import { confirmSignInCode, submitCustomerProfile } from './submitProfile';
+import { confirmEmailLink, confirmSignInCode, resendSignInCode, signOutShopper, submitCustomerProfile, asSaveAuthError } from './submitProfile';
 import { loadProfile } from './profile';
+import { hasConfirmableLink, parseLinkParams } from './linkParams';
+import { MAX_WRONG_TRIES, recordWrongTry, resendWaitSeconds, triesLocked } from './otpTiming';
 import {
   SAVE_STORES, SHORT_LIST_HINT, SHORT_STORES, STORE_STATES, loadStepZip, pickerModeFor, storesInState, type NearStore,
 } from './stores';
@@ -105,6 +107,7 @@ function useStorePick(phase: SavePhase) {
 export function V5Save({ phase, pins, saved, onPhase }: { phase: SavePhase; pins: string[]; saved: string[]; onPhase: (p: SavePhase) => void }) {
   if (!phase) return null;
   if (phase === 'save-loading') return <SaveLoading />;
+  if (phase === 'save-link') return <SaveLink onPhase={onPhase} />;
   if (phase === 'save-code' || phase === 'save-code-wrong' || phase === 'save-code-expired') return <SaveCode phase={phase} onPhase={onPhase} />;
   if (phase === 'save-merge') return <SaveMerge onPhase={onPhase} />;
   if (phase === 'save-success') return <SaveSuccess onPhase={onPhase} />;
@@ -129,24 +132,48 @@ function go(phase: SavePhase, onPhase: (p: SavePhase) => void) {
   onPhase(phase);
 }
 
+const FORM_MSG_KEY = 'ss-save-form-msg';
+
+function readFormMsg(): { net: boolean; msg: string } {
+  try {
+    const raw = sessionStorage.getItem(FORM_MSG_KEY);
+    if (!raw) return { net: false, msg: '' };
+    sessionStorage.removeItem(FORM_MSG_KEY);
+    const parsed = JSON.parse(raw) as { net?: boolean; msg?: string };
+    return { net: Boolean(parsed.net), msg: String(parsed.msg || '') };
+  } catch {
+    return { net: false, msg: '' };
+  }
+}
+
+function writeFormMsg(net: boolean, msg: string) {
+  sessionStorage.setItem(FORM_MSG_KEY, JSON.stringify({ net, msg }));
+}
+
 function SaveForm({ phase, pins, saved, onPhase }: { phase: SavePhase; pins: string[]; saved: string[]; onPhase: (p: SavePhase) => void }) {
+  const existing = phase === 'save-error' || phase === 'save-network-error' ? null : loadProfile();
   const preset = phase === 'save-error'
     ? { first: 'Robert', last: 'Jackson', email: 'robert.jackson@exa', phone: '208555', consent: false }
     : phase === 'save-network-error'
       ? { first: CUSTOMER.first, last: CUSTOMER.last, email: CUSTOMER.email, phone: CUSTOMER.phone, consent: true }
-      : { first: '', last: '', email: '', phone: '', consent: false };
+      : existing
+        ? { first: existing.firstName, last: existing.lastName, email: existing.email, phone: existing.phone, consent: existing.consent }
+        : { first: '', last: '', email: '', phone: '', consent: false };
+  const held = phase === 'save-error' || phase === 'save-network-error' ? { net: phase === 'save-network-error', msg: '' } : readFormMsg();
   const [f, setF] = useState(preset);
   const [touched, setTouched] = useState(phase === 'save-error');
-  const [store, setStore] = useState('');
-  const [net, setNet] = useState(phase === 'save-network-error');
+  const [store, setStore] = useState(existing?.store || '');
+  const [net, setNet] = useState(held.net);
   const [busy, setBusy] = useState(false);
   const pick = useStorePick(phase);
   const set = (k: keyof typeof f) => (v: string | boolean) => setF((x) => ({ ...x, [k]: v }));
+  const [formMsg, setFormMsg] = useState(held.msg);
   const errs = {
     first: !f.first.trim() && 'Enter your first name.',
     last: !f.last.trim() && 'Enter your last name.',
     email: !f.email.trim() ? 'Enter your email.' : !emailOk(f.email) && 'That email looks incomplete. Try name@example.com.',
     phone: !phoneOk(f.phone) && 'Enter a 10-digit mobile number.',
+    store: !store && 'Choose a preferred store.',
     consent: !f.consent && 'Check this box so we can send your sign-in code.',
   };
   const nErr = Object.values(errs).filter(Boolean).length;
@@ -156,18 +183,29 @@ function SaveForm({ phase, pins, saved, onPhase }: { phase: SavePhase; pins: str
   const submit = async () => {
     if (!valid) { setTouched(true); return; }
     setNet(false);
+    setFormMsg('');
     setBusy(true);
     go('save-loading', onPhase);
-    await submitCustomerProfile({
-      firstName: f.first.trim(), lastName: f.last.trim(), email: f.email.trim(), phone: f.phone.trim(),
-      store, consent: f.consent, answers: loadAnswers(), pins, saved,
-    });
-    go('save-code', onPhase);
+    try {
+      await submitCustomerProfile({
+        firstName: f.first.trim(), lastName: f.last.trim(), email: f.email.trim(), phone: f.phone.trim(),
+        store, consent: f.consent, answers: loadAnswers(), pins, saved,
+      });
+      go('save-code', onPhase);
+    } catch (err) {
+      const e = asSaveAuthError(err);
+      const isNet = e.code !== 'rate_limited' && e.code !== 'store';
+      writeFormMsg(isNet, e.message);
+      setBusy(false);
+      if (e.code === 'rate_limited') setFormMsg(e.message);
+      else { setNet(true); setFormMsg(e.message); }
+      go('save', onPhase);
+    }
   };
   return (
     <Dialog frame="frame-save-progress" overline="Save Progress" title="Create your customer profile" onClose={() => closeToResults(onPhase)} closeLabel="Close Save Progress"
       bar={<>
-        {!valid && <p id="save-reason" className="ss-reason" data-spec-id="info-save-reason">Add your first name, last name and email, and check the box, to save.</p>}
+        {!valid && <p id="save-reason" className="ss-reason" data-spec-id="info-save-reason">Add your first name, last name, email, and a preferred store, and check the box, to save.</p>}
         <div className="ss-bar-btns">
           <Commit specId="btn-commit-save-progress" perm="profile.create" target="frame-save-progress-loading" disabled={!valid || busy} reason="save-reason" onClick={submit}>{net ? 'Try again' : 'Save my progress'}</Commit>
           <Action specId="btn-action-not-now" quiet onClick={() => closeToResults(onPhase)}>Not now</Action>
@@ -175,7 +213,8 @@ function SaveForm({ phase, pins, saved, onPhase }: { phase: SavePhase; pins: str
       </>}>
       <p className="ss-body">We'll keep your Smart Shopper answers, your top three, and any RVs you saved. We'll email you a sign-in code — no password to make up.</p>
       <Tag kind="pdb" q="Q3" id="code-first">code first, link fallback</Tag>
-      {net && <Banner specId="info-save-network-error" icon="wifi-off" title="Your progress isn't saved yet.">The connection dropped before your profile was created. Your answers are still here. Check your connection, then try again.<br /><Tag kind="rule" q="Q34" id="network-retry">retry policy + offline copy</Tag></Banner>}
+      {net && <Banner specId="info-save-network-error" icon="wifi-off" title="Your progress isn't saved yet.">{formMsg || "The connection dropped before your profile was created. Your answers are still here. Check your connection, then try again."}<br /><Tag kind="rule" q="Q34" id="network-retry">retry policy + offline copy</Tag></Banner>}
+      {!net && formMsg && <Banner specId="info-save-send-error" title="We couldn't send a code just now.">{formMsg}</Banner>}
       {touched && nErr > 0 && <Banner specId="info-save-error-summary" title={`Fix ${nErr} ${nErr === 1 ? 'thing' : 'things'} to continue.`} />}
       <dl className="ss-kept" data-spec-id="list-kept-items">
         <div><dt>Smart Shopper answers</dt><dd>Kept</dd></div>
@@ -186,7 +225,7 @@ function SaveForm({ phase, pins, saved, onPhase }: { phase: SavePhase; pins: str
       <div className="ss-form-grid">
         <Field id="sp-first" label="First name" value={f.first} onChange={set('first') as (v: string) => void} error={show('first')} autoComplete="given-name" required />
         <Field id="sp-last" label="Last name" value={f.last} onChange={set('last') as (v: string) => void} error={show('last')} autoComplete="family-name" required />
-        <Field id="sp-email" label="Email" type="email" value={f.email} onChange={set('email') as (v: string) => void} error={show('email')} helper="We'll send a 4-digit sign-in code here." autoComplete="email" inputMode="email" required />
+        <Field id="sp-email" label="Email" type="email" value={f.email} onChange={set('email') as (v: string) => void} error={show('email')} helper="We'll send a 6-digit sign-in code here." autoComplete="email" inputMode="email" required />
         <Field id="sp-phone" label="Mobile phone" type="tel" value={f.phone} onChange={set('phone') as (v: string) => void} error={show('phone')} helper="Optional." autoComplete="tel" inputMode="tel" />
       </div>
       <Tag kind="rule" q="Q24" id="sms-code">text the code too?</Tag>
@@ -195,7 +234,7 @@ function SaveForm({ phase, pins, saved, onPhase }: { phase: SavePhase; pins: str
           <SelectField id="sp-field-state" label="State" value={pick.stateCode} placeholder="Choose a state" options={STORE_STATES.map((s) => ({ code: s.code, label: s.name }))}
             onChange={(v) => { setStore(''); pick.setAll(false); pick.setStateCode(v); }} />
         )}
-        <SelectField id="sp-field-store" label="Preferred store" optional value={store} onChange={setStore} group={pick.group} options={pick.options} disabled={pick.disabled}
+        <SelectField id="sp-field-store" label="Preferred store" value={store} onChange={setStore} group={pick.group} options={pick.options} disabled={pick.disabled} error={show('store')}
           placeholder={pick.disabled ? 'Choose a state first' : 'Choose a store'} hint={pick.hint} warn={pick.warn}>
           {!pick.all && !pick.stateNeeded && <div className="ss-inline"><Action specId="btn-action-show-all-stores" quiet onClick={() => { setStore(''); pick.setAll(true); }}>Show all stores</Action></div>}
           <div className="ss-tags">
@@ -226,50 +265,160 @@ function SaveLoading() {
   );
 }
 
+function emptyCode() { return ['', '', '', '', '', '']; }
+
 function SaveCode({ phase, onPhase }: { phase: SavePhase; onPhase: (p: SavePhase) => void }) {
   const wrong = phase === 'save-code-wrong';
-  const expired = phase === 'save-code-expired';
-  const [d, setD] = useState(wrong ? ['4', '8', '2', '1'] : ['', '', '', '']);
-  const [state, setState] = useState(wrong ? 'wrong' : expired ? 'expired' : '');
+  const expiredPreset = phase === 'save-code-expired';
+  const [d, setD] = useState(wrong ? ['4', '8', '2', '1', '0', '0'] : emptyCode());
+  const [state, setState] = useState<'wrong' | 'expired' | 'locked' | 'rate' | ''>(wrong ? 'wrong' : expiredPreset ? 'expired' : triesLocked() ? 'locked' : '');
+  const [msg, setMsg] = useState(wrong ? "That code doesn't match. Check the newest email from Bish's RV and try again." : '');
+  const [busy, setBusy] = useState(false);
+  const [wait, setWait] = useState(resendWaitSeconds());
   const profile = loadProfile();
   const email = profile?.email || CUSTOMER.email;
-  const phone = profile?.phone || CUSTOMER.phone;
   const full = d.every((x) => /^\d$/.test(x));
+
+  useEffect(() => {
+    const t = setInterval(() => setWait(resendWaitSeconds()), 500);
+    return () => clearInterval(t);
+  }, []);
+
   const setDigit = (i: number) => (v: string) => {
+    const digits = v.replace(/\D/g, '');
+    if (digits.length > 1) {
+      const n = emptyCode();
+      digits.slice(0, 6).split('').forEach((ch, idx) => { n[idx] = ch; });
+      setD(n);
+      if (state === 'wrong') { setState(''); setMsg(''); }
+      return;
+    }
     const n = d.slice();
-    n[i] = v.replace(/\D/g, '').slice(-1);
+    n[i] = digits.slice(-1);
     setD(n);
-    if (state === 'wrong') setState('');
+    if (state === 'wrong') { setState(''); setMsg(''); }
+    if (digits && i < 5) document.getElementById(`sp-code-${i + 2}`)?.focus();
   };
-  const err = state === 'wrong' ? "That code doesn't match. Check the newest email from Bish's RV and try again." : null;
-  const verify = () => {
-    if (confirmSignInCode(d.join(''))) go('save-merge', onPhase);
-    else setState('wrong');
+
+  const onPaste = (e: ClipboardEvent) => {
+    const text = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (text.length < 2) return;
+    e.preventDefault();
+    const n = emptyCode();
+    text.split('').forEach((ch, idx) => { n[idx] = ch; });
+    setD(n);
+    if (state === 'wrong') { setState(''); setMsg(''); }
   };
+
+  const verify = async () => {
+    if (!full || busy) return;
+    if (triesLocked()) { setState('locked'); return; }
+    setBusy(true);
+    setMsg('');
+    try {
+      const result = await confirmSignInCode(d.join(''));
+      if (result.merged) go('save-merge', onPhase);
+      else go('save-success', onPhase);
+    } catch (err) {
+      const e = asSaveAuthError(err);
+      if (e.code === 'expired') { setState('expired'); setMsg(e.message); }
+      else if (e.code === 'rate_limited') { setState('rate'); setMsg(e.message); }
+      else {
+        const n = recordWrongTry();
+        if (n >= MAX_WRONG_TRIES) setState('locked');
+        else { setState('wrong'); setMsg(e.message); }
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const resend = async () => {
+    if (wait > 0 || busy) return;
+    setBusy(true);
+    setMsg('');
+    try {
+      await resendSignInCode(email);
+      setState('');
+      setD(emptyCode());
+      setWait(resendWaitSeconds());
+    } catch (err) {
+      const e = asSaveAuthError(err);
+      if (e.code === 'rate_limited') setState('rate');
+      else if (e.code === 'expired') setState('expired');
+      setMsg(e.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const locked = state === 'locked' || state === 'expired';
+  const title = state === 'expired' ? 'This code expired' : state === 'locked' ? "That's 5 tries" : 'Enter your sign-in code';
+  const err = state === 'wrong' ? (msg || "That code doesn't match. Check the newest email from Bish's RV and try again.") : null;
+
   return (
-    <Dialog frame="frame-save-progress-code" overline="Save Progress" title={state === 'expired' ? 'This code expired' : 'Enter your sign-in code'} onClose={() => closeToResults(onPhase)} closeLabel="Close Save Progress"
+    <Dialog frame="frame-save-progress-code" overline="Save Progress" title={title} onClose={() => closeToResults(onPhase)} closeLabel="Close Save Progress"
       bar={<>
-        {state !== 'expired' && !full && <p id="code-reason" className="ss-reason" data-spec-id="info-code-reason">Enter all 4 digits to continue.</p>}
+        {!locked && !full && <p id="code-reason" className="ss-reason" data-spec-id="info-code-reason">Enter all 6 digits to continue.</p>}
         <div className="ss-bar-btns">
-          {state === 'expired'
-            ? <Commit specId="btn-commit-send-new-code" perm="session.verify" target="frame-save-progress-code" onClick={() => { setState(''); setD(['', '', '', '']); go('save-code', onPhase); }}>Send a new code</Commit>
-            : <Commit specId="btn-commit-verify-code" perm="session.verify" target="frame-save-progress-merge" disabled={!full} reason="code-reason" onClick={verify}>Verify and save</Commit>}
-          <Action specId="btn-action-use-email-link" quiet target="external:magic-link email" onClick={() => go('save-merge', onPhase)}>Or use the link we emailed</Action>
-          {state !== 'expired' && <Action specId="btn-action-resend-code" quiet onClick={() => { setState(''); setD(['', '', '', '']); }}>Resend code</Action>}
+          {locked
+            ? <Commit specId="btn-commit-send-new-code" perm="session.verify" target="frame-save-progress-code" disabled={busy || wait > 0} onClick={resend}>{wait > 0 ? `Send a new code in ${wait}s` : 'Send a new code'}</Commit>
+            : <Commit specId="btn-commit-verify-code" perm="session.verify" target="frame-save-progress-merge" disabled={!full || busy} reason="code-reason" onClick={verify}>{busy ? 'Verifying…' : 'Verify and save'}</Commit>}
+          {!locked && <Action specId="btn-action-resend-code" quiet disabled={busy || wait > 0} onClick={resend}>{wait > 0 ? `Resend code in ${wait}s` : 'Resend code'}</Action>}
         </div>
       </>}>
       {state === 'expired'
-        ? <Banner tone="warning" icon="clock" specId="info-code-expired" title="Send a new code to keep going.">Your answers and top three are still here. The new code goes to {email}.</Banner>
-        : <p className="ss-body">We sent a 4-digit code to <b data-example="true">{email}</b> and <b data-example="true">{phone}</b>.</p>}
-      {state !== 'expired' && (
-        <fieldset className="ss-code" aria-describedby={err ? 'code-msg' : undefined}>
-          <legend className="ss-label">4-digit code</legend>
-          <div className="ss-code-row">{d.map((v, i) => <Field key={i} id={`sp-code-${i + 1}`} label="" ariaLabel={`Digit ${i + 1} of 4`} value={v} onChange={setDigit(i)} inputMode="numeric" autoComplete={i === 0 ? 'one-time-code' : 'off'} maxLength={1} />)}</div>
+        ? <Banner tone="warning" icon="clock" specId="info-code-expired" title="Send a new code to keep going.">Your answers and top three are still here. The new code goes to {email}. {msg}</Banner>
+        : state === 'locked'
+          ? <Banner tone="warning" icon="clock" specId="info-code-locked" title="That's 5 tries. Send a new code to keep going.">Your answers and top three are still here. The new code goes to {email}.</Banner>
+          : state === 'rate'
+            ? <Banner tone="warning" icon="clock" specId="info-code-rate" title="Please wait before sending another code.">{msg || "We've sent several codes already. Wait a minute, then try again."}</Banner>
+            : <p className="ss-body">We sent a 6-digit code to <b data-example="true">{email}</b>.</p>}
+      {!locked && (
+        <fieldset className="ss-code" aria-describedby={err ? 'code-msg' : undefined} onPaste={onPaste}>
+          <legend className="ss-label">6-digit code</legend>
+          <div className="ss-code-row">{d.map((v, i) => <Field key={i} id={`sp-code-${i + 1}`} label="" ariaLabel={`Digit ${i + 1} of 6`} value={v} onChange={setDigit(i)} inputMode="numeric" autoComplete={i === 0 ? 'one-time-code' : 'off'} maxLength={i === 0 ? 6 : 1} />)}</div>
           {err && <p id="code-msg" className="ss-err" role="alert" data-spec-id="info-code-error">{err}</p>}
         </fieldset>
       )}
-      <p className="ss-fine" data-spec-id="info-code-expiry-placeholder">Code and link expiry go here.</p>
+      <p className="ss-fine" data-spec-id="info-code-expiry">This code works for 10 minutes. You can request a new one after 60 seconds. After 5 wrong tries, we'll ask you to send a new code. Or open the email and tap Sign in to Bish's — that link only works after you confirm on the next screen, so a mail scanner can't use it up.</p>
       <Tag kind="rule" q="Q3" id="code-expiry">code + link expiry, resend limit, attempt limit</Tag>
+    </Dialog>
+  );
+}
+
+function SaveLink({ onPhase }: { onPhase: (p: SavePhase) => void }) {
+  const params = parseLinkParams(location.search, location.hash);
+  const ready = hasConfirmableLink(params);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const confirm = async () => {
+    if (!ready) { setErr('This sign-in link is missing details. Request a new code from Save Progress.'); return; }
+    setBusy(true);
+    setErr('');
+    try {
+      const result = await confirmEmailLink(params.tokenHash, params.type);
+      if (result.signedInOnly) {
+        location.href = `${location.pathname}?state=portal`;
+        return;
+      }
+      if (result.merged) go('save-merge', onPhase);
+      else go('save-success', onPhase);
+    } catch (e) {
+      setErr(asSaveAuthError(e).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Dialog frame="frame-save-progress-link" overline="Save Progress" title="Sign in to Bish's" onClose={() => closeToResults(onPhase)} closeLabel="Close Save Progress"
+      bar={<div className="ss-bar-btns">
+        <Commit specId="btn-commit-confirm-email-link" perm="session.verify" target="frame-save-progress-success" disabled={busy} onClick={confirm}>{busy ? 'Signing in…' : "Sign in to Bish's"}</Commit>
+        <Action specId="btn-action-link-not-now" quiet onClick={() => closeToResults(onPhase)}>Not now</Action>
+      </div>}>
+      <p className="ss-body">This confirms it's you. We won't sign you in until you tap the button — that way a mail scanner can't use up your link.</p>
+      {err && <Banner specId="info-save-link-error" title="We couldn't sign you in.">{err}</Banner>}
+      {!ready && <Banner tone="warning" specId="info-save-link-missing" title="This link is missing its sign-in details.">Request a new code from Save Progress, then use the newest email from Bish's RV.</Banner>}
     </Dialog>
   );
 }
@@ -278,7 +427,7 @@ function SaveMerge({ onPhase }: { onPhase: (p: SavePhase) => void }) {
   const email = loadProfile()?.email || CUSTOMER.email;
   return (
     <Dialog frame="frame-save-progress-merge" overline="Save Progress" title="We found your profile" onClose={() => closeToResults(onPhase)} closeLabel="Close Save Progress"
-      bar={<div className="ss-bar-btns"><Commit specId="btn-commit-add-search" perm="profile.merge" target="frame-save-progress-success" onClick={() => go('save-success', onPhase)}>Add this search</Commit><Action specId="btn-action-not-me" quiet target="needs-rule:Q22" onClick={() => go('save', onPhase)}>This isn't me</Action></div>}>
+      bar={<div className="ss-bar-btns"><Commit specId="btn-commit-add-search" perm="profile.merge" target="frame-save-progress-success" onClick={() => go('save-success', onPhase)}>Add this search</Commit><Action specId="btn-action-not-me" quiet target="needs-rule:Q22" onClick={() => { void signOutShopper(); go('save', onPhase); }}>This isn't me</Action></div>}>
       <p className="ss-body">We'll add this search to it. Your Smart Shopper answers, top three, and saved RVs will join the ones already in <b data-example="true">{email}</b>'s portal.</p>
       <Tag kind="pdb" q="Q7" id="merge">existing email merges</Tag>
       <dl className="ss-kept" data-spec-id="list-merge-items">
