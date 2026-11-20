@@ -41,8 +41,12 @@ function Attrs({ set, sel = 'button,input,select,textarea,a', children }: { set:
     const el = ref.current?.querySelector(sel);
     if (!el) return;
     Object.entries(set).forEach(([k, v]) => {
-      if (v == null || v === false) el.removeAttribute(k);
-      else el.setAttribute(k, v === true ? '' : String(v));
+      if (v == null || v === false) {
+        if (el.hasAttribute(k)) el.removeAttribute(k);
+      } else {
+        const val = v === true ? '' : String(v);
+        if (el.getAttribute(k) !== val) el.setAttribute(k, val);
+      }
     });
   });
   return <span ref={ref} className="ss-contents">{children}</span>;
@@ -106,14 +110,14 @@ export function IconButton({ specId, label, icon, onClick }: { specId: string; l
   );
 }
 
-export function Field({ id, label, value, onChange, error, helper, type = 'text', autoComplete, inputMode, maxLength, required, placeholder, ariaLabel }: {
-  id: string; label: string; value: string; onChange: (v: string) => void; error?: string | null; helper?: string; type?: string; autoComplete?: string; inputMode?: string; maxLength?: number; required?: boolean; placeholder?: string; ariaLabel?: string;
+export function Field({ id, label, value, onChange, error, helper, type = 'text', autoComplete, inputMode, pattern, maxLength, required, placeholder, ariaLabel }: {
+  id: string; label: string; value: string; onChange: (v: string) => void; error?: string | null; helper?: string; type?: string; autoComplete?: string; inputMode?: string; pattern?: string; maxLength?: number; required?: boolean; placeholder?: string; ariaLabel?: string;
 }) {
   const NS = ds();
   const msg = error || helper ? `${id}-msg` : null;
   return (
     <div className="ss-field" data-field={id}>
-      <Attrs sel="input" set={{ id, type, autocomplete: autoComplete || null, inputmode: inputMode || null, maxlength: maxLength != null ? String(maxLength) : null, 'aria-label': ariaLabel || label, 'aria-invalid': error ? 'true' : null, 'aria-describedby': msg, 'aria-required': required ? 'true' : null, 'data-bos-class': 'input' }}>
+      <Attrs sel="input" set={{ id, type, autocomplete: autoComplete || null, inputmode: inputMode || null, pattern: pattern || null, maxlength: maxLength != null ? String(maxLength) : null, 'aria-label': ariaLabel || label, 'aria-invalid': error ? 'true' : null, 'aria-describedby': msg, 'aria-required': required ? 'true' : null, 'data-bos-class': 'input' }}>
         <NS.Input theme="light" label={label} value={value} onChange={onChange} error={error || undefined} helper={helper} placeholder={placeholder} specId={`input-${slug(id)}`} />
       </Attrs>
     </div>
@@ -155,6 +159,8 @@ export function Dialog({ frame, overline, title, onClose, closeLabel = 'Close', 
 }) {
   const tid = `${frame}-title`;
   const ref = useRef<HTMLElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   useEffect(() => {
     const prevBody = document.body.style.overflow;
     const prevHtml = document.documentElement.style.overflow;
@@ -163,7 +169,7 @@ export function Dialog({ frame, overline, title, onClose, closeLabel = 'Close', 
     document.body.classList.add('sp-lock');
     const el = ref.current?.querySelector('h2');
     if (el instanceof HTMLElement) el.focus({ preventScroll: true });
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && onClose) onClose(); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onCloseRef.current?.(); };
     addEventListener('keydown', onKey);
     return () => {
       document.body.style.overflow = prevBody;
@@ -171,7 +177,7 @@ export function Dialog({ frame, overline, title, onClose, closeLabel = 'Close', 
       document.body.classList.remove('sp-lock');
       removeEventListener('keydown', onKey);
     };
-  }, [frame, onClose]);
+  }, [frame]);
   const node = (
     <div className="ss-app ss-modal-root">
       <div className="ss-modal">

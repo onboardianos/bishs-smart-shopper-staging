@@ -2,7 +2,8 @@
 
 /* Global reset the DS bundle does not provide. Stops 100% + padding from overflowing the phone. */
 *, *::before, *::after { box-sizing: border-box; }
-html, body { margin: 0; max-width: 100%; }
+html, body { margin: 0; max-width: 100%; overflow-x: clip; }
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea, .sel .sel-in, .sel-sm .sel-in { font-size: 16px !important; }
 img, svg, video { max-width: 100%; }
 body.kb-open .ssw-act, body.kb-open .sh { position: static; }
 
@@ -47,7 +48,7 @@ body.kb-open .ssw-act, body.kb-open .sh { position: static; }
   .ld-cta, #s-summary-submit, #s04-garage-continue, .gl-actions .v1-commit { width: 100%; max-width: 100%; }
   .ssw-prev-t { position: static; width: auto; height: auto; overflow: visible; clip: auto; white-space: nowrap; font-size: 13px; letter-spacing: .3px; }
   .ld-cta.btn-lg, .ssw-cta.btn-lg, .btn-lg { font-size: 16px; letter-spacing: 1px; }
-  input, select, textarea { font-size: 16px; }
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea, .sel .sel-in, .sel-sm .sel-in { font-size: 16px !important; }
   .ld-foot { white-space: normal; text-align: center; letter-spacing: 2px; flex-wrap: wrap; justify-content: center; }
   .ld-trailer { width: 100% !important; max-width: 100% !important; max-height: 160px; height: auto; object-fit: contain; }
   .ld, .ld-main, .ssw, .ss, .pg, .sl-card, .sl-main { min-width: 0; max-width: 100%; }
