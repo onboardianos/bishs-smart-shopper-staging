@@ -1,5 +1,5 @@
 // Saved customer profile, kept in this browser only.
-// submitCustomerProfile() in submitProfile.ts is the only writer. A real backend replaces that function.
+// submitCustomerProfile() in submitProfile.ts is the only writer. A verified session then calls ss_save_progress.
 import type { Answers } from '../answers';
 
 export const PROFILE_KEY = 'ss-customer-profile-v1';
@@ -10,6 +10,7 @@ export type CustomerProfile = {
   email: string;
   phone: string;
   store: string;
+  zip?: string;
   consent: boolean;
   answers: Answers;
   pins: string[];

@@ -4,6 +4,7 @@ import { SiteHeader } from './SiteHeader';
 import { navigate } from '../answers';
 import { findLiveUnit, snapshotMeta } from '../liveRank';
 import { lengthFt, money, prettyClass, storeName, storesFromUrl, unitImg } from './inventory';
+import { markSmartShopperCompleted, matchesUnlocked, setPendingMatchesUrl } from '../save/matchesUnlock';
 
 // Known-unit loading screen. Shown after a landing search suggestion is picked.
 // The header sits outside this stage (sticky, full width). The card is centered in the space under it.
@@ -31,7 +32,15 @@ export function Loading() {
     const next = found
       ? `?screen=matches&unit=${encodeURIComponent(found.stock)}${storeQ}`
       : `?screen=00&q=${encodeURIComponent(stock)}`;
-    const t3 = window.setTimeout(() => { navigate(next); }, DURATION);
+    const t3 = window.setTimeout(() => {
+      if (found) markSmartShopperCompleted();
+      if (found && !matchesUnlocked()) {
+        setPendingMatchesUrl(next);
+        navigate('?screen=unlock');
+      } else {
+        navigate(next);
+      }
+    }, DURATION);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [frozen, storeQ, stock]);
 

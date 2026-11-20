@@ -436,6 +436,7 @@ html, body, #root { margin: 0; background: var(--surface-light-card); }
 .tthumb { width: 84px; height: 48px; border-radius: 6px; background: var(--bed); display: grid; place-items: center; overflow: hidden; border: 1px solid var(--hair-soft); }
 .tthumb img { width: 92%; height: 80%; object-fit: contain; }
 .score { display: inline-grid; place-items: center; min-width: 42px; height: 32px; border: 1px solid var(--hair); border-radius: 6px; font-weight: 700; font-size: 15px; background: var(--canvas); }
+.ph-media .score-on-photo { position: absolute; left: 8px; bottom: 8px; z-index: 1; box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 16%, transparent); }
 .td-unit { position: relative; }
 .t-name { display: block; font-weight: 700; font-size: 15px; color: var(--ink); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .t-name:hover { text-decoration: underline; }

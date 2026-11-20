@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { SiteHeader } from './SiteHeader';
 import { loadAnswers, go } from '../answers';
 import { poolOf, E, SNAP, n } from '../session';
+import { markSmartShopperCompleted, matchesUnlocked, setPendingMatchesUrl } from '../save/matchesUnlock';
 
 // Question-path loading screen (after Summary → Submit). Title "Getting your matches" (Zach's wording for this screen).
 // Stages are the live bishsos.com/smart-shopper loading stages, filled from this shopper's answers. Ink progress only, no gold.
@@ -19,7 +20,11 @@ export function QLoading() {
     if (frozen) return;
     const t = reduce ? 350 : 800;
     const ids = [1, 2, 3].map((k) => window.setTimeout(() => setStep(k), t * k));
-    const done = window.setTimeout(() => go('results'), t * 3 + (reduce ? 150 : 300));
+    const done = window.setTimeout(() => {
+      markSmartShopperCompleted();
+      setPendingMatchesUrl('?state=results');
+      go(matchesUnlocked() ? 'results' : 'unlock');
+    }, t * 3 + (reduce ? 150 : 300));
     return () => { ids.forEach(clearTimeout); clearTimeout(done); };
   }, [frozen, reduce]);
   const pct = Math.min(100, Math.round(((step + 1) / 3) * 100));

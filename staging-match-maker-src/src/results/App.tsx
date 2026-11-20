@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from 'react';
 import { GridGlyph, Grip, I, ListGlyph, Svg } from './icons';
 import logo from './assets/logo-bishs-rv-black-gold.png';
 import { Carousel, InvTable, InvTools, type View } from './InvViews';
@@ -23,7 +23,6 @@ import { SaveButton, SaveFlow, savePhaseFromUrl, type SavePhase } from '../save/
 // Gold only where Zach's refs put it; each such element carries (or "cta") so checks can audit it.
 
 const PAGE = 24;
-const POOL = PAGE + 3;
 type Tab = 'top3' | 'saved' | 'inventory';
 type DragFns = { onDragStart: (stock: string, e: DragEvent) => void; onDragOver: (i: number | null) => void; onDrop: (i: number, e: DragEvent) => void };
 
@@ -107,16 +106,6 @@ export function App() {
     else if (savePhase === 'save-success') document.title = "Your progress is saved · Smart Shopper · Bish's RV";
     else document.title = tab === 'top3' ? "Your top three · Smart Shopper · Bish's RV" : tab === 'saved' ? "Saved · Smart Shopper · Bish's RV" : "Find your next getaway · Smart Shopper · Bish's RV";
   }, [tab, savePhase]);
-  useLayoutEffect(() => {
-    if (tab !== 'inventory' || view !== 'grid') return;
-    const slot = document.getElementById('mm-slot-1');
-    const root = document.getElementById('mm-root');
-    if (!slot || !root) return;
-    const set = () => root.style.setProperty('--tile-w', `${slot.getBoundingClientRect().width}px`);
-    set();
-    const ro = new ResizeObserver(set); ro.observe(slot);
-    return () => ro.disconnect();
-  }, [tab, view]);
   useEffect(() => { writeQuery(pins, tab, drawer, view, desk.location, seedLoc); }, [pins, tab, drawer, view, desk.location, seedLoc]);
   useEffect(() => {
     if (!drawer) return;
@@ -128,13 +117,7 @@ export function App() {
   const pinCache = useRef<Record<string, Match>>({});
   rows.forEach((m) => { pinCache.current[m.unit.stock] = m; });
   const slots = pins.map((s) => (s ? (rows.find((m) => m.unit.stock === s) || pinCache.current[s] || matchOf(s)) : null));
-  const seededPins = useRef(pins.some(Boolean));
-  useEffect(() => {
-    if (seededPins.current || !rows.length) return;
-    seededPins.current = true;
-    setPins([rows[0]?.unit.stock || '', rows[1]?.unit.stock || '', rows[2]?.unit.stock || '']);
-  }, [rows]);
-  const others = rows.filter((m) => !pins.includes(m.unit.stock)).slice(0, PAGE);
+  const pageRows = rows.slice(0, PAGE);
   const fit = tab === 'inventory';
   const setSlots = (next: string[]) => setPins([next[0] || '', next[1] || '', next[2] || '']);
   const pin = (stock: string) => {
@@ -177,12 +160,9 @@ export function App() {
             <Filters open={filtOpen} desk={desk} answers={answers} onChange={setDesk} />
             <TabsRow tab={tab} onTab={setTab} savedN={savedSet.length} tools={<InvTools view={view} onView={setView} search={desk.search} onSearch={(search) => setDesk((d) => ({ ...d, search }))} location={desk.location} onLocation={(location) => setDesk((d) => ({ ...d, location }))} stores={locationsOf()} mine={answers.stores && answers.stores.length > 1 ? answers.stores.length : 0} />} />
             {view === 'grid' ? (
-              <>
-                <TopStrip slots={slots} over={over} drag={drag} onRemove={unpin} onOpen={() => setTab('top3')} />
-                <Carousel others={others} total={live.total} alsoShown={rows.filter((m) => pins.includes(m.unit.stock)).length} onList={() => setView('list')} {...tileProps} />
-              </>
+              <Carousel others={pageRows} total={live.total} onList={() => setView('list')} {...tileProps} />
             ) : (
-              <InvTable slots={slots} others={rows.filter((m) => !pins.includes(m.unit.stock))} total={live.total} onRemove={unpin} {...tileProps} />
+              <InvTable others={rows} total={live.total} {...tileProps} />
             )}
           </>
         )}
@@ -474,79 +454,12 @@ function TabsRow({ tab, onTab, savedN, tools }: { tab: Tab; onTab: (t: Tab) => v
   );
 }
 
-/* ─────────── All inventory: sticky top three ─────────── */
-
-function TopStrip({ slots, over, drag, onRemove, onOpen }: { slots: (Match | null)[]; over: number | null; drag: DragFns; onRemove: (i: number) => void; onOpen: () => void }) {
-  const n = slots.filter(Boolean).length;
-  return (
-    <section className="t3" id="mm-sticky" data-spec-id="sec-top3-pinned" aria-label="Your top three, pinned">
-      <div className="t3-h" id="mm-t3-h">
-        <span className="t3-pill" id="mm-t3-pill" data-spec-id="label-top3-pinned">
-          <Svg id="mm-t3-pill-icon" d={I.pin} size={15} />
-          <b id="mm-t3-pill-b">Your top three</b>
-          <span id="mm-t3-pill-s">· Pinned</span>
-        </span>
-        <span className="t3-count" id="mm-t3-count" data-spec-id="info-top3-count">{n} of 3</span>
-      </div>
-      <div className="t3-grid" id="mm-t3-grid">
-        <ol className="t3-slots" id="mm-pin-row" data-spec-id="list-top3-slots">
-          {slots.map((m, i) => <PinSlot key={i} i={i} m={m} over={over === i} drag={drag} onRemove={onRemove} />)}
-        </ol>
-        <div className="t3-aside" id="mm-t3-aside">
-          <p className="t3-foot" id="mm-t3-foot" data-spec-id="info-top3-drag-hint">
-            <Grip id="mm-t3-foot-grip" size={16} />
-            <span id="mm-t3-foot-t">Drag an RV into a top-three slot.</span>
-          </p>
-          <p className="t3-aside-s" id="mm-t3-aside-s">Or tap the pin on any RV. Your top three stay right here while you browse.</p>
-          <button type="button" className="t3-open" id="mm-t3-open" data-spec-id="btn-action-open-top-three" data-bos-class="action" onClick={onOpen} disabled={!n}>
-            Compare your top three →
-          </button>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function reasonLine(m: Match) {
   if (m.picked) return 'The RV you searched for.';
   const ft = lengthFt(m.unit);
   if (m.fits) return ft && ft <= 36 ? 'Private bedroom with room in your budget.' : 'More room, still in your budget.';
   if (m.fits === false) return 'A little over budget, more space.';
   return 'A close match for you.';
-}
-
-function PinSlot({ i, m, over, drag, onRemove }: { i: number; m: Match | null; over: boolean; drag: DragFns; onRemove: (i: number) => void }) {
-  const n = i + 1;
-  const id = `mm-slot-${n}`;
-  return (
-    <li className={`slot${m ? ' is-filled' : ' is-empty'}${over ? ' is-over' : ''}`} id={id} data-spec-id={`card-top3-slot#${n}`} data-bos-type="card"
-      onDragOver={(e) => { e.preventDefault(); drag.onDragOver(i); }} onDragLeave={() => drag.onDragOver(null)} onDrop={(e) => drag.onDrop(i, e)}>
-      {m ? (
-        <article className="card slot-card" id={`${id}-card`} aria-labelledby={`${id}-name`} draggable onDragStart={(e) => drag.onDragStart(m.unit.stock, e)}>
-          <span className="num" id={`${id}-num`} data-spec-id={`badge-top3-number#${n}`}>{n}</span>
-          <div className="ph-media" id={`${id}-media`} data-spec-id={`media-top3-slot#${n}`}>
-            <UnitPhoto className="ph-img" id={`${id}-img`} stock={m.unit.stock} art={unitImg(m.unit)} title={unitTitle(m.unit)} />
-            {m.picked && <span className="badge-pick" id={`${id}-pick`} data-spec-id={`badge-your-pick-slot#${n}`}>Your pick</span>}
-            <span className="slot-tools" id={`${id}-tools`}>
-              <button type="button" className="tool-b" id={`${id}-remove`} data-spec-id={`btn-action-remove-slot#${n}`} data-bos-class="action" aria-label={`Remove from slot ${n}`} title="Remove" onClick={() => onRemove(i)}><Svg id={`${id}-remove-i`} d={I.x} size={14} stroke={2} /></button>
-              <button type="button" className="tool-b grip" id={`${id}-grip`} data-spec-id={`btn-action-drag-slot#${n}`} data-bos-class="action" aria-label={`Drag to reorder slot ${n}`} title="Drag"><Grip id={`${id}-grip-i`} size={16} /></button>
-            </span>
-          </div>
-          <div className="card-b" id={`${id}-body`}>
-            <h3 className="c-name" id={`${id}-name`} data-spec-id={`label-top3-slot-title#${n}`}>{unitTitle(m.unit)}</h3>
-            <p className="c-price" id={`${id}-price`}>{m.priceText}</p>
-            <p className="c-meta c-meta-line" id={`${id}-meta`}>Sleeps {m.unit.sleeps ?? '—'} · {lengthFt(m.unit)} ft · {storeCity(m.unit.location)}</p>
-            <p className="c-reason" id={`${id}-reason`}>{reasonLine(m)}</p>
-          </div>
-        </article>
-      ) : (
-        <div className="slot-empty slot-ghost" id={`${id}-empty`}>
-          <span className="ghost-media" id={`${id}-ghost-media`}><span className="slot-empty-n" id={`${id}-empty-n`}>#{n}</span></span>
-          <span className="ghost-body" id={`${id}-ghost-body`}><span className="slot-empty-t" id={`${id}-empty-t`}>Pin an RV here</span></span>
-        </div>
-      )}
-    </li>
-  );
 }
 
 function Tile({ m, pins, saved, onPin, onSave, drag, prefix = 'mm-tile' }: {
@@ -566,6 +479,7 @@ function Tile({ m, pins, saved, onPin, onSave, drag, prefix = 'mm-tile' }: {
           {m.picked
             ? <span className="badge-pick" id={`${id}-pick`} data-spec-id={`badge-your-pick#${u.stock}${sfx}`}>Your pick</span>
             : (u.isLStock ? <span className="badge-fp" id={`${id}-fp`} data-spec-id={`badge-floorplan-example#${u.stock}${sfx}`}>Floor plan</span> : null)}
+          <span className="score score-on-photo" id={`${id}-score`} data-spec-id={`info-score#${u.stock}${sfx}`} aria-label={`Match score ${m.score}`}>{m.score}</span>
         </div>
         {slot >= 0
           ? <span className="pin-on" id={`${id}-pinned`} data-spec-id={`info-pinned#${u.stock}${sfx}`}>#{slot + 1}</span>
